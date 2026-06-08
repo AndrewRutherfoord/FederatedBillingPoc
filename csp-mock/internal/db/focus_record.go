@@ -8,5 +8,6 @@ import (
 // FocusRecord is the GORM model for a persisted FOCUS 1.3 line item.
 type FocusRecord struct {
 	gorm.Model
+	ID                         string `gorm:"uniqueIndex" json:"id"`
 	sharedmodels.FocusLineItem `gorm:"embedded"`
 }

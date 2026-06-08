@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
 )
 
 type Clock interface {
@@ -15,9 +16,10 @@ type Clock interface {
 type MockClock struct {
 	currentTime  int64
 	keyValueRepo repository.KeyValueRepository
+	scheduler    *scheduler.Scheduler
 }
 
-func NewMockClock(startTime int64, keyValueRepo repository.KeyValueRepository) *MockClock {
+func NewMockClock(startTime int64, keyValueRepo repository.KeyValueRepository, sched *scheduler.Scheduler) *MockClock {
 	current, err := keyValueRepo.Get(context.Background(), "current_time")
 	if err == nil {
 		if parsed, err := time.Parse(time.RFC3339, current); err == nil {
@@ -25,7 +27,7 @@ func NewMockClock(startTime int64, keyValueRepo repository.KeyValueRepository) *
 		}
 	}
 
-	clock := &MockClock{currentTime: startTime, keyValueRepo: keyValueRepo}
+	clock := &MockClock{currentTime: startTime, keyValueRepo: keyValueRepo, scheduler: sched}
 
 	// Persist the initial time if it wasn't already set
 	if err != nil {
@@ -48,4 +50,11 @@ func (c *MockClock) Now() time.Time {
 func (c *MockClock) Advance(seconds int64) {
 	c.currentTime += seconds
 	c.persistCurrentTime()
+
+	// Execute scheduled jobs asynchronously so time advancement doesn't block
+	go func() {
+		if err := c.scheduler.CheckAndExecute(context.Background(), c.Now()); err != nil {
+			log.Printf("error executing scheduled jobs: %v", err)
+		}
+	}()
 }

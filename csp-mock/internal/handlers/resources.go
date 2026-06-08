@@ -69,7 +69,7 @@ func (s *Server) CreateResource(c *gin.Context) {
 		return
 	}
 
-	resourceType, err := s.repos.ResourceTypes.Get(req.ResourceType)
+	resourceType, err := s.repos.ResourceTypes.GetById(c.Request.Context(), req.ResourceType)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "Resource type not found"})
 		return

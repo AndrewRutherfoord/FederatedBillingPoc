@@ -6,6 +6,7 @@ import (
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared-models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -30,13 +31,13 @@ func newFocusRepo(database *gorm.DB) FocusRepository {
 }
 
 func (r *focusRepo) Insert(ctx context.Context, item sharedmodels.FocusLineItem) error {
-	return r.db.WithContext(ctx).Create(&db.FocusRecord{FocusLineItem: item}).Error
+	return r.db.WithContext(ctx).Create(&db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item}).Error
 }
 
 func (r *focusRepo) InsertBatch(ctx context.Context, items []sharedmodels.FocusLineItem) error {
 	records := make([]db.FocusRecord, len(items))
 	for i, item := range items {
-		records[i] = db.FocusRecord{FocusLineItem: item}
+		records[i] = db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item}
 	}
 	return r.db.WithContext(ctx).Create(&records).Error
 }

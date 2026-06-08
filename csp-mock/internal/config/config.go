@@ -78,6 +78,7 @@ type CspConfig struct {
 	Currency         string            `yaml:"currency"`
 	RegionID         string            `yaml:"region_id"`
 	RegionName       string            `yaml:"region_name"`
+	AvailabilityZone string            `yaml:"availability_zone"`
 	ResourceTypes    []ResourceType    `yaml:"resource_types"`
 	BillingProviders []BillingProvider `yaml:"billing_providers"`
 	Metering         MeteringConfig    `yaml:"metering"`

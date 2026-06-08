@@ -25,6 +25,7 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -49,11 +50,25 @@ func main() {
 	}
 
 	repos := repository.New(cfg, database)
-	mockClock := util.NewMockClock(1767225600, repos.KeyValue) // Jan 1, 2026 00:00:00 UTC
+
+	sched := scheduler.NewWithPersistence(repos.KeyValue)
+	err = scheduler.RegisterJobs(sched, []scheduler.JobToRegister{
+		scheduler.NewJobToRegister(
+			scheduler.NewRecordMeteringAndCostJob("record-metering-and-cost", repos, cfg),
+			"0 0 * * * *", // Every hour at :00 seconds
+		),
+	})
+	if err != nil {
+		log.Fatalf("failed to register jobs: %v", err)
+	}
+
+	// Mock clock that allows manual time advancement for testing. It also checks for scheduled tasks to execute whenever time is advanced.
+	// Default to Jan 1, 2026 00:00:00 UTC
+	mockClock := util.NewMockClock(1767225600, repos.KeyValue, sched)
 
 	r := gin.Default()
 	r.Use(cors.Default())
-	handlers.NewServer(repos, mockClock).RegisterRoutes(r)
+	handlers.NewServer(repos, mockClock, sched).RegisterRoutes(r)
 
 	log.Printf("Starting %s (%s) on :8080", repos.Provider.Name, repos.Provider.ID)
 	if err := r.Run(":8080"); err != nil {

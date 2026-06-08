@@ -7,6 +7,7 @@ provider_name: "MockCloud EU-West"
 currency: "EUR"
 region_id: "eu-west-1"
 region_name: "EU West (Amsterdam)"
+availability_zone: "eu-west-1a"
 
 resource_types:
 

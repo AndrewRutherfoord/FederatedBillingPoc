@@ -10,6 +10,7 @@ import (
 type BillingAccountRepository interface {
 	Create(ctx context.Context, account db.BillingAccount) (*db.BillingAccount, error)
 	GetByAccountID(ctx context.Context, accountID string) (*db.BillingAccount, error)
+	List(ctx context.Context) ([]db.BillingAccount, error)
 	ListByCustomer(ctx context.Context, customerID string) ([]db.BillingAccount, error)
 	ListByBillingProvider(ctx context.Context, billingProviderID string) ([]db.BillingAccount, error)
 }
@@ -28,6 +29,14 @@ func (r *billingAccountRepo) GetByAccountID(ctx context.Context, accountID strin
 		return nil, err
 	}
 	return &account, nil
+}
+
+func (r *billingAccountRepo) List(ctx context.Context) ([]db.BillingAccount, error) {
+	var accounts []db.BillingAccount
+	if err := r.db.WithContext(ctx).Find(&accounts).Error; err != nil {
+		return nil, err
+	}
+	return accounts, nil
 }
 
 func (r *billingAccountRepo) ListByCustomer(ctx context.Context, customerID string) ([]db.BillingAccount, error) {

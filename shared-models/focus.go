@@ -30,45 +30,45 @@ const (
 type ServiceCategory string
 
 const (
-	ServiceCategoryAIAndMachineLearning  ServiceCategory = "ai_and_machine_learning"
-	ServiceCategoryAnalytics             ServiceCategory = "analytics"
-	ServiceCategoryBusinessApplications  ServiceCategory = "business_applications"
-	ServiceCategoryCompute               ServiceCategory = "compute"
-	ServiceCategoryDatabases             ServiceCategory = "databases"
-	ServiceCategoryDeveloperTools        ServiceCategory = "developer_tools"
-	ServiceCategoryMulticloud            ServiceCategory = "multicloud"
-	ServiceCategoryIdentity              ServiceCategory = "identity"
-	ServiceCategoryIntegration           ServiceCategory = "integration"
-	ServiceCategoryInternetOfThings      ServiceCategory = "internet_of_things"
-	ServiceCategoryManagementGovernance  ServiceCategory = "management_and_governance"
-	ServiceCategoryMedia                 ServiceCategory = "media"
-	ServiceCategoryMigration             ServiceCategory = "migration"
-	ServiceCategoryMobile                ServiceCategory = "mobile"
-	ServiceCategoryNetworking            ServiceCategory = "networking"
-	ServiceCategorySecurity              ServiceCategory = "security"
-	ServiceCategoryStorage               ServiceCategory = "storage"
-	ServiceCategoryWeb                   ServiceCategory = "web"
-	ServiceCategoryOther                 ServiceCategory = "other"
+	ServiceCategoryAIAndMachineLearning ServiceCategory = "ai_and_machine_learning"
+	ServiceCategoryAnalytics            ServiceCategory = "analytics"
+	ServiceCategoryBusinessApplications ServiceCategory = "business_applications"
+	ServiceCategoryCompute              ServiceCategory = "compute"
+	ServiceCategoryDatabases            ServiceCategory = "databases"
+	ServiceCategoryDeveloperTools       ServiceCategory = "developer_tools"
+	ServiceCategoryMulticloud           ServiceCategory = "multicloud"
+	ServiceCategoryIdentity             ServiceCategory = "identity"
+	ServiceCategoryIntegration          ServiceCategory = "integration"
+	ServiceCategoryInternetOfThings     ServiceCategory = "internet_of_things"
+	ServiceCategoryManagementGovernance ServiceCategory = "management_and_governance"
+	ServiceCategoryMedia                ServiceCategory = "media"
+	ServiceCategoryMigration            ServiceCategory = "migration"
+	ServiceCategoryMobile               ServiceCategory = "mobile"
+	ServiceCategoryNetworking           ServiceCategory = "networking"
+	ServiceCategorySecurity             ServiceCategory = "security"
+	ServiceCategoryStorage              ServiceCategory = "storage"
+	ServiceCategoryWeb                  ServiceCategory = "web"
+	ServiceCategoryOther                ServiceCategory = "other"
 )
 
 type ServiceSubcategory string
 
 const (
 	// AI and Machine Learning
-	ServiceSubcategoryAIPlatforms                ServiceSubcategory = "ai_platforms"
-	ServiceSubcategoryBots                       ServiceSubcategory = "bots"
-	ServiceSubcategoryGenerativeAI               ServiceSubcategory = "generative_ai"
-	ServiceSubcategoryMachineLearning            ServiceSubcategory = "machine_learning"
-	ServiceSubcategoryNaturalLanguageProcessing  ServiceSubcategory = "natural_language_processing"
-	ServiceSubcategoryOtherAIAndML               ServiceSubcategory = "other_ai_and_machine_learning"
+	ServiceSubcategoryAIPlatforms               ServiceSubcategory = "ai_platforms"
+	ServiceSubcategoryBots                      ServiceSubcategory = "bots"
+	ServiceSubcategoryGenerativeAI              ServiceSubcategory = "generative_ai"
+	ServiceSubcategoryMachineLearning           ServiceSubcategory = "machine_learning"
+	ServiceSubcategoryNaturalLanguageProcessing ServiceSubcategory = "natural_language_processing"
+	ServiceSubcategoryOtherAIAndML              ServiceSubcategory = "other_ai_and_machine_learning"
 
 	// Analytics
-	ServiceSubcategoryAnalyticsPlatforms ServiceSubcategory = "analytics_platforms"
+	ServiceSubcategoryAnalyticsPlatforms   ServiceSubcategory = "analytics_platforms"
 	ServiceSubcategoryBusinessIntelligence ServiceSubcategory = "business_intelligence"
-	ServiceSubcategoryDataProcessing     ServiceSubcategory = "data_processing"
-	ServiceSubcategorySearch             ServiceSubcategory = "search"
-	ServiceSubcategoryStreamingAnalytics ServiceSubcategory = "streaming_analytics"
-	ServiceSubcategoryOtherAnalytics     ServiceSubcategory = "other_analytics"
+	ServiceSubcategoryDataProcessing       ServiceSubcategory = "data_processing"
+	ServiceSubcategorySearch               ServiceSubcategory = "search"
+	ServiceSubcategoryStreamingAnalytics   ServiceSubcategory = "streaming_analytics"
+	ServiceSubcategoryOtherAnalytics       ServiceSubcategory = "other_analytics"
 
 	// Business Applications
 	ServiceSubcategoryProductivityCollaboration ServiceSubcategory = "productivity_and_collaboration"
@@ -83,47 +83,47 @@ const (
 	ServiceSubcategoryOtherCompute      ServiceSubcategory = "other_compute"
 
 	// Databases
-	ServiceSubcategoryCaching            ServiceSubcategory = "caching"
-	ServiceSubcategoryDataWarehouses     ServiceSubcategory = "data_warehouses"
-	ServiceSubcategoryLedgerDatabases    ServiceSubcategory = "ledger_databases"
-	ServiceSubcategoryNoSQLDatabases     ServiceSubcategory = "nosql_databases"
+	ServiceSubcategoryCaching             ServiceSubcategory = "caching"
+	ServiceSubcategoryDataWarehouses      ServiceSubcategory = "data_warehouses"
+	ServiceSubcategoryLedgerDatabases     ServiceSubcategory = "ledger_databases"
+	ServiceSubcategoryNoSQLDatabases      ServiceSubcategory = "nosql_databases"
 	ServiceSubcategoryRelationalDatabases ServiceSubcategory = "relational_databases"
 	ServiceSubcategoryTimeSeriesDatabases ServiceSubcategory = "time_series_databases"
-	ServiceSubcategoryOtherDatabases     ServiceSubcategory = "other_databases"
+	ServiceSubcategoryOtherDatabases      ServiceSubcategory = "other_databases"
 
 	// Developer Tools
-	ServiceSubcategoryDeveloperPlatforms          ServiceSubcategory = "developer_platforms"
-	ServiceSubcategoryCICD                        ServiceSubcategory = "continuous_integration_and_deployment"
-	ServiceSubcategoryDevelopmentEnvironments     ServiceSubcategory = "development_environments"
-	ServiceSubcategorySourceCodeManagement        ServiceSubcategory = "source_code_management"
-	ServiceSubcategoryQualityAssurance            ServiceSubcategory = "quality_assurance"
-	ServiceSubcategoryOtherDeveloperTools         ServiceSubcategory = "other_developer_tools"
+	ServiceSubcategoryDeveloperPlatforms      ServiceSubcategory = "developer_platforms"
+	ServiceSubcategoryCICD                    ServiceSubcategory = "continuous_integration_and_deployment"
+	ServiceSubcategoryDevelopmentEnvironments ServiceSubcategory = "development_environments"
+	ServiceSubcategorySourceCodeManagement    ServiceSubcategory = "source_code_management"
+	ServiceSubcategoryQualityAssurance        ServiceSubcategory = "quality_assurance"
+	ServiceSubcategoryOtherDeveloperTools     ServiceSubcategory = "other_developer_tools"
 
 	// Identity
 	ServiceSubcategoryIAM           ServiceSubcategory = "identity_and_access_management"
 	ServiceSubcategoryOtherIdentity ServiceSubcategory = "other_identity"
 
 	// Integration
-	ServiceSubcategoryAPIManagement        ServiceSubcategory = "api_management"
-	ServiceSubcategoryMessaging            ServiceSubcategory = "messaging"
+	ServiceSubcategoryAPIManagement         ServiceSubcategory = "api_management"
+	ServiceSubcategoryMessaging             ServiceSubcategory = "messaging"
 	ServiceSubcategoryWorkflowOrchestration ServiceSubcategory = "workflow_orchestration"
-	ServiceSubcategoryOtherIntegration     ServiceSubcategory = "other_integration"
+	ServiceSubcategoryOtherIntegration      ServiceSubcategory = "other_integration"
 
 	// Internet of Things
-	ServiceSubcategoryIoTAnalytics        ServiceSubcategory = "iot_analytics"
-	ServiceSubcategoryIoTPlatforms        ServiceSubcategory = "iot_platforms"
-	ServiceSubcategoryOtherIoT            ServiceSubcategory = "other_internet_of_things"
+	ServiceSubcategoryIoTAnalytics ServiceSubcategory = "iot_analytics"
+	ServiceSubcategoryIoTPlatforms ServiceSubcategory = "iot_platforms"
+	ServiceSubcategoryOtherIoT     ServiceSubcategory = "other_internet_of_things"
 
 	// Management and Governance
-	ServiceSubcategoryArchitecture          ServiceSubcategory = "architecture"
-	ServiceSubcategoryCompliance            ServiceSubcategory = "compliance"
-	ServiceSubcategoryCostManagement        ServiceSubcategory = "cost_management"
-	ServiceSubcategoryDataGovernance        ServiceSubcategory = "data_governance"
-	ServiceSubcategoryDisasterRecovery      ServiceSubcategory = "disaster_recovery"
-	ServiceSubcategoryEndpointManagement    ServiceSubcategory = "endpoint_management"
-	ServiceSubcategoryObservability         ServiceSubcategory = "observability"
-	ServiceSubcategorySupport               ServiceSubcategory = "support"
-	ServiceSubcategoryOtherMgmtGovernance   ServiceSubcategory = "other_management_and_governance"
+	ServiceSubcategoryArchitecture        ServiceSubcategory = "architecture"
+	ServiceSubcategoryCompliance          ServiceSubcategory = "compliance"
+	ServiceSubcategoryCostManagement      ServiceSubcategory = "cost_management"
+	ServiceSubcategoryDataGovernance      ServiceSubcategory = "data_governance"
+	ServiceSubcategoryDisasterRecovery    ServiceSubcategory = "disaster_recovery"
+	ServiceSubcategoryEndpointManagement  ServiceSubcategory = "endpoint_management"
+	ServiceSubcategoryObservability       ServiceSubcategory = "observability"
+	ServiceSubcategorySupport             ServiceSubcategory = "support"
+	ServiceSubcategoryOtherMgmtGovernance ServiceSubcategory = "other_management_and_governance"
 
 	// Media
 	ServiceSubcategoryContentCreation ServiceSubcategory = "content_creation"
@@ -154,18 +154,18 @@ const (
 	ServiceSubcategoryOtherNetworking       ServiceSubcategory = "other_networking"
 
 	// Security
-	ServiceSubcategorySecretManagement         ServiceSubcategory = "secret_management"
-	ServiceSubcategorySecurityPostureMgmt      ServiceSubcategory = "security_posture_management"
-	ServiceSubcategoryThreatDetectionResponse  ServiceSubcategory = "threat_detection_and_response"
-	ServiceSubcategoryOtherSecurity            ServiceSubcategory = "other_security"
+	ServiceSubcategorySecretManagement        ServiceSubcategory = "secret_management"
+	ServiceSubcategorySecurityPostureMgmt     ServiceSubcategory = "security_posture_management"
+	ServiceSubcategoryThreatDetectionResponse ServiceSubcategory = "threat_detection_and_response"
+	ServiceSubcategoryOtherSecurity           ServiceSubcategory = "other_security"
 
 	// Storage
-	ServiceSubcategoryBackupStorage   ServiceSubcategory = "backup_storage"
-	ServiceSubcategoryBlockStorage    ServiceSubcategory = "block_storage"
-	ServiceSubcategoryFileStorage     ServiceSubcategory = "file_storage"
-	ServiceSubcategoryObjectStorage   ServiceSubcategory = "object_storage"
+	ServiceSubcategoryBackupStorage    ServiceSubcategory = "backup_storage"
+	ServiceSubcategoryBlockStorage     ServiceSubcategory = "block_storage"
+	ServiceSubcategoryFileStorage      ServiceSubcategory = "file_storage"
+	ServiceSubcategoryObjectStorage    ServiceSubcategory = "object_storage"
 	ServiceSubcategoryStoragePlatforms ServiceSubcategory = "storage_platforms"
-	ServiceSubcategoryOtherStorage    ServiceSubcategory = "other_storage"
+	ServiceSubcategoryOtherStorage     ServiceSubcategory = "other_storage"
 
 	// Web
 	ServiceSubcategoryApplicationPlatforms ServiceSubcategory = "application_platforms"
@@ -179,24 +179,24 @@ const (
 // Reference: https://focus.finops.org/focus-specification/1-3/
 type FocusLineItem struct {
 	// Required Fields
-	BilledCost          decimal.Decimal `json:"billed_cost"`
-	BillingAccountID    string          `json:"billing_account_id"`
-	BillingAccountType  string          `json:"billing_account_type"`
-	BillingCurrency     string          `json:"billing_currency"`
-	BillingPeriodEnd    time.Time       `json:"billing_period_end"`
-	BillingPeriodStart  time.Time       `json:"billing_period_start"`
-	ChargeCategory      string          `json:"charge_category"`
-	ChargeFrequency     string          `json:"charge_frequency"`
-	ChargePeriodEnd     time.Time       `json:"charge_period_end"`
-	ChargePeriodStart   time.Time       `json:"charge_period_start"`
-	ContractedCost      decimal.Decimal `json:"contracted_cost"`
-	EffectiveCost       decimal.Decimal `json:"effective_cost"`
-	HostProviderName    string          `json:"host_provider_name"`
-	InvoiceIssuerName   string          `json:"invoice_issuer_name"`
-	ListCost            decimal.Decimal `json:"list_cost"`
-	ServiceCategory     ServiceCategory `json:"service_category"`
-	ServiceName         string          `json:"service_name"`
-	ServiceProviderName string          `json:"service_provider_name"`
+	BilledCost          decimal.Decimal    `json:"billed_cost"`
+	BillingAccountID    string             `json:"billing_account_id"`
+	BillingAccountType  string             `json:"billing_account_type"`
+	BillingCurrency     string             `json:"billing_currency"`
+	BillingPeriodEnd    time.Time          `json:"billing_period_end"`
+	BillingPeriodStart  time.Time          `json:"billing_period_start"`
+	ChargeCategory      string             `json:"charge_category"`
+	ChargeFrequency     string             `json:"charge_frequency"`
+	ChargePeriodEnd     time.Time          `json:"charge_period_end"`
+	ChargePeriodStart   time.Time          `json:"charge_period_start"`
+	ContractedCost      decimal.Decimal    `json:"contracted_cost"`
+	EffectiveCost       decimal.Decimal    `json:"effective_cost"`
+	HostProviderName    string             `json:"host_provider_name"`
+	InvoiceIssuerName   string             `json:"invoice_issuer_name"`
+	ListCost            decimal.Decimal    `json:"list_cost"`
+	ServiceCategory     ServiceCategory    `json:"service_category"`
+	ServiceName         string             `json:"service_name"`
+	ServiceProviderName string             `json:"service_provider_name"`
 	ServiceSubcategory  ServiceSubcategory `json:"service_subcategory"`
 
 	// Optional Fields - Allocation
@@ -236,21 +236,21 @@ type FocusLineItem struct {
 	ConsumedUnit     *string          `json:"consumed_unit,omitempty"`
 
 	// Optional Fields - Contract
-	ContractApplied      *string          `json:"contract_applied,omitempty"`
-	ContractedUnitPrice  *decimal.Decimal `json:"contracted_unit_price,omitempty"`
+	ContractApplied     *string          `json:"contract_applied,omitempty"`
+	ContractedUnitPrice *decimal.Decimal `json:"contracted_unit_price,omitempty"`
 
 	// Optional Fields - Invoice
 	InvoiceID *string `json:"invoice_id,omitempty"`
 
 	// Optional Fields - Pricing
-	ListUnitPrice                       *decimal.Decimal `json:"list_unit_price,omitempty"`
-	PricingCategory                     *string          `json:"pricing_category,omitempty"`
-	PricingCurrency                     *string          `json:"pricing_currency,omitempty"`
-	PricingCurrencyContractedUnitPrice  *decimal.Decimal `json:"pricing_currency_contracted_unit_price,omitempty"`
-	PricingCurrencyEffectiveCost        *decimal.Decimal `json:"pricing_currency_effective_cost,omitempty"`
-	PricingCurrencyListUnitPrice        *decimal.Decimal `json:"pricing_currency_list_unit_price,omitempty"`
-	PricingQuantity                     *decimal.Decimal `json:"pricing_quantity,omitempty"`
-	PricingUnit                         *string          `json:"pricing_unit,omitempty"`
+	ListUnitPrice                      *decimal.Decimal `json:"list_unit_price,omitempty"`
+	PricingCategory                    *string          `json:"pricing_category,omitempty"`
+	PricingCurrency                    *string          `json:"pricing_currency,omitempty"`
+	PricingCurrencyContractedUnitPrice *decimal.Decimal `json:"pricing_currency_contracted_unit_price,omitempty"`
+	PricingCurrencyEffectiveCost       *decimal.Decimal `json:"pricing_currency_effective_cost,omitempty"`
+	PricingCurrencyListUnitPrice       *decimal.Decimal `json:"pricing_currency_list_unit_price,omitempty"`
+	PricingQuantity                    *decimal.Decimal `json:"pricing_quantity,omitempty"`
+	PricingUnit                        *string          `json:"pricing_unit,omitempty"`
 
 	// Optional Fields - Resource
 	ResourceID   *string `json:"resource_id,omitempty"`
@@ -270,4 +270,239 @@ type FocusLineItem struct {
 
 	// Optional Fields - Tags
 	Tags *string `json:"tags,omitempty"`
+}
+
+type FocusLineItemBuilder struct {
+	item FocusLineItem
+}
+
+func NewFocusLineItemBuilder() *FocusLineItemBuilder {
+	return &FocusLineItemBuilder{}
+}
+
+func (b *FocusLineItemBuilder) Copy() *FocusLineItemBuilder {
+	itemCopy := b.item
+	return &FocusLineItemBuilder{item: itemCopy}
+}
+
+func (b *FocusLineItemBuilder) WithProviderAndPeriod(
+	// Billing Account
+	billingAccountID string,
+	billingAccountType string,
+	billingCurrency string,
+	// Billing Period
+	billingPeriodStart time.Time,
+	billingPeriodEnd time.Time,
+	// Charge
+	chargeCategory string,
+	chargeFrequency string,
+	// Charge Period
+	chargePeriodStart time.Time,
+	chargePeriodEnd time.Time,
+	// Providers & Issuer
+	hostProviderName string,
+	serviceProviderName string,
+	invoiceIssuerName string,
+) *FocusLineItemBuilder {
+	b.item.BillingAccountID = billingAccountID
+	b.item.BillingAccountType = billingAccountType
+	b.item.BillingCurrency = billingCurrency
+	b.item.BillingPeriodStart = billingPeriodStart
+	b.item.BillingPeriodEnd = billingPeriodEnd
+	b.item.ChargeCategory = chargeCategory
+	b.item.ChargeFrequency = chargeFrequency
+	b.item.ChargePeriodStart = chargePeriodStart
+	b.item.ChargePeriodEnd = chargePeriodEnd
+	b.item.HostProviderName = hostProviderName
+	b.item.ServiceProviderName = serviceProviderName
+	b.item.InvoiceIssuerName = invoiceIssuerName
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithServiceAndCosts(
+	// Service
+	serviceCategory ServiceCategory,
+	serviceSubcategory ServiceSubcategory,
+	serviceName string,
+	// Costs
+	billedCost decimal.Decimal,
+	listCost decimal.Decimal,
+	contractedCost decimal.Decimal,
+	effectiveCost decimal.Decimal,
+) *FocusLineItemBuilder {
+	b.item.ServiceCategory = serviceCategory
+	b.item.ServiceSubcategory = serviceSubcategory
+	b.item.ServiceName = serviceName
+	b.item.BilledCost = billedCost
+	b.item.ListCost = listCost
+	b.item.ContractedCost = contractedCost
+	b.item.EffectiveCost = effectiveCost
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithAllocation(
+	// Allocation Method
+	methodID *string,
+	methodDetails *string,
+	// Allocated Resource
+	resourceID *string,
+	resourceName *string,
+	// Tags
+	tags *string,
+) *FocusLineItemBuilder {
+	b.item.AllocatedMethodID = methodID
+	b.item.AllocatedMethodDetails = methodDetails
+	b.item.AllocatedResourceID = resourceID
+	b.item.AllocatedResourceName = resourceName
+	b.item.AllocatedTags = tags
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithLocation(
+	zone string,
+	regionID string,
+	regionName string,
+) *FocusLineItemBuilder {
+	b.item.AvailabilityZone = &zone
+	b.item.RegionID = &regionID
+	b.item.RegionName = &regionName
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithBillingAccountName(name *string) *FocusLineItemBuilder {
+	b.item.BillingAccountName = name
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithCapacityReservation(
+	id *string,
+	status *CapacityReservationStatus,
+) *FocusLineItemBuilder {
+	b.item.CapacityReservationID = id
+	b.item.CapacityReservationStatus = status
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithChargeDetails(
+	class *string,
+	description *string,
+) *FocusLineItemBuilder {
+	b.item.ChargeClass = class
+	b.item.ChargeDescription = description
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithCommitmentDiscount(
+	// Discount Type
+	category *CommitmentDiscountCategory,
+	discountType *string,
+	// Discount Identification
+	id *string,
+	name *string,
+	// Discount Status
+	status *CommitmentDiscountStatus,
+	// Discount Quantity
+	quantity *decimal.Decimal,
+	unit *string,
+) *FocusLineItemBuilder {
+	b.item.CommitmentDiscountCategory = category
+	b.item.CommitmentDiscountType = discountType
+	b.item.CommitmentDiscountID = id
+	b.item.CommitmentDiscountName = name
+	b.item.CommitmentDiscountStatus = status
+	b.item.CommitmentDiscountQuantity = quantity
+	b.item.CommitmentDiscountUnit = unit
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithConsumption(
+	quantity *decimal.Decimal,
+	unit *string,
+) *FocusLineItemBuilder {
+	b.item.ConsumedQuantity = quantity
+	b.item.ConsumedUnit = unit
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithContract(
+	applied *string,
+	unitPrice *decimal.Decimal,
+) *FocusLineItemBuilder {
+	b.item.ContractApplied = applied
+	b.item.ContractedUnitPrice = unitPrice
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithInvoice(id *string) *FocusLineItemBuilder {
+	b.item.InvoiceID = id
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithPricing(
+	// Pricing Unit
+	unit *string,
+	quantity *decimal.Decimal,
+	// List Pricing
+	listUnitPrice *decimal.Decimal,
+	// Pricing Details
+	category *string,
+	currency *string,
+	// Currency-Adjusted Pricing
+	currencyListUnitPrice *decimal.Decimal,
+	currencyContractedUnitPrice *decimal.Decimal,
+	currencyEffectiveCost *decimal.Decimal,
+) *FocusLineItemBuilder {
+	b.item.PricingUnit = unit
+	b.item.PricingQuantity = quantity
+	b.item.ListUnitPrice = listUnitPrice
+	b.item.PricingCategory = category
+	b.item.PricingCurrency = currency
+	b.item.PricingCurrencyListUnitPrice = currencyListUnitPrice
+	b.item.PricingCurrencyContractedUnitPrice = currencyContractedUnitPrice
+	b.item.PricingCurrencyEffectiveCost = currencyEffectiveCost
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithResource(
+	id *string,
+	name *string,
+	resourceType *string,
+) *FocusLineItemBuilder {
+	b.item.ResourceID = id
+	b.item.ResourceName = name
+	b.item.ResourceType = resourceType
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithSku(
+	id *string,
+	meter *string,
+	priceDetails *string,
+	priceID *string,
+) *FocusLineItemBuilder {
+	b.item.SkuID = id
+	b.item.SkuMeter = meter
+	b.item.SkuPriceDetails = priceDetails
+	b.item.SkuPriceID = priceID
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithSubAccount(
+	id *string,
+	name *string,
+	accountType *string,
+) *FocusLineItemBuilder {
+	b.item.SubAccountID = id
+	b.item.SubAccountName = name
+	b.item.SubAccountType = accountType
+	return b
+}
+
+func (b *FocusLineItemBuilder) WithTags(tags *string) *FocusLineItemBuilder {
+	b.item.Tags = tags
+	return b
+}
+
+func (b *FocusLineItemBuilder) Build() *FocusLineItem {
+	return &b.item
 }

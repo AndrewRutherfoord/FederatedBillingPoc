@@ -9,8 +9,9 @@ import (
 )
 
 type CustomerRepository interface {
-	Create(ctx context.Context, name, email string) (*db.Customer, error)
+	List(ctx context.Context) ([]db.Customer, error)
 	GetByID(ctx context.Context, id string) (*db.Customer, error)
+	Create(ctx context.Context, name, email string) (*db.Customer, error)
 }
 
 type customerRepo struct {
@@ -39,4 +40,12 @@ func (r *customerRepo) GetByID(ctx context.Context, id string) (*db.Customer, er
 		return nil, err
 	}
 	return &customer, nil
+}
+
+func (r *customerRepo) List(ctx context.Context) ([]db.Customer, error) {
+	var customers []db.Customer
+	if err := r.db.WithContext(ctx).Find(&customers).Error; err != nil {
+		return nil, err
+	}
+	return customers, nil
 }

@@ -17,7 +17,7 @@ var _ config.ResourceType // swag type anchor
 //	@Success	200	{array}		config.ResourceType
 //	@Router		/resource-types [get]
 func (s *Server) ListResourceTypes(c *gin.Context) {
-	c.JSON(http.StatusOK, s.repos.ResourceTypes.List())
+	c.JSON(http.StatusOK, s.repos.ResourceTypes.List(c.Request.Context()))
 }
 
 // GetResourceType godoc
@@ -31,8 +31,8 @@ func (s *Server) ListResourceTypes(c *gin.Context) {
 //	@Router		/resource-types/{id} [get]
 func (s *Server) GetResourceType(c *gin.Context) {
 	id := c.Param("id")
-	rt, ok := s.repos.ResourceTypes.Get(id)
-	if !ok {
+	rt, err := s.repos.ResourceTypes.GetById(c.Request.Context(), id)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "resource type not found", "id": id})
 		return
 	}
