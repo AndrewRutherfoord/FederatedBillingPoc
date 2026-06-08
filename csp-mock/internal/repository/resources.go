@@ -13,7 +13,7 @@ import (
 type ResourceRepository interface {
 	ListByCustomerID(ctx context.Context, customerID string) ([]*db.Resource, error)
 	ListByBillingAccountID(ctx context.Context, billingAccountID string) ([]*db.Resource, error)
-	Create(ctx context.Context, customerID, billingAccountID, resourceType string) (*db.Resource, error)
+	Create(ctx context.Context, customerID, billingAccountID, resourceType string, storageGB *decimal.Decimal) (*db.Resource, error)
 	SetStorageGB(ctx context.Context, id string, gb decimal.Decimal) error
 	Delete(ctx context.Context, id string) error
 	GetByID(ctx context.Context, id string) (*db.Resource, error)
@@ -51,12 +51,13 @@ func (r *resourceRepo) GetByID(ctx context.Context, id string) (*db.Resource, er
 	return &resource, nil
 }
 
-func (r *resourceRepo) Create(ctx context.Context, customerID, billingAccountID, resourceType string) (*db.Resource, error) {
+func (r *resourceRepo) Create(ctx context.Context, customerID, billingAccountID, resourceType string, storageGB *decimal.Decimal) (*db.Resource, error) {
 	resource := &db.Resource{
 		ID:               uuid.NewString(),
 		CustomerID:       customerID,
 		BillingAccountID: billingAccountID,
 		ResourceType:     resourceType,
+		StorageGB:        storageGB,
 		StartedAt:        time.Now().UTC(),
 	}
 	if err := r.db.WithContext(ctx).Create(resource).Error; err != nil {

@@ -16,7 +16,9 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"os"
 
 	_ "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
@@ -29,12 +31,19 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load("config.yaml")
+	configPath := flag.String("config", "config.yaml", "path to config file")
+	flag.Parse()
+
+	cfg, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	database, err := db.Open("csp-mock.sqlite")
+	dbPath := os.Getenv("CSP_DB_PATH")
+	if dbPath == "" {
+		dbPath = "csp-mock.sqlite"
+	}
+	database, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}

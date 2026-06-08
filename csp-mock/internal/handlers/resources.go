@@ -69,7 +69,19 @@ func (s *Server) CreateResource(c *gin.Context) {
 		return
 	}
 
-	resource, err := s.repos.Resources.Create(c.Request.Context(), customer.ID, billingAccountID, req.ResourceType)
+	resourceType, err := s.repos.ResourceTypes.Get(req.ResourceType)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "Resource type not found"})
+		return
+	}
+
+	var storageGB *decimal.Decimal
+	if resourceType.Pricing.Model == "per_gb_hour" {
+		val := decimal.NewFromInt(1)
+		storageGB = &val // Default to 1 GB for storage-based pricing
+	}
+
+	resource, err := s.repos.Resources.Create(c.Request.Context(), customer.ID, billingAccountID, req.ResourceType, storageGB)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

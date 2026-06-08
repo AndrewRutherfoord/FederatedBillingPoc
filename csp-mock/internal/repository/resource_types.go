@@ -1,10 +1,14 @@
 package repository
 
-import "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
+import (
+	"fmt"
+
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
+)
 
 type ResourceTypeRepository interface {
 	List() []config.ResourceType
-	Get(id string) (*config.ResourceType, bool)
+	Get(id string) (*config.ResourceType, error)
 }
 
 type resourceTypeRepo struct {
@@ -19,11 +23,11 @@ func (r *resourceTypeRepo) List() []config.ResourceType {
 	return r.items
 }
 
-func (r *resourceTypeRepo) Get(id string) (*config.ResourceType, bool) {
+func (r *resourceTypeRepo) Get(id string) (*config.ResourceType, error) {
 	for i := range r.items {
 		if r.items[i].ID == id {
-			return &r.items[i], true
+			return &r.items[i], nil
 		}
 	}
-	return nil, false
+	return nil, fmt.Errorf("resource type not found")
 }
