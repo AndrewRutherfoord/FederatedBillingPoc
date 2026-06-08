@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"name": "ROOT",
+			"path": "../"
+		},
+		// {
+		// 	"name": "Billing Provider",
+		// 	"path": "../billing_provider"
+		// },
+		// {
+		// 	"name": "Schemas",
+		// 	"path": "../fed-bill-schemas"
+		// },
+		// {
+		// 	"name": "Mock CSP",
+		// 	"path": "../mock-csp"
+		// }
+	],
+	"settings": {
+        "files.exclude": {
+            // "fed-bill-schemas/": true,
+            // "mock-csp/": true,
+            // "billing_provider/": true,
+        },
+	}
+}

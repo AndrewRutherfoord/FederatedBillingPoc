@@ -1,0 +1,1130 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Mock Cloud Service Provider billing API implementing the FOCUS spec.",
+        "title": "CSP Mock API",
+        "contact": {
+            "name": "Andrew Rutherfoord"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/billing-accounts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing-accounts"
+                ],
+                "summary": "List all billing accounts for the authenticated customer",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/db.BillingAccount"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing-accounts"
+                ],
+                "summary": "Create a new billing account for the authenticated customer",
+                "parameters": [
+                    {
+                        "description": "Billing account details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createBillingAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/db.BillingAccount"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/billing-accounts/{account_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing-accounts"
+                ],
+                "summary": "Get a billing account by account ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Billing account ID",
+                        "name": "account_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.BillingAccount"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clock/advance": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clock"
+                ],
+                "summary": "Advance the mock clock by a specified number of seconds. Default to 1 hour if not provided.",
+                "parameters": [
+                    {
+                        "description": "Number of seconds to advance",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.advanceTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/clock/current": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clock"
+                ],
+                "summary": "Get the current time from the mock clock",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customer": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Get the authenticated customer",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.Customer"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customer/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customer"
+                ],
+                "summary": "Register a new customer",
+                "parameters": [
+                    {
+                        "description": "Customer details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.registerCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/db.Customer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resource-types": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "List all resource types offered by this CSP",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/config.ResourceType"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resource-types/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Get a resource type by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource type ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/config.ResourceType"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resources": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "List all resources for the authenticated customer",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/db.Resource"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Provision a new resource for the authenticated customer",
+                "parameters": [
+                    {
+                        "description": "Resource details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.createResourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/db.Resource"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resources/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Delete a resource by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/resources/{id}/storage": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Update the storage GB for a resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Resource ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Storage details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.setStorageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "config.PricingConfig": {
+            "type": "object",
+            "properties": {
+                "model": {
+                    "type": "string"
+                },
+                "tiers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/config.PricingTier"
+                    }
+                },
+                "unitPrice": {
+                    "type": "number"
+                }
+            }
+        },
+        "config.PricingTier": {
+            "type": "object",
+            "properties": {
+                "unitPrice": {
+                    "type": "number"
+                },
+                "upToGB": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.ResourceType": {
+            "type": "object",
+            "properties": {
+                "billingUnit": {
+                    "type": "string"
+                },
+                "configSchema": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "description": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "pricing": {
+                    "$ref": "#/definitions/config.PricingConfig"
+                },
+                "serviceCategory": {
+                    "$ref": "#/definitions/sharedmodels.ServiceCategory"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "serviceSubcategory": {
+                    "$ref": "#/definitions/sharedmodels.ServiceSubcategory"
+                },
+                "skuID": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "db.BillingAccount": {
+            "type": "object",
+            "properties": {
+                "accountID": {
+                    "type": "string"
+                },
+                "billingProviderID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customerID": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.Customer": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.Resource": {
+            "type": "object",
+            "properties": {
+                "billingAccountID": {
+                    "type": "string"
+                },
+                "customerID": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "description": "Soft delete timestamp",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resourceType": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "storageGB": {
+                    "type": "number"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "handlers.advanceTimeRequest": {
+            "type": "object",
+            "properties": {
+                "seconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.createBillingAccountRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "billing_provider"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "billing_provider": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.createResourceRequest": {
+            "type": "object",
+            "required": [
+                "billing_account_id",
+                "resource_type"
+            ],
+            "properties": {
+                "billing_account_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.registerCustomerRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.setStorageRequest": {
+            "type": "object",
+            "required": [
+                "storage_gb"
+            ],
+            "properties": {
+                "storage_gb": {
+                    "type": "number"
+                }
+            }
+        },
+        "sharedmodels.ServiceCategory": {
+            "type": "string",
+            "enum": [
+                "ai_and_machine_learning",
+                "analytics",
+                "business_applications",
+                "compute",
+                "databases",
+                "developer_tools",
+                "multicloud",
+                "identity",
+                "integration",
+                "internet_of_things",
+                "management_and_governance",
+                "media",
+                "migration",
+                "mobile",
+                "networking",
+                "security",
+                "storage",
+                "web",
+                "other"
+            ],
+            "x-enum-varnames": [
+                "ServiceCategoryAIAndMachineLearning",
+                "ServiceCategoryAnalytics",
+                "ServiceCategoryBusinessApplications",
+                "ServiceCategoryCompute",
+                "ServiceCategoryDatabases",
+                "ServiceCategoryDeveloperTools",
+                "ServiceCategoryMulticloud",
+                "ServiceCategoryIdentity",
+                "ServiceCategoryIntegration",
+                "ServiceCategoryInternetOfThings",
+                "ServiceCategoryManagementGovernance",
+                "ServiceCategoryMedia",
+                "ServiceCategoryMigration",
+                "ServiceCategoryMobile",
+                "ServiceCategoryNetworking",
+                "ServiceCategorySecurity",
+                "ServiceCategoryStorage",
+                "ServiceCategoryWeb",
+                "ServiceCategoryOther"
+            ]
+        },
+        "sharedmodels.ServiceSubcategory": {
+            "type": "string",
+            "enum": [
+                "ai_platforms",
+                "bots",
+                "generative_ai",
+                "machine_learning",
+                "natural_language_processing",
+                "other_ai_and_machine_learning",
+                "analytics_platforms",
+                "business_intelligence",
+                "data_processing",
+                "search",
+                "streaming_analytics",
+                "other_analytics",
+                "productivity_and_collaboration",
+                "other_business_applications",
+                "containers",
+                "end_user_computing",
+                "quantum_compute",
+                "serverless_compute",
+                "virtual_machines",
+                "other_compute",
+                "caching",
+                "data_warehouses",
+                "ledger_databases",
+                "nosql_databases",
+                "relational_databases",
+                "time_series_databases",
+                "other_databases",
+                "developer_platforms",
+                "continuous_integration_and_deployment",
+                "development_environments",
+                "source_code_management",
+                "quality_assurance",
+                "other_developer_tools",
+                "identity_and_access_management",
+                "other_identity",
+                "api_management",
+                "messaging",
+                "workflow_orchestration",
+                "other_integration",
+                "iot_analytics",
+                "iot_platforms",
+                "other_internet_of_things",
+                "architecture",
+                "compliance",
+                "cost_management",
+                "data_governance",
+                "disaster_recovery",
+                "endpoint_management",
+                "observability",
+                "support",
+                "other_management_and_governance",
+                "content_creation",
+                "gaming",
+                "media_streaming",
+                "mixed_reality",
+                "other_media",
+                "data_migration",
+                "resource_migration",
+                "other_migration",
+                "other_mobile",
+                "multicloud_integration",
+                "other_multicloud",
+                "application_networking",
+                "content_delivery",
+                "network_connectivity",
+                "network_infrastructure",
+                "network_routing",
+                "network_security",
+                "other_networking",
+                "secret_management",
+                "security_posture_management",
+                "threat_detection_and_response",
+                "other_security",
+                "backup_storage",
+                "block_storage",
+                "file_storage",
+                "object_storage",
+                "storage_platforms",
+                "other_storage",
+                "application_platforms",
+                "other_web",
+                "other_other"
+            ],
+            "x-enum-varnames": [
+                "ServiceSubcategoryAIPlatforms",
+                "ServiceSubcategoryBots",
+                "ServiceSubcategoryGenerativeAI",
+                "ServiceSubcategoryMachineLearning",
+                "ServiceSubcategoryNaturalLanguageProcessing",
+                "ServiceSubcategoryOtherAIAndML",
+                "ServiceSubcategoryAnalyticsPlatforms",
+                "ServiceSubcategoryBusinessIntelligence",
+                "ServiceSubcategoryDataProcessing",
+                "ServiceSubcategorySearch",
+                "ServiceSubcategoryStreamingAnalytics",
+                "ServiceSubcategoryOtherAnalytics",
+                "ServiceSubcategoryProductivityCollaboration",
+                "ServiceSubcategoryOtherBusinessApplications",
+                "ServiceSubcategoryContainers",
+                "ServiceSubcategoryEndUserComputing",
+                "ServiceSubcategoryQuantumCompute",
+                "ServiceSubcategoryServerlessCompute",
+                "ServiceSubcategoryVirtualMachines",
+                "ServiceSubcategoryOtherCompute",
+                "ServiceSubcategoryCaching",
+                "ServiceSubcategoryDataWarehouses",
+                "ServiceSubcategoryLedgerDatabases",
+                "ServiceSubcategoryNoSQLDatabases",
+                "ServiceSubcategoryRelationalDatabases",
+                "ServiceSubcategoryTimeSeriesDatabases",
+                "ServiceSubcategoryOtherDatabases",
+                "ServiceSubcategoryDeveloperPlatforms",
+                "ServiceSubcategoryCICD",
+                "ServiceSubcategoryDevelopmentEnvironments",
+                "ServiceSubcategorySourceCodeManagement",
+                "ServiceSubcategoryQualityAssurance",
+                "ServiceSubcategoryOtherDeveloperTools",
+                "ServiceSubcategoryIAM",
+                "ServiceSubcategoryOtherIdentity",
+                "ServiceSubcategoryAPIManagement",
+                "ServiceSubcategoryMessaging",
+                "ServiceSubcategoryWorkflowOrchestration",
+                "ServiceSubcategoryOtherIntegration",
+                "ServiceSubcategoryIoTAnalytics",
+                "ServiceSubcategoryIoTPlatforms",
+                "ServiceSubcategoryOtherIoT",
+                "ServiceSubcategoryArchitecture",
+                "ServiceSubcategoryCompliance",
+                "ServiceSubcategoryCostManagement",
+                "ServiceSubcategoryDataGovernance",
+                "ServiceSubcategoryDisasterRecovery",
+                "ServiceSubcategoryEndpointManagement",
+                "ServiceSubcategoryObservability",
+                "ServiceSubcategorySupport",
+                "ServiceSubcategoryOtherMgmtGovernance",
+                "ServiceSubcategoryContentCreation",
+                "ServiceSubcategoryGaming",
+                "ServiceSubcategoryMediaStreaming",
+                "ServiceSubcategoryMixedReality",
+                "ServiceSubcategoryOtherMedia",
+                "ServiceSubcategoryDataMigration",
+                "ServiceSubcategoryResourceMigration",
+                "ServiceSubcategoryOtherMigration",
+                "ServiceSubcategoryOtherMobile",
+                "ServiceSubcategoryMulticloudIntegration",
+                "ServiceSubcategoryOtherMulticloud",
+                "ServiceSubcategoryApplicationNetworking",
+                "ServiceSubcategoryContentDelivery",
+                "ServiceSubcategoryNetworkConnectivity",
+                "ServiceSubcategoryNetworkInfrastructure",
+                "ServiceSubcategoryNetworkRouting",
+                "ServiceSubcategoryNetworkSecurity",
+                "ServiceSubcategoryOtherNetworking",
+                "ServiceSubcategorySecretManagement",
+                "ServiceSubcategorySecurityPostureMgmt",
+                "ServiceSubcategoryThreatDetectionResponse",
+                "ServiceSubcategoryOtherSecurity",
+                "ServiceSubcategoryBackupStorage",
+                "ServiceSubcategoryBlockStorage",
+                "ServiceSubcategoryFileStorage",
+                "ServiceSubcategoryObjectStorage",
+                "ServiceSubcategoryStoragePlatforms",
+                "ServiceSubcategoryOtherStorage",
+                "ServiceSubcategoryApplicationPlatforms",
+                "ServiceSubcategoryOtherWeb",
+                "ServiceSubcategoryOtherOther"
+            ]
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Bearer \u003caccount_id\u003e",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
