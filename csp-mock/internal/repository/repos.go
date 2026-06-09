@@ -24,6 +24,7 @@ type Repos struct {
 	BillingProviders BillingProviderRepository
 	BillingAccounts  BillingAccountRepository
 	Focus            FocusRepository
+	CostBatch        CostBatchRepository
 	KeyValue         KeyValueRepository
 }
 
@@ -42,6 +43,7 @@ func New(cfg *config.CspConfig, database *gorm.DB) *Repos {
 		BillingProviders: newBillingProviderRepo(cfg.BillingProviders),
 		BillingAccounts:  newBillingAccountRepo(database),
 		Focus:            newFocusRepo(database),
+		CostBatch:        newCostBatchRepo(database),
 		KeyValue:         newKeyValueRepo(database),
 	}
 }

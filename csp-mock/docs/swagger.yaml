@@ -34,11 +34,11 @@ definitions:
       pricing:
         $ref: '#/definitions/config.PricingConfig'
       serviceCategory:
-        $ref: '#/definitions/sharedmodels.ServiceCategory'
+        $ref: '#/definitions/shared.ServiceCategory'
       serviceName:
         type: string
       serviceSubcategory:
-        $ref: '#/definitions/sharedmodels.ServiceSubcategory'
+        $ref: '#/definitions/shared.ServiceSubcategory'
       skuID:
         type: string
       tags:
@@ -138,7 +138,7 @@ definitions:
     required:
     - storage_gb
     type: object
-  sharedmodels.ServiceCategory:
+  shared.ServiceCategory:
     enum:
     - ai_and_machine_learning
     - analytics
@@ -180,7 +180,7 @@ definitions:
     - ServiceCategoryStorage
     - ServiceCategoryWeb
     - ServiceCategoryOther
-  sharedmodels.ServiceSubcategory:
+  shared.ServiceSubcategory:
     enum:
     - ai_platforms
     - bots
@@ -637,6 +637,15 @@ paths:
       - catalog
   /resources:
     get:
+      parameters:
+      - description: Limit the number of results returned
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:

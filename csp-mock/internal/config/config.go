@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared-models"
+	shared "github.com/andrewrutherfoord/fed-bill-poc/shared"
 	"github.com/shopspring/decimal"
 	"gopkg.in/yaml.v3"
 )
@@ -32,17 +32,17 @@ type PricingConfig struct {
 }
 
 type ResourceType struct {
-	ID                 string                          `yaml:"id"`
-	DisplayName        string                          `yaml:"display_name"`
-	Description        string                          `yaml:"description,omitempty"`
-	ServiceName        string                          `yaml:"service_name"`
-	ServiceCategory    sharedmodels.ServiceCategory    `yaml:"service_category"`
-	ServiceSubcategory sharedmodels.ServiceSubcategory `yaml:"service_subcategory"`
-	SkuID              string                          `yaml:"sku_id"`
-	BillingUnit        string                          `yaml:"billing_unit"`
-	Pricing            PricingConfig                   `yaml:"pricing"`
-	ConfigSchema       map[string]any                  `yaml:"config_schema,omitempty"`
-	Tags               map[string]string               `yaml:"tags,omitempty"`
+	ID                 string                    `yaml:"id"`
+	DisplayName        string                    `yaml:"display_name"`
+	Description        string                    `yaml:"description,omitempty"`
+	ServiceName        string                    `yaml:"service_name"`
+	ServiceCategory    shared.ServiceCategory    `yaml:"service_category"`
+	ServiceSubcategory shared.ServiceSubcategory `yaml:"service_subcategory"`
+	SkuID              string                    `yaml:"sku_id"`
+	BillingUnit        string                    `yaml:"billing_unit"`
+	Pricing            PricingConfig             `yaml:"pricing"`
+	ConfigSchema       map[string]any            `yaml:"config_schema,omitempty"`
+	Tags               map[string]string         `yaml:"tags,omitempty"`
 }
 
 // UnmarshalYAML normalises service_category and service_subcategory from
@@ -55,8 +55,8 @@ func (r *ResourceType) UnmarshalYAML(value *yaml.Node) error {
 		return err
 	}
 	*r = ResourceType(tmp)
-	r.ServiceCategory = sharedmodels.ServiceCategory(normalizeLabel(string(r.ServiceCategory)))
-	r.ServiceSubcategory = sharedmodels.ServiceSubcategory(normalizeLabel(string(r.ServiceSubcategory)))
+	r.ServiceCategory = shared.ServiceCategory(normalizeLabel(string(r.ServiceCategory)))
+	r.ServiceSubcategory = shared.ServiceSubcategory(normalizeLabel(string(r.ServiceSubcategory)))
 	return nil
 }
 

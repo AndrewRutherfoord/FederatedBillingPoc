@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
-	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared-models"
+	shared "github.com/andrewrutherfoord/fed-bill-poc/shared"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -17,9 +17,11 @@ type FocusFilter struct {
 }
 
 type FocusRepository interface {
-	Insert(ctx context.Context, item sharedmodels.FocusLineItem) error
-	InsertBatch(ctx context.Context, items []sharedmodels.FocusLineItem) error
-	List(ctx context.Context, filter FocusFilter) ([]sharedmodels.FocusLineItem, error)
+	Insert(ctx context.Context, item shared.FocusLineItem) error
+	InsertBatch(ctx context.Context, items []shared.FocusLineItem) error
+	InsertWithBatchID(ctx context.Context, item shared.FocusLineItem, batchID string) error
+	InsertBatchWithBatchID(ctx context.Context, items []shared.FocusLineItem, batchID string) error
+	List(ctx context.Context, filter FocusFilter) ([]shared.FocusLineItem, error)
 }
 
 type focusRepo struct {
@@ -30,11 +32,11 @@ func newFocusRepo(database *gorm.DB) FocusRepository {
 	return &focusRepo{db: database}
 }
 
-func (r *focusRepo) Insert(ctx context.Context, item sharedmodels.FocusLineItem) error {
+func (r *focusRepo) Insert(ctx context.Context, item shared.FocusLineItem) error {
 	return r.db.WithContext(ctx).Create(&db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item}).Error
 }
 
-func (r *focusRepo) InsertBatch(ctx context.Context, items []sharedmodels.FocusLineItem) error {
+func (r *focusRepo) InsertBatch(ctx context.Context, items []shared.FocusLineItem) error {
 	records := make([]db.FocusRecord, len(items))
 	for i, item := range items {
 		records[i] = db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item}
@@ -42,7 +44,19 @@ func (r *focusRepo) InsertBatch(ctx context.Context, items []sharedmodels.FocusL
 	return r.db.WithContext(ctx).Create(&records).Error
 }
 
-func (r *focusRepo) List(ctx context.Context, filter FocusFilter) ([]sharedmodels.FocusLineItem, error) {
+func (r *focusRepo) InsertWithBatchID(ctx context.Context, item shared.FocusLineItem, batchID string) error {
+	return r.db.WithContext(ctx).Create(&db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item, BatchID: batchID}).Error
+}
+
+func (r *focusRepo) InsertBatchWithBatchID(ctx context.Context, items []shared.FocusLineItem, batchID string) error {
+	records := make([]db.FocusRecord, len(items))
+	for i, item := range items {
+		records[i] = db.FocusRecord{ID: uuid.NewString(), FocusLineItem: item, BatchID: batchID}
+	}
+	return r.db.WithContext(ctx).Create(&records).Error
+}
+
+func (r *focusRepo) List(ctx context.Context, filter FocusFilter) ([]shared.FocusLineItem, error) {
 	q := r.db.WithContext(ctx).Model(&db.FocusRecord{})
 	if filter.BillingAccountID != "" {
 		q = q.Where("billing_account_id = ?", filter.BillingAccountID)
@@ -59,7 +73,7 @@ func (r *focusRepo) List(ctx context.Context, filter FocusFilter) ([]sharedmodel
 		return nil, err
 	}
 
-	items := make([]sharedmodels.FocusLineItem, len(records))
+	items := make([]shared.FocusLineItem, len(records))
 	for i, rec := range records {
 		items[i] = rec.FocusLineItem
 	}

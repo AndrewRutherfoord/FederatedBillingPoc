@@ -12,7 +12,7 @@ func Open(path string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening database: %w", err)
 	}
-	if err := database.AutoMigrate(&FocusRecord{}, &BillingAccount{}, &Customer{}, &Resource{}, &KeyValue{}); err != nil {
+	if err := database.AutoMigrate(&FocusRecord{}, &BillingAccount{}, &Customer{}, &Resource{}, &KeyValue{}, &CostBatch{}); err != nil {
 		return nil, fmt.Errorf("running migrations: %w", err)
 	}
 	return database, nil

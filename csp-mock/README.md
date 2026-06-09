@@ -7,9 +7,12 @@ Billing data is emitted as [FinOps FOCUS 1.3](https://focus.finops.org/focus-spe
 ## Running
 
 ```bash
-go run . 
-# or from the workspace root:
-go run ./csp-mock/
+go run .  -config ./config.yaml
+# Or from the root of the repo
+go run ./csp-mock/main.go -config ./csp-mock/config.yaml
+
+# To specify the database path (optional, defaults to csp-mock.sqlite in the working directory):
+CSP_DB_PATH=./my-db.sqlite go run ./csp-mock/main.go -config ./csp-mock/config.yaml
 ```
 
 The server starts on `:8080`. It expects `config.yaml` in the working directory and creates `csp-mock.sqlite` on first run.
@@ -49,76 +52,29 @@ metering:
 
 `service_category` and `service_subcategory` accept human-readable title-case strings (e.g. `"Virtual Machines"`); they are normalised to FOCUS snake_case values at load time.
 
-## API
-
-### Public endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Liveness check. Returns provider ID. |
-| `GET` | `/resource-types` | List all resource types from the catalogue. |
-| `GET` | `/resource-types/:id` | Get a single resource type by ID. |
-| `POST` | `/account/register` | Register a new customer. |
-
-#### Register a customer
-
-```
-POST /account/register
-Content-Type: application/json
-
-{
-  "name": "Acme Corp",
-  "email": "billing@acme.example"
-}
-```
-
-Returns the created customer record including its generated `id`. Use this `id` when creating billing accounts.
-
-### Authenticated endpoints
-
-Authenticated routes require a billing account ID in the `Authorization` header:
-
-```
-Authorization: Bearer <account_id>
-```
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/account` | Returns the billing account associated with the token. |
 
 ## Project structure
 
 ```
 csp-mock/
-  config.yaml                    # Provider, catalogue, and metering config
-  main.go                        # Startup: load config, open DB, start server
+  config.yaml        # Provider, catalogue, and metering config
+  main.go            # Startup: load config, open DB, start server
   internal/
-    config/       config.go      # Config structs and YAML loader
-    db/                          # GORM models only
-      db.go                      # Opens SQLite, runs AutoMigrate
-      customer.go
-      billing_account.go
-      focus_record.go            # Embeds shared-models FocusLineItem
-    repository/                  # Data access interfaces and implementations
-      repos.go                   # Repos aggregate passed to handlers
-      customers.go               # DB-backed
-      billing_accounts.go        # DB-backed
-      billing_providers.go       # Config-backed
-      resource_types.go          # Config-backed
-      focus.go                   # DB-backed (FOCUS line items)
-    handlers/                    # Gin route handlers (methods on Server)
-      server.go                  # Server struct holding *Repos
-      routes.go                  # Route registration
-      health.go
-      catalog.go
-      customer.go
-      account.go
-    middleware/
-      auth.go                    # Bearer token → BillingAccount lookup
+    config/          # Config structs and YAML loader
+    db/              # GORM models only
+    repository/      # Data access interfaces and implementations
+    handlers/        # Gin route handlers (methods on Server)
+    middleware/      # Gin middleware (e.g. auth)
+    util/            # Shared utilities (e.g. FOCUS line item builder)
 ```
 
-## Data model
 
-- **Customer** — a registered end-user (name, email, UUID).
-- **BillingAccount** — links a customer to a billing provider using the provider-assigned `account_id`. Unique per `(billing_provider_id, account_id)`.
-- **FocusRecord** — a persisted FOCUS 1.3 line item. Wraps the `FocusLineItem` type from the `shared-models` module.
+## Swagger Documentation
+
+The API endpoints are annotated with [Swaggo](https://github.com/swaggo/swag) comments. To generate the Swagger documentation, run:
+
+```bash
+$(go env GOPATH)/bin/swag init --parseInternal --parseDependency -g main.go && 
+```
+
+The generated docs will be available at `http://localhost:8080/swagger/index.html` when the server is running. This is a simple way to interact with the API and verify that the endpoints are working as expected.

@@ -3,7 +3,8 @@ module github.com/andrewrutherfoord/fed-bill-poc/csp-mock
 go 1.26.2
 
 require (
-	github.com/andrewrutherfoord/fed-bill-poc/shared-models v0.0.0
+	github.com/andrewrutherfoord/fed-bill-poc/shared v0.0.0
+	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/glebarez/sqlite v1.11.0
@@ -73,4 +74,4 @@ require (
 	modernc.org/sqlite v1.23.1 // indirect
 )
 
-replace github.com/andrewrutherfoord/fed-bill-poc/shared-models => ../shared-models
+replace github.com/andrewrutherfoord/fed-bill-poc/shared => ../shared

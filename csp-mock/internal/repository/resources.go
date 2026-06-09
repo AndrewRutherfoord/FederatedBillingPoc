@@ -11,8 +11,8 @@ import (
 )
 
 type ResourceRepository interface {
-	ListByCustomerID(ctx context.Context, customerID string) ([]*db.Resource, error)
-	ListByBillingAccountID(ctx context.Context, billingAccountID string) ([]*db.Resource, error)
+	ListByCustomerID(ctx context.Context, customerID string, limit int, offset int) ([]*db.Resource, error)
+	ListByBillingAccountID(ctx context.Context, billingAccountID string, limit int, offset int) ([]*db.Resource, error)
 	Create(ctx context.Context, customerID, billingAccountID, resourceType string, storageGB *decimal.Decimal) (*db.Resource, error)
 	SetStorageGB(ctx context.Context, id string, gb decimal.Decimal) error
 	Delete(ctx context.Context, id string) error
@@ -27,17 +27,17 @@ func newResourceRepo(database *gorm.DB) ResourceRepository {
 	return &resourceRepo{db: database}
 }
 
-func (r *resourceRepo) ListByCustomerID(ctx context.Context, customerID string) ([]*db.Resource, error) {
+func (r *resourceRepo) ListByCustomerID(ctx context.Context, customerID string, limit int, offset int) ([]*db.Resource, error) {
 	var resources []*db.Resource
-	if err := r.db.WithContext(ctx).Where("customer_id = ? AND deleted_at IS NULL", customerID).Find(&resources).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("customer_id = ? AND deleted_at IS NULL", customerID).Limit(limit).Offset(offset).Find(&resources).Error; err != nil {
 		return nil, err
 	}
 	return resources, nil
 }
 
-func (r *resourceRepo) ListByBillingAccountID(ctx context.Context, billingAccountID string) ([]*db.Resource, error) {
+func (r *resourceRepo) ListByBillingAccountID(ctx context.Context, billingAccountID string, limit int, offset int) ([]*db.Resource, error) {
 	var resources []*db.Resource
-	if err := r.db.WithContext(ctx).Where("billing_account_id = ? AND deleted_at IS NULL", billingAccountID).Find(&resources).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("billing_account_id = ? AND deleted_at IS NULL", billingAccountID).Limit(limit).Offset(offset).Find(&resources).Error; err != nil {
 		return nil, err
 	}
 	return resources, nil

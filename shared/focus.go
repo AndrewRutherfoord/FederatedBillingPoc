@@ -1,4 +1,4 @@
-package sharedmodels
+package shared
 
 import (
 	"time"

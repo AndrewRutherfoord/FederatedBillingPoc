@@ -20,18 +20,20 @@ type setStorageRequest struct {
 
 // ListResources godoc
 //
-//	@Summary	List all resources for the authenticated customer
-//	@Tags		resources
-//	@Produce	json
-//	@Security	BearerAuth
-//	@Success	200	{array}		db.Resource
-//	@Failure	401	{object}	map[string]string
-//	@Failure	500	{object}	map[string]string
-//	@Router		/resources [get]
+// @Summary	List all resources for the authenticated customer
+// @Tags		resources
+// @Produce	json
+// @Security	BearerAuth
+// @Param limit query int false "Limit the number of results returned"
+// @Param offset query int false "Offset for pagination"
+// @Success	200	{array}		db.Resource
+// @Failure	401	{object}	map[string]string
+// @Failure	500	{object}	map[string]string
+// @Router		/resources [get]
 func (s *Server) ListResources(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
-	resources, err := s.repos.Resources.ListByCustomerID(c.Request.Context(), customer.ID)
+	resources, err := s.repos.Resources.ListByCustomerID(c.Request.Context(), customer.ID, 100, 0) // TODO: Add pagination support
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return

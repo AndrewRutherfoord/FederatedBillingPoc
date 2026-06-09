@@ -467,6 +467,20 @@ const docTemplate = `{
                     "resources"
                 ],
                 "summary": "List all resources for the authenticated customer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Limit the number of results returned",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -749,13 +763,13 @@ const docTemplate = `{
                     "$ref": "#/definitions/config.PricingConfig"
                 },
                 "serviceCategory": {
-                    "$ref": "#/definitions/sharedmodels.ServiceCategory"
+                    "$ref": "#/definitions/shared.ServiceCategory"
                 },
                 "serviceName": {
                     "type": "string"
                 },
                 "serviceSubcategory": {
-                    "$ref": "#/definitions/sharedmodels.ServiceSubcategory"
+                    "$ref": "#/definitions/shared.ServiceSubcategory"
                 },
                 "skuID": {
                     "type": "string"
@@ -908,7 +922,7 @@ const docTemplate = `{
                 }
             }
         },
-        "sharedmodels.ServiceCategory": {
+        "shared.ServiceCategory": {
             "type": "string",
             "enum": [
                 "ai_and_machine_learning",
@@ -953,7 +967,7 @@ const docTemplate = `{
                 "ServiceCategoryOther"
             ]
         },
-        "sharedmodels.ServiceSubcategory": {
+        "shared.ServiceSubcategory": {
             "type": "string",
             "enum": [
                 "ai_platforms",
