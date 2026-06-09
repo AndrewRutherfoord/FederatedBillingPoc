@@ -6,7 +6,7 @@
 //
 //	@contact.name	Andrew Rutherfoord
 //
-//	@host		localhost:8080
+//	@host		localhost:8081
 //	@BasePath	/
 //
 //	@securityDefinitions.apikey	BearerAuth
@@ -26,7 +26,7 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
-	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
+	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -62,16 +62,21 @@ func main() {
 		log.Fatalf("failed to register jobs: %v", err)
 	}
 
-	// Mock clock that allows manual time advancement for testing. It also checks for scheduled tasks to execute whenever time is advanced.
-	// Default to Jan 1, 2026 00:00:00 UTC
-	mockClock := util.NewMockClock(1767225600, repos.KeyValue, sched)
+	clockHost := os.Getenv("MOCK_CLOCK_HOST")
+	if clockHost == "" {
+		clockHost = "http://localhost:9999"
+	}
+
+	// Mock clock that allows manual time advancement for testing. It uses a centralised mock time server. Later it can be swapped out for a regular clock that just returns the current time.
+	// On the clock advancing it calls the scheduler's OnTimeAdvance method which triggers any jobs
+	clock := shared.NewMockClock(clockHost, []shared.OnTimeAdvanceCallback{sched})
 
 	r := gin.Default()
 	r.Use(cors.Default())
-	handlers.NewServer(repos, mockClock, sched).RegisterRoutes(r)
+	handlers.NewServer(repos, clock, sched).RegisterRoutes(r)
 
-	log.Printf("Starting %s (%s) on :8080", repos.Provider.Name, repos.Provider.ID)
-	if err := r.Run(":8080"); err != nil {
+	log.Printf("Starting %s (%s) on :8081", repos.Provider.Name, repos.Provider.ID)
+	if err := r.Run(":8081"); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

@@ -15,7 +15,7 @@ go run ./csp-mock/main.go -config ./csp-mock/config.yaml
 CSP_DB_PATH=./my-db.sqlite go run ./csp-mock/main.go -config ./csp-mock/config.yaml
 ```
 
-The server starts on `:8080`. It expects `config.yaml` in the working directory and creates `csp-mock.sqlite` on first run.
+The server starts on `:8081`. It expects `config.yaml` in the working directory and creates `csp-mock.sqlite` on first run.
 
 ## Configuration
 
@@ -77,4 +77,4 @@ The API endpoints are annotated with [Swaggo](https://github.com/swaggo/swag) co
 $(go env GOPATH)/bin/swag init --parseInternal --parseDependency -g main.go && 
 ```
 
-The generated docs will be available at `http://localhost:8080/swagger/index.html` when the server is running. This is a simple way to interact with the API and verify that the endpoints are working as expected.
+The generated docs will be available at `http://localhost:8081/swagger/index.html` when the server is running. This is a simple way to interact with the API and verify that the endpoints are working as expected.

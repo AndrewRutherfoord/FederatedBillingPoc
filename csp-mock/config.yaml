@@ -66,7 +66,7 @@ resource_types:
 billing_providers:
   - id: "billing-provider-1"
     name: "Mock Billing Provider"
-    api_endpoint: "http://localhost:8080/api/v1/billing"
+    api_endpoint: "http://localhost:8081/api/v1/billing"
 
 # ──────────────────────────────────────────────────────────────────
 # METERING TICK CONFIG

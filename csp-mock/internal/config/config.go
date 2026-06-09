@@ -66,6 +66,7 @@ type BillingProvider struct {
 	ApiEndpoint string `yaml:"api_endpoint"`
 }
 
+// TODO: Remove this since it's not being used
 type MeteringConfig struct {
 	TickIntervalSeconds   int `yaml:"tick_interval_seconds"`
 	SimulatedHoursPerTick int `yaml:"simulated_hours_per_tick"`

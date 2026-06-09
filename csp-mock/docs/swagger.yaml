@@ -348,7 +348,7 @@ definitions:
     - ServiceSubcategoryApplicationPlatforms
     - ServiceSubcategoryOtherWeb
     - ServiceSubcategoryOtherOther
-host: localhost:8080
+host: localhost:8081
 info:
   contact:
     name: Andrew Rutherfoord

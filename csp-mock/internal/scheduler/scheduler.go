@@ -188,6 +188,12 @@ func (s *Scheduler) GetJobStatus(jobID string) (lastExecution time.Time, nextRun
 	return entry.lastExecution, entry.schedule.Next(entry.lastExecution), true
 }
 
+func (s *Scheduler) OnTimeAdvance(newTime time.Time) {
+	if err := s.CheckAndExecute(context.Background(), newTime); err != nil {
+		log.Printf("error executing scheduled jobs: %v", err)
+	}
+}
+
 type JobToRegister struct {
 	job      Job
 	cronExpr string
