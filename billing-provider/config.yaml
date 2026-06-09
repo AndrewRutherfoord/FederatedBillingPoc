@@ -1,0 +1,12 @@
+
+# Mock CSP — Resource Registry & Pricing Catalogue
+# FOCUS 1.3 ServiceCategory / ServiceSubcategory taxonomy throughout.
+# Prices are illustrative (EUR).
+
+provider_id: "billing-provider-1"
+provider_name: "Billing Provider 1"
+
+cloud_service_providers:
+  - id: "mock-csp-1"
+    name: "MockCloud EU-West"
+    api_endpoint: "http://localhost:8080/api/v1/billing"
