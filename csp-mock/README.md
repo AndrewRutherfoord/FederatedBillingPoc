@@ -74,7 +74,7 @@ csp-mock/
 The API endpoints are annotated with [Swaggo](https://github.com/swaggo/swag) comments. To generate the Swagger documentation, run:
 
 ```bash
-$(go env GOPATH)/bin/swag init --parseInternal --parseDependency -g main.go && 
+$(go env GOPATH)/bin/swag init --parseInternal --parseDependency -g main.go
 ```
 
 The generated docs will be available at `http://localhost:8081/swagger/index.html` when the server is running. This is a simple way to interact with the API and verify that the endpoints are working as expected.
