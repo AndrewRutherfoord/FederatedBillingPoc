@@ -1,4 +1,4 @@
-package scheduler
+package shared
 
 import (
 	"context"
@@ -6,26 +6,40 @@ import (
 	"time"
 )
 
-// mockKVRepo is a simple in-memory key-value store for testing.
-type mockKVRepo struct {
-	data map[string]string
+// SimpleJob is a basic job implementation for testing.
+type SimpleJob struct {
+	id  string
+	fn  func(ctx context.Context) error
 }
 
-func (m *mockKVRepo) Get(ctx context.Context, key string) (string, error) {
-	val, ok := m.data[key]
+// NewSimpleJob creates a new simple job with a given ID and callback function.
+func NewSimpleJob(id string, fn func(ctx context.Context) error) *SimpleJob {
+	return &SimpleJob{id: id, fn: fn}
+}
+
+func (j *SimpleJob) ID() string {
+	return j.id
+}
+
+func (j *SimpleJob) Execute(ctx context.Context, startTime time.Time) error {
+	return j.fn(ctx)
+}
+
+// mockSchedulerPersistence is a storage-agnostic mock persistence layer for testing.
+type mockSchedulerPersistence struct {
+	executions map[string]time.Time
+}
+
+func (m *mockSchedulerPersistence) LoadLastExecution(ctx context.Context, jobID string) (time.Time, error) {
+	exec, ok := m.executions[jobID]
 	if !ok {
-		return "", nil
+		return time.Time{}, nil
 	}
-	return val, nil
+	return exec, nil
 }
 
-func (m *mockKVRepo) Set(ctx context.Context, key, value string) error {
-	m.data[key] = value
-	return nil
-}
-
-func (m *mockKVRepo) Delete(ctx context.Context, key string) error {
-	delete(m.data, key)
+func (m *mockSchedulerPersistence) SaveExecution(ctx context.Context, jobID string, t time.Time) error {
+	m.executions[jobID] = t
 	return nil
 }
 
@@ -121,10 +135,10 @@ func TestSchedulerJobStatus(t *testing.T) {
 
 func TestSchedulerPersistence(t *testing.T) {
 	ctx := context.Background()
-	kvRepo := &mockKVRepo{data: make(map[string]string)}
+	persistence := &mockSchedulerPersistence{executions: make(map[string]time.Time)}
 
 	// Create first scheduler, register and execute a job
-	sched1 := NewWithPersistence(kvRepo)
+	sched1 := NewWithPersistence(persistence)
 	job := NewSimpleJob("persistent-job", func(ctx context.Context) error { return nil })
 	cronSched, _ := NewCronSchedule("0 0 0 * * *") // Daily at midnight
 
@@ -142,8 +156,8 @@ func TestSchedulerPersistence(t *testing.T) {
 		t.Errorf("expected lastExec to be %v, got %v", start, lastExec)
 	}
 
-	// Create a second scheduler instance with the same kvRepo (simulating a restart)
-	sched2 := NewWithPersistence(kvRepo)
+	// Create a second scheduler instance with the same persistence (simulating a restart)
+	sched2 := NewWithPersistence(persistence)
 	job2 := NewSimpleJob("persistent-job", func(ctx context.Context) error { return nil })
 	sched2.Register(job2, cronSched)
 
@@ -176,7 +190,7 @@ func TestSchedulerPersistence(t *testing.T) {
 		return nil
 	})
 
-	sched3 := NewWithPersistence(kvRepo)
+	sched3 := NewWithPersistence(persistence)
 	sched3.Register(job3, cronSched)
 	sched3.CheckAndExecute(ctx, nextDay)
 

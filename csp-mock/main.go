@@ -32,6 +32,7 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedscheduler "github.com/andrewrutherfoord/fed-bill-poc/shared/scheduler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -56,9 +57,9 @@ func main() {
 
 	repos := repository.New(cfg, database)
 
-	sched := scheduler.NewWithPersistence(repos.KeyValue)
-	err = scheduler.RegisterJobs(sched, []scheduler.JobToRegister{
-		scheduler.NewJobToRegister(
+	sched := sharedscheduler.NewWithPersistence(scheduler.NewSchedulerPersistence(repos.KeyValue))
+	err = sharedscheduler.RegisterJobs(sched, []sharedscheduler.JobToRegister{
+		sharedscheduler.NewJobToRegister(
 			scheduler.NewRecordMeteringAndCostJob("record-metering-and-cost", repos, cfg),
 			"0 0 * * * *", // Every hour at :00 seconds
 		),

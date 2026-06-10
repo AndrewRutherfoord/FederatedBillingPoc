@@ -1,4 +1,4 @@
-package scheduler
+package shared
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/robfig/cron/v3"
 )
 
@@ -50,11 +49,17 @@ type jobEntry struct {
 	lastExecution time.Time
 }
 
+// Persistence layer needs to be implemented by the caller, as it involves an external system
+type SchedulerPersistence interface {
+	LoadLastExecution(ctx context.Context, jobID string) (time.Time, error)
+	SaveExecution(ctx context.Context, jobID string, t time.Time) error
+}
+
 // Scheduler manages scheduled jobs and executes them based on time.
 type Scheduler struct {
-	mu     sync.RWMutex
-	jobs   map[string]*jobEntry
-	kvRepo repository.KeyValueRepository
+	mu          sync.RWMutex
+	jobs        map[string]*jobEntry
+	persistence SchedulerPersistence
 }
 
 // New creates a new scheduler without persistence.
@@ -65,43 +70,34 @@ func New() *Scheduler {
 }
 
 // NewWithPersistence creates a scheduler that persists job execution times to a key-value store.
-func NewWithPersistence(kvRepo repository.KeyValueRepository) *Scheduler {
+func NewWithPersistence(persistence SchedulerPersistence) *Scheduler {
 	return &Scheduler{
-		jobs:   make(map[string]*jobEntry),
-		kvRepo: kvRepo,
+		jobs:        make(map[string]*jobEntry),
+		persistence: persistence,
 	}
-}
-
-// jobStateKey returns the key for storing a job's last execution time.
-func jobStateKey(jobID string) string {
-	return fmt.Sprintf("scheduler:job:%s:last_execution", jobID)
 }
 
 // loadLastExecution loads the last execution time for a job from the key-value store.
 func (s *Scheduler) loadLastExecution(ctx context.Context, jobID string) time.Time {
-	if s.kvRepo == nil {
+	if s.persistence == nil {
 		return time.Time{}
 	}
 
-	val, err := s.kvRepo.Get(ctx, jobStateKey(jobID))
-	if err != nil || val == "" {
+	val, err := s.persistence.LoadLastExecution(ctx, jobID)
+	if err != nil || val == (time.Time{}) {
 		return time.Time{}
 	}
 
-	t, err := time.Parse(time.RFC3339, val)
-	if err != nil {
-		return time.Time{}
-	}
-	return t
+	return val
 }
 
 // saveLastExecution saves the last execution time for a job to the key-value store.
 func (s *Scheduler) saveLastExecution(ctx context.Context, jobID string, t time.Time) error {
-	if s.kvRepo == nil {
+	if s.persistence == nil {
 		return nil
 	}
 
-	return s.kvRepo.Set(ctx, jobStateKey(jobID), t.UTC().Format(time.RFC3339))
+	return s.persistence.SaveExecution(ctx, jobID, t)
 }
 
 // Register adds a job to the scheduler.
