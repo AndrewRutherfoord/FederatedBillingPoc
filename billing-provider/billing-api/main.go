@@ -11,6 +11,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -18,6 +19,7 @@ import (
 	_ "github.com/andrewrutherfoord/fed-bill-poc/billing-provider/billing-api/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/billing-api/internal/handlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/config"
+	cspclient "github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/csp_client"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
@@ -49,6 +51,22 @@ func main() {
 	repos := repository.New(cfg, database)
 
 	mockClock := shared.NewMockClock("http://localhost:9999", []shared.OnTimeAdvanceCallback{})
+
+	log.Printf("Creating CSP client registry")
+	clientRegistries, err := cspclient.NewCSPClientRegistry(cfg)
+	if err != nil {
+		log.Fatalf("failed to create CSP client registry: %v", err)
+	}
+
+	client, err := clientRegistries.GetCSPClient("mock-csp-1")
+	if err != nil {
+		log.Fatalf("failed to get CSP client: %v", err)
+	}
+	res, err := client.GetTest(context.TODO())
+	if err != nil {
+		log.Fatalf("failed to call GetTest on CSP client: %v", err)
+	}
+	log.Printf("GetTest response from CSP client: %s", res)
 
 	r := gin.Default()
 	r.Use(cors.Default())

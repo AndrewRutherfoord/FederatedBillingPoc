@@ -5,8 +5,12 @@
 
 provider_id: "billing-provider-1"
 provider_name: "Billing Provider 1"
+mtls_key_path: "../keys/bp-1.key"
+mtls_cert_path: "../keys/bp-1.crt"
 
 cloud_service_providers:
   - id: "mock-csp-1"
     name: "MockCloud EU-West"
-    api_endpoint: "http://localhost:8080/api/v1/billing"
+    api_endpoint: "https://localhost:8443/billing-provider"
+    mtls_cert_path: "../keys/csp-1.crt"
+    settlement_frequency: "weekly"
