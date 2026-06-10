@@ -6,7 +6,7 @@
 //
 //	@contact.name	Andrew Rutherfoord
 //
-//	@host		localhost:8081
+//	@host		localhost:8443
 //	@BasePath	/
 //
 //	@securityDefinitions.apikey	BearerAuth
@@ -16,14 +16,19 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"log"
+	"net/http"
 	"os"
 
 	_ "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers/billingproviderhandlers"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers/customerhandlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
@@ -73,10 +78,38 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.Default())
-	handlers.NewServer(repos, clock, sched).RegisterRoutes(r)
 
-	log.Printf("Starting %s (%s) on :8081", repos.Provider.Name, repos.Provider.ID)
-	if err := r.Run(":8081"); err != nil {
+	// Build the trusted cert pool for CSPs (billing provider certs)
+	trustedPool := x509.NewCertPool()
+	for _, bp := range cfg.BillingProviders {
+		trustedCertPEM, err := os.ReadFile(bp.MTLS.CertPath)
+		if err != nil {
+			log.Fatalf("failed to read cert for billing provider %s: %v", bp.Name, err)
+		}
+		if !trustedPool.AppendCertsFromPEM(trustedCertPEM) {
+			log.Fatalf("failed to append cert for billing provider %s", bp.Name)
+		}
+	}
+
+	server := handlers.NewServer(cfg)
+	server.RegisterRoutes(r, []handlers.SubServer{
+		customerhandlers.NewCustomerServer(repos, clock),
+		billingproviderhandlers.NewBillingProviderServer(cfg.BillingProviders, repos, clock),
+	})
+
+	tlsConfig := &tls.Config{
+		ClientAuth: tls.RequestClientCert,
+		ClientCAs:  trustedPool,
+	}
+
+	httpServer := &http.Server{
+		Addr:      ":8443",
+		Handler:   r,
+		TLSConfig: tlsConfig,
+	}
+
+	log.Printf("Starting %s (%s) on :8443", repos.Provider.Name, repos.Provider.ID)
+	if err := httpServer.ListenAndServeTLS(cfg.MTLSCertPath, cfg.MTLSKeyPath); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

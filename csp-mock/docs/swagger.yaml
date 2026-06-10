@@ -46,6 +46,43 @@ definitions:
           type: string
         type: object
     type: object
+  customerhandlers.createBillingAccountRequest:
+    properties:
+      account_id:
+        type: string
+      billing_provider:
+        type: string
+    required:
+    - account_id
+    - billing_provider
+    type: object
+  customerhandlers.createResourceRequest:
+    properties:
+      billing_account_id:
+        type: string
+      resource_type:
+        type: string
+    required:
+    - billing_account_id
+    - resource_type
+    type: object
+  customerhandlers.registerCustomerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  customerhandlers.setStorageRequest:
+    properties:
+      storage_gb:
+        type: number
+    required:
+    - storage_gb
+    type: object
   db.BillingAccount:
     properties:
       accountID:
@@ -95,48 +132,6 @@ definitions:
       valid:
         description: Valid is true if Time is not NULL
         type: boolean
-    type: object
-  handlers.advanceTimeRequest:
-    properties:
-      seconds:
-        type: integer
-    type: object
-  handlers.createBillingAccountRequest:
-    properties:
-      account_id:
-        type: string
-      billing_provider:
-        type: string
-    required:
-    - account_id
-    - billing_provider
-    type: object
-  handlers.createResourceRequest:
-    properties:
-      billing_account_id:
-        type: string
-      resource_type:
-        type: string
-    required:
-    - billing_account_id
-    - resource_type
-    type: object
-  handlers.registerCustomerRequest:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    required:
-    - email
-    - name
-    type: object
-  handlers.setStorageRequest:
-    properties:
-      storage_gb:
-        type: number
-    required:
-    - storage_gb
     type: object
   shared.ServiceCategory:
     enum:
@@ -348,7 +343,7 @@ definitions:
     - ServiceSubcategoryApplicationPlatforms
     - ServiceSubcategoryOtherWeb
     - ServiceSubcategoryOtherOther
-host: localhost:8081
+host: localhost:8443
 info:
   contact:
     name: Andrew Rutherfoord
@@ -393,7 +388,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.createBillingAccountRequest'
+          $ref: '#/definitions/customerhandlers.createBillingAccountRequest'
       produces:
       - application/json
       responses:
@@ -462,74 +457,6 @@ paths:
       summary: Get a billing account by account ID
       tags:
       - billing-accounts
-  /clock/advance:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Number of seconds to advance
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.advanceTimeRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Advance the mock clock by a specified number of seconds. Default to
-        1 hour if not provided.
-      tags:
-      - clock
-  /clock/current:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get the current time from the mock clock
-      tags:
-      - clock
   /customer:
     get:
       produces:
@@ -560,7 +487,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.registerCustomerRequest'
+          $ref: '#/definitions/customerhandlers.registerCustomerRequest'
       produces:
       - application/json
       responses:
@@ -681,7 +608,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.createResourceRequest'
+          $ref: '#/definitions/customerhandlers.createResourceRequest'
       produces:
       - application/json
       responses:
@@ -763,7 +690,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.setStorageRequest'
+          $ref: '#/definitions/customerhandlers.setStorageRequest'
       produces:
       - application/json
       responses:

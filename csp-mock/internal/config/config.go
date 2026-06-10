@@ -60,10 +60,16 @@ func (r *ResourceType) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+type MTLSConfig struct {
+	CommonName string `yaml:"common_name"`
+	CertPath   string `yaml:"cert_path"`
+}
+
 type BillingProvider struct {
-	ID          string `yaml:"id"`
-	Name        string `yaml:"name"`
-	ApiEndpoint string `yaml:"api_endpoint"`
+	ID          string     `yaml:"id"`
+	Name        string     `yaml:"name"`
+	ApiEndpoint string     `yaml:"api_endpoint"`
+	MTLS        MTLSConfig `yaml:"mtls"`
 }
 
 // TODO: Remove this since it's not being used
@@ -83,6 +89,8 @@ type CspConfig struct {
 	ResourceTypes    []ResourceType    `yaml:"resource_types"`
 	BillingProviders []BillingProvider `yaml:"billing_providers"`
 	Metering         MeteringConfig    `yaml:"metering"`
+	MTLSKeyPath      string            `yaml:"mtls_key_path"`
+	MTLSCertPath     string            `yaml:"mtls_cert_path"`
 }
 
 // Load reads and parses the YAML config at path.

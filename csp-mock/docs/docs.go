@@ -84,7 +84,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.createBillingAccountRequest"
+                            "$ref": "#/definitions/customerhandlers.createBillingAccountRequest"
                         }
                     }
                 ],
@@ -185,109 +185,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/clock/advance": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clock"
-                ],
-                "summary": "Advance the mock clock by a specified number of seconds. Default to 1 hour if not provided.",
-                "parameters": [
-                    {
-                        "description": "Number of seconds to advance",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.advanceTimeRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/clock/current": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clock"
-                ],
-                "summary": "Get the current time from the mock clock",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/customer": {
             "get": {
                 "security": [
@@ -340,7 +237,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.registerCustomerRequest"
+                            "$ref": "#/definitions/customerhandlers.registerCustomerRequest"
                         }
                     }
                 ],
@@ -534,7 +431,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.createResourceRequest"
+                            "$ref": "#/definitions/customerhandlers.createResourceRequest"
                         }
                     }
                 ],
@@ -663,7 +560,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.setStorageRequest"
+                            "$ref": "#/definitions/customerhandlers.setStorageRequest"
                         }
                     }
                 ],
@@ -782,6 +679,62 @@ const docTemplate = `{
                 }
             }
         },
+        "customerhandlers.createBillingAccountRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "billing_provider"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "billing_provider": {
+                    "type": "string"
+                }
+            }
+        },
+        "customerhandlers.createResourceRequest": {
+            "type": "object",
+            "required": [
+                "billing_account_id",
+                "resource_type"
+            ],
+            "properties": {
+                "billing_account_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "customerhandlers.registerCustomerRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "customerhandlers.setStorageRequest": {
+            "type": "object",
+            "required": [
+                "storage_gb"
+            ],
+            "properties": {
+                "storage_gb": {
+                    "type": "number"
+                }
+            }
+        },
         "db.BillingAccount": {
             "type": "object",
             "properties": {
@@ -855,70 +808,6 @@ const docTemplate = `{
                 "valid": {
                     "description": "Valid is true if Time is not NULL",
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.advanceTimeRequest": {
-            "type": "object",
-            "properties": {
-                "seconds": {
-                    "type": "integer"
-                }
-            }
-        },
-        "handlers.createBillingAccountRequest": {
-            "type": "object",
-            "required": [
-                "account_id",
-                "billing_provider"
-            ],
-            "properties": {
-                "account_id": {
-                    "type": "string"
-                },
-                "billing_provider": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.createResourceRequest": {
-            "type": "object",
-            "required": [
-                "billing_account_id",
-                "resource_type"
-            ],
-            "properties": {
-                "billing_account_id": {
-                    "type": "string"
-                },
-                "resource_type": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.registerCustomerRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.setStorageRequest": {
-            "type": "object",
-            "required": [
-                "storage_gb"
-            ],
-            "properties": {
-                "storage_gb": {
-                    "type": "number"
                 }
             }
         },
@@ -1152,7 +1041,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8081",
+	Host:             "localhost:8443",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "CSP Mock API",

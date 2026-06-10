@@ -202,8 +202,8 @@ func TestSchedulerMultipleJobs(t *testing.T) {
 		return nil
 	})
 
-	sched1, _ := NewCronSchedule("0 0 * * * *")  // Every hour at :00 seconds
-	sched2, _ := NewCronSchedule("0 0 0 * * *")  // Every day at 00:00:00
+	sched1, _ := NewCronSchedule("0 0 * * * *") // Every hour at :00 seconds
+	sched2, _ := NewCronSchedule("0 0 0 * * *") // Every day at 00:00:00
 
 	scheduler.Register(job1, sched1)
 	scheduler.Register(job2, sched2)

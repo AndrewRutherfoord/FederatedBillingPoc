@@ -1,4 +1,4 @@
-package handlers
+package customerhandlers
 
 import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
@@ -23,10 +23,10 @@ type createBillingAccountRequest struct {
 //	@Failure	401	{object}	map[string]string
 //	@Failure	500	{object}	map[string]string
 //	@Router		/billing-accounts [get]
-func (s *Server) ListBillingAccounts(c *gin.Context) {
+func (cs *CustomerServer) ListBillingAccounts(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
-	accounts, err := s.repos.BillingAccounts.ListByCustomer(c.Request.Context(), customer.ID)
+	accounts, err := cs.repos.BillingAccounts.ListByCustomer(c.Request.Context(), customer.ID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -47,10 +47,10 @@ func (s *Server) ListBillingAccounts(c *gin.Context) {
 //	@Failure	404			{object}	map[string]string
 //	@Failure	500			{object}	map[string]string
 //	@Router		/billing-accounts/{account_id} [get]
-func (s *Server) GetBillingAccount(c *gin.Context) {
+func (cs *CustomerServer) GetBillingAccount(c *gin.Context) {
 	accountID := c.Param("account_id")
 
-	account, err := s.repos.BillingAccounts.GetByAccountID(c.Request.Context(), accountID)
+	account, err := cs.repos.BillingAccounts.GetByAccountID(c.Request.Context(), accountID)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "Billing account not found"})
 		return
@@ -72,7 +72,7 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 //	@Failure	401		{object}	map[string]string
 //	@Failure	500		{object}	map[string]string
 //	@Router		/billing-accounts [post]
-func (s *Server) CreateBillingAccount(c *gin.Context) {
+func (cs *CustomerServer) CreateBillingAccount(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
 	var req createBillingAccountRequest
@@ -81,7 +81,7 @@ func (s *Server) CreateBillingAccount(c *gin.Context) {
 		return
 	}
 
-	billingProvider, err := s.repos.BillingProviders.Get(c.Request.Context(), req.BillingProvider)
+	billingProvider, err := cs.repos.BillingProviders.Get(c.Request.Context(), req.BillingProvider)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid billing provider"})
 		return
@@ -93,11 +93,11 @@ func (s *Server) CreateBillingAccount(c *gin.Context) {
 		AccountID:         req.AccountID,
 		BillingProviderID: billingProvider.ID,
 		CustomerID:        customer.ID,
-		CreatedAt:         s.clock.Now(),
-		UpdatedAt:         s.clock.Now(),
+		CreatedAt:         cs.clock.Now(),
+		UpdatedAt:         cs.clock.Now(),
 	}
 
-	newAccount, err := s.repos.BillingAccounts.Create(c.Request.Context(), account)
+	newAccount, err := cs.repos.BillingAccounts.Create(c.Request.Context(), account)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
