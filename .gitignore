@@ -1,3 +1,5 @@
 **.sqlite
 **/time-state.json
 **/tmp/**
+
+/keys/*
