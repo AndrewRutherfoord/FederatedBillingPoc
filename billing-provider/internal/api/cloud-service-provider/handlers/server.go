@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/config"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 )
 
@@ -16,28 +16,30 @@ type CSPClient interface {
 	// GetBillingRecords(ctx context.Context, from, to time.Time) ([]BillingRecord, error)
 	// ... other operations
 	GetTest(ctx context.Context) (string, error)
+	// GetCostRecords(ctx context.Context, from, to string) ([]sharedmodels.CostBatchMessage, error)
 }
 
-// Implementation of CSPClient that uses HTTP with a
 type httpCSPClient struct {
-	client  *http.Client
-	baseURL string
+	*shared.HttpClient
 }
 
 func NewHTTPCSPClient(baseURL string, client *http.Client) CSPClient {
 	return &httpCSPClient{
-		client:  client,
-		baseURL: baseURL,
+		HttpClient: &shared.HttpClient{
+			Client:  client,
+			BaseURL: baseURL,
+		},
 	}
 }
 
 func (r *httpCSPClient) GetTest(ctx context.Context) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/test", r.baseURL), nil)
+	url := fmt.Sprintf("%s/test", r.BaseURL)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := r.client.Do(req)
+	resp, err := r.Client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("request failed: %w", err)
 	}
@@ -57,6 +59,24 @@ func (r *httpCSPClient) GetTest(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
+// func (r *httpCSPClient) GetCostRecords(ctx context.Context, from, to string) ([]sharedmodels.CostBatchMessage, error) {
+// 	resp, err := r.makeRequest(ctx, "GET", fmt.Sprintf("cost-records?from=%s&to=%s", from, to))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	body, err := io.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to read response body: %w", err)
+// 	}
+
+// 	log.Printf("Received cost records: %s", string(body))
+
+// 	// In a real implementation, we would unmarshal the body into the appropriate struct
+// 	// For this example, we'll just return an empty slice
+// 	return []sharedmodels.CostBatchMessage{}, nil
+// }
+
 type CSPClientRegistry struct {
 	csps map[string]CSPClient
 }
@@ -69,7 +89,7 @@ func (r *CSPClientRegistry) GetCSPClient(id string) (CSPClient, error) {
 	return csp, nil
 }
 
-func NewCSPClientRegistry(config *config.BillingProviderConfig) (*CSPClientRegistry, error) {
+func NewCSPClientRegistry(config *config.Config) (*CSPClientRegistry, error) {
 	cspCertPaths := make([]string, len(config.CloudServiceProviders))
 	for i, csp := range config.CloudServiceProviders {
 		cspCertPaths[i] = csp.MTLSCertPath

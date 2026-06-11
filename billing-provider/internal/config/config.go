@@ -15,15 +15,20 @@ const (
 	SettlementMonthly SettlementFrequency = "monthly"
 )
 
+type MTLSConfig struct {
+	CommonName string `yaml:"common_name"`
+	CertPath   string `yaml:"cert_path"`
+}
+
 type CloudServiceProvider struct {
 	ID                  string              `yaml:"id" json:"id"`
 	Name                string              `yaml:"name" json:"name"`
 	APIEndpoint         string              `yaml:"api_endpoint" json:"api_endpoint"`
-	MTLSCertPath        string              `yaml:"mtls_cert_path" json:"mtls_cert_path"`
 	SettlementFrequency SettlementFrequency `yaml:"settlement_frequency" json:"settlement_frequency"`
+	MTLS                MTLSConfig          `yaml:"mtls" json:"mtls"`
 }
 
-type BillingProviderConfig struct {
+type Config struct {
 	ProviderID            string                 `yaml:"provider_id" json:"provider_id"`
 	ProviderName          string                 `yaml:"provider_name" json:"provider_name"`
 	CloudServiceProviders []CloudServiceProvider `yaml:"cloud_service_providers" json:"cloud_service_providers"`
@@ -40,12 +45,12 @@ func (s SettlementFrequency) settlementFrequencyIsValid() bool {
 	}
 }
 
-func Load(path string) (*BillingProviderConfig, error) {
+func Load(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading config %q: %w", path, err)
 	}
-	var cfg BillingProviderConfig
+	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parsing config %q: %w", path, err)
 	}

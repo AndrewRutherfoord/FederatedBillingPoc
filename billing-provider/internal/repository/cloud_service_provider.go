@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/config"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/config"
 )
 
 type CloudServiceProviderRepository interface {

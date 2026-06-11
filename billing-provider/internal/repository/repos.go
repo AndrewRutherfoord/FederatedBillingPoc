@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/shared/config"
-	"gorm.io/gorm"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/config"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
 )
 
 type ProviderInfo struct {
@@ -15,7 +15,7 @@ type Repos struct {
 	CloudServiceProviders CloudServiceProviderRepository
 }
 
-func New(cfg *config.BillingProviderConfig, database *gorm.DB) *Repos {
+func New(cfg *config.Config, database *db.DB) *Repos {
 	return &Repos{
 		Provider: ProviderInfo{
 			ID:   cfg.ProviderID,
