@@ -3,15 +3,13 @@ package customerhandlers
 import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
-	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/scheduler"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
 	"github.com/gin-gonic/gin"
 )
 
 type CustomerServer struct {
-	repos     *repository.Repos
-	clock     util.Clock
-	scheduler *scheduler.Scheduler
+	repos *repository.Repos
+	clock util.Clock
 }
 
 func NewCustomerServer(repos *repository.Repos, clock util.Clock) *CustomerServer {

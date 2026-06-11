@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
-	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedscheduler "github.com/andrewrutherfoord/fed-bill-poc/shared/scheduler"
 )
 
 type Clock interface {
@@ -16,10 +16,10 @@ type Clock interface {
 type MockClock struct {
 	currentTime  int64
 	keyValueRepo repository.KeyValueRepository
-	scheduler    *shared.Scheduler
+	scheduler    *sharedscheduler.Scheduler
 }
 
-func NewMockClock(startTime int64, keyValueRepo repository.KeyValueRepository, sched *shared.Scheduler) *MockClock {
+func NewMockClock(startTime int64, keyValueRepo repository.KeyValueRepository, sched *sharedscheduler.Scheduler) *MockClock {
 	current, err := keyValueRepo.Get(context.Background(), "current_time")
 	if err == nil {
 		if parsed, err := time.Parse(time.RFC3339, current); err == nil {

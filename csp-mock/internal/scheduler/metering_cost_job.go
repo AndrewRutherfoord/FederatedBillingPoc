@@ -6,34 +6,32 @@ import (
 	"sort"
 	"time"
 
+	bpclient "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/bp_client"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
-	shared "github.com/andrewrutherfoord/fed-bill-poc/shared"
+	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	"github.com/shopspring/decimal"
 )
 
 type RecordMeteringAndCostJob struct {
-	id           string
-	repos        *repository.Repos
-	config       *config.CspConfig
-	batchMaxSize int
+	id             string
+	repos          *repository.Repos
+	config         *config.CspConfig
+	batchMaxSize   int
+	clientRegistry *bpclient.BPClientRegistry
 }
 
-func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig) *RecordMeteringAndCostJob {
-	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000}
+func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig, clientRegistry *bpclient.BPClientRegistry) *RecordMeteringAndCostJob {
+	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000, clientRegistry: clientRegistry}
 }
 
 func (j *RecordMeteringAndCostJob) ID() string {
 	return j.id
 }
 
-func (j *RecordMeteringAndCostJob) createBaseCostRecord(ctx context.Context, resourceType *config.ResourceType) string {
-	// Implementation for creating base cost record
-	return ""
-}
-
-func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *shared.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *shared.FocusLineItem {
+func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *sharedmodels.FocusLineItem {
 	// TODO: Currently assumes this is run on the hour every hour. Needs to actually calculate the hours since last run.
 	qty := decimal.NewFromInt(1)
 	hour := "hour"
@@ -42,8 +40,8 @@ func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *shared.F
 
 	return baseBuilder.Copy().
 		WithServiceAndCosts(
-			shared.ServiceCategoryCompute,
-			shared.ServiceSubcategoryVirtualMachines,
+			sharedmodels.ServiceCategoryCompute,
+			sharedmodels.ServiceSubcategoryVirtualMachines,
 			resourceType.ID,
 			resourceType.Pricing.UnitPrice,
 			resourceType.Pricing.UnitPrice,
@@ -55,7 +53,7 @@ func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *shared.F
 		Build()
 }
 
-func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *shared.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *shared.FocusLineItem {
+func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *sharedmodels.FocusLineItem {
 	// TODO: Currently assumes this is run on the hour every hour. Needs to actually calculate the hours since last run.
 	if resource.StorageGB == nil {
 		log.Printf("Resource %s has no storage GB value for per-GB-hour billing", resource.ID)
@@ -69,8 +67,8 @@ func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *shared
 
 	return baseBuilder.Copy().
 		WithServiceAndCosts(
-			shared.ServiceCategoryStorage,
-			shared.ServiceSubcategoryBlockStorage,
+			sharedmodels.ServiceCategoryStorage,
+			sharedmodels.ServiceSubcategoryBlockStorage,
 			resourceType.ID,
 			billedCost,
 			billedCost,
@@ -82,7 +80,7 @@ func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *shared
 		Build()
 }
 
-func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *shared.FocusLineItemBuilder, billingAccount *db.BillingAccount, resource *db.Resource) *shared.FocusLineItem {
+func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *sharedmodels.FocusLineItemBuilder, billingAccount *db.BillingAccount, resource *db.Resource) *sharedmodels.FocusLineItem {
 	resourceType, err := j.repos.ResourceTypes.GetById(ctx, resource.ResourceType)
 	if err != nil {
 		log.Printf("Error fetching resource type '%s' for resource '%s': %v", resource.ResourceType, resource.ID, err)
@@ -108,7 +106,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	chargePeriodStart := startTime.Add(-1 * time.Hour)
 	chargePeriodEnd := startTime
 
-	baseBuilder := shared.NewFocusLineItemBuilder().
+	baseBuilder := sharedmodels.NewFocusLineItemBuilder().
 		WithProviderAndPeriod(
 			billingAccount.AccountID,
 			"Customer", // TODO: Not really sure what to put here.
@@ -129,7 +127,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 			j.config.RegionID,
 		)
 
-	lineItems := make([]shared.FocusLineItem, 0, len(resources))
+	lineItems := make([]sharedmodels.FocusLineItem, 0, len(resources))
 	var hashes []string
 
 	for _, resource := range resources {
@@ -169,6 +167,9 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		log.Printf("Error saving line items for batch %s: %v", batch.ID, err)
 		return err
 	}
+
+	// Send it to the billing provider
+	// TODO: Implement billing provider integration
 
 	return nil
 }

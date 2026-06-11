@@ -12,6 +12,7 @@ import (
 type CostBatchRepository interface {
 	Create(ctx context.Context, billingAccountID string, merkelRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.CostBatch, error)
 	GetByID(ctx context.Context, batchID string) (*db.CostBatch, error)
+	ListByBillingProvider(ctx context.Context, billingProviderID string, startTime, endTime time.Time) ([]db.CostBatch, error)
 }
 
 type costBatchRepo struct {
@@ -37,4 +38,19 @@ func (r *costBatchRepo) Create(ctx context.Context, billingAccountID string, mer
 func (r *costBatchRepo) GetByID(ctx context.Context, batchID string) (*db.CostBatch, error) {
 	var batch db.CostBatch
 	return &batch, r.db.WithContext(ctx).First(&batch, "id = ?", batchID).Error
+}
+
+func (r *costBatchRepo) ListByBillingProvider(ctx context.Context, billingProviderID string, startTime, endTime time.Time) ([]db.CostBatch, error) {
+	var batches []db.CostBatch
+
+	query := r.db.WithContext(ctx).
+		Joins("JOIN billing_accounts ON cost_batches.billing_account_id = billing_accounts.id").
+		Where("billing_accounts.billing_provider_id = ?", billingProviderID)
+
+	// Add date range if provided
+	if !startTime.IsZero() && !endTime.IsZero() {
+		query = query.Where("cost_batches.created_at BETWEEN ? AND ?", startTime, endTime)
+	}
+
+	return batches, query.Find(&batches).Error
 }

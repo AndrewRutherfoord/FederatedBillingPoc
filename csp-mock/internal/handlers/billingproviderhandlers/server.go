@@ -37,5 +37,6 @@ func (bs *BillingProviderServer) RegisterRoutes(r *gin.Engine) {
 	group.Use(middleware.MTLSAuth(bs.billingProviders))
 	{
 		group.GET("/test", bs.Test)
+		group.GET("/cost-batch-records", bs.GetCostBatchRecords)
 	}
 }

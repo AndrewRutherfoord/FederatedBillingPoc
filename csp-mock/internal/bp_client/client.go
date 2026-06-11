@@ -6,25 +6,32 @@ import (
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 )
 
 // Interface for interacting with a CSP's billing adapter. This can allow the transport layer to be swapped out in principle
 type BPClient interface {
+	SendAggregatedChargeRecord(record sharedmodels.AggregatedChargeRecord) error
 	// GetBillingRecords(ctx context.Context, from, to time.Time) ([]BillingRecord, error)
 	// ... other operations
 }
 
-// Implementation of BPClient that uses HTTP with a
-type httpBPClient struct {
-	client  *http.Client
-	baseURL string
+type HttpBPClient struct {
+	*shared.HttpClient
 }
 
 func NewHTTPBPClient(baseURL string, client *http.Client) BPClient {
-	return &httpBPClient{
-		client:  client,
-		baseURL: baseURL,
+	return &HttpBPClient{
+		HttpClient: &shared.HttpClient{
+			Client:  client,
+			BaseURL: baseURL,
+		},
 	}
+}
+
+func (c *HttpBPClient) SendAggregatedChargeRecord(record sharedmodels.AggregatedChargeRecord) error {
+	url := fmt.Sprintf("%s/aggregated-charge-records", c.BaseURL)
+	return c.SendJSON(url, record)
 }
 
 type BPClientRegistry struct {
@@ -34,7 +41,7 @@ type BPClientRegistry struct {
 func NewBPClientRegistry(config *config.CspConfig) (*BPClientRegistry, error) {
 	cspCertPaths := make([]string, len(config.BillingProviders))
 	for i, csp := range config.BillingProviders {
-		cspCertPaths[i] = csp.MTLSCertPath
+		cspCertPaths[i] = csp.MTLS.CertPath
 	}
 	httpClient, err := shared.NewMtlsHttpClient(config.MTLSKeyPath, config.MTLSCertPath, cspCertPaths)
 

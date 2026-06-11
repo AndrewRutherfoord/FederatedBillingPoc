@@ -24,6 +24,7 @@ import (
 	"os"
 
 	_ "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/docs"
+	bpclient "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/bp_client"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/handlers"
@@ -57,10 +58,15 @@ func main() {
 
 	repos := repository.New(cfg, database)
 
+	clientRegistry, err := bpclient.NewBPClientRegistry(cfg)
+	if err != nil {
+		log.Fatalf("failed to create billing provider client registry: %v", err)
+	}
+
 	sched := sharedscheduler.NewWithPersistence(scheduler.NewSchedulerPersistence(repos.KeyValue))
 	err = sharedscheduler.RegisterJobs(sched, []sharedscheduler.JobToRegister{
 		sharedscheduler.NewJobToRegister(
-			scheduler.NewRecordMeteringAndCostJob("record-metering-and-cost", repos, cfg),
+			scheduler.NewRecordMeteringAndCostJob("record-metering-and-cost", repos, cfg, clientRegistry),
 			"0 0 * * * *", // Every hour at :00 seconds
 		),
 	})
