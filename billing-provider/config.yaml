@@ -1,7 +1,5 @@
 
-# Mock CSP — Resource Registry & Pricing Catalogue
-# FOCUS 1.3 ServiceCategory / ServiceSubcategory taxonomy throughout.
-# Prices are illustrative (EUR).
+# Billing Provider configuration
 
 provider_id: "billing-provider-1"
 provider_name: "Billing Provider 1"
@@ -11,6 +9,8 @@ mtls_cert_path: "../keys/bp-1.crt"
 cloud_service_providers:
   - id: "mock-csp-1"
     name: "MockCloud EU-West"
-    api_endpoint: "https://localhost:8443/billing-provider"
-    mtls_cert_path: "../keys/csp-1.crt"
+    api_endpoint: "https://csp-mock-adapter:8443"
     settlement_frequency: "weekly"
+    mtls:
+      common_name: "csp-adapter"
+      cert_path: "../keys/csp-1.crt"

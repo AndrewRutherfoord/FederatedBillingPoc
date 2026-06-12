@@ -68,8 +68,8 @@ resource_types:
 billing_providers:
   - id: "billing-provider-1"
     name: "Billing Provider 1"
-    # api_endpoint: "http://localhost:8081/api/v1/billing"
-    api_endpoint: "https://host.docker.internal:8000/api/v1/billing"
+    api_endpoint: "https://billing-provider-csp-api:8444/api/v1/billing"
+    # api_endpoint: "https://host.docker.internal:8000/api/v1/billing"
     mtls:
       common_name: "billing-provider-1"
       cert_path: "../keys/bp-1.crt"

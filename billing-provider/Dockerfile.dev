@@ -1,0 +1,23 @@
+# Development stage with air for hot reload
+FROM golang:latest AS dev-base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/* && \
+    go install github.com/air-verse/air@latest
+
+COPY billing-provider/go.mod billing-provider/go.sum ./
+COPY shared /shared
+RUN go mod download
+
+COPY billing-provider/ .
+
+# Target 1: CSP-facing API (mTLS)
+FROM dev-base AS cloud-service-provider-api
+ENV AIR_BIN="./tmp/cloud-service-provider-api"
+CMD ["air", "-c", ".air-cloud-service-provider-api.toml"]
+
+# Target 2: Customer-facing API
+FROM dev-base AS customer-api
+ENV AIR_BIN="./tmp/customer-api"
+CMD ["air", "-c", ".air-customer-api.toml"]

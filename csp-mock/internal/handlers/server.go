@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -65,4 +66,15 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 		authed.GET("/billing-accounts/:account_id", s.GetBillingAccount)
 		authed.POST("/billing-accounts", s.CreateBillingAccount)
 	}
+}
+
+// Start creates the gin engine, registers routes, and blocks serving on addr.
+func (s *Server) Start(addr string) error {
+	r := gin.Default()
+	r.Use(cors.Default())
+	s.RegisterRoutes(r)
+
+	srv := &http.Server{Addr: addr, Handler: r}
+	log.Printf("Starting %s (%s) customer API on %s", s.config.ProviderName, s.config.ProviderID, addr)
+	return srv.ListenAndServe()
 }

@@ -54,6 +54,48 @@ services:
     depends_on:
       - time-server
 
+  billing-provider-csp-api:
+    build:
+      context: .
+      dockerfile: billing-provider/Dockerfile.dev
+      target: cloud-service-provider-api
+    container_name: billing-provider-csp-api
+    ports:
+      - "8444:8444"
+    volumes:
+      - ./billing-provider:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - /app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - MOCK_CLOCK_HOST=http://time-server:9999
+    networks:
+      - csp-network
+    depends_on:
+      - time-server
+
+  billing-provider-customer-api:
+    build:
+      context: .
+      dockerfile: billing-provider/Dockerfile.dev
+      target: customer-api
+    container_name: billing-provider-customer-api
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./billing-provider:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - /app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - MOCK_CLOCK_HOST=http://time-server:9999
+    networks:
+      - csp-network
+    depends_on:
+      - time-server
+
 networks:
   csp-network:
     driver: bridge

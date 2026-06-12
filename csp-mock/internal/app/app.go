@@ -57,7 +57,7 @@ func NewApp(cfg Config) *App {
 	if clockHost == "" {
 		clockHost = os.Getenv("MOCK_CLOCK_HOST")
 		if clockHost == "" {
-			clockHost = "http://localhost:9999"
+			clockHost = "http://time-server:9999"
 		}
 	}
 	clock := shared.NewMockClock(clockHost, []shared.OnTimeAdvanceCallback{sched})

@@ -170,7 +170,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 
 	// Send it to the billing provider
 	// TODO: Implement billing provider integration
-	j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
+	return j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
 		BillingRecord: sharedmodels.BillingRecord{
 			BillingProviderID:  batch.BillingProviderID,
 			ResourceProviderID: batch.ResourceProviderID,
@@ -183,8 +183,6 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		BatchHash:       batch.MerkelRoot,
 		BatchSignature:  "", // TODO: Sign the batch with the CSP's private key
 	})
-
-	return nil
 }
 
 func (j *RecordMeteringAndCostJob) Execute(ctx context.Context, startTime time.Time) error {

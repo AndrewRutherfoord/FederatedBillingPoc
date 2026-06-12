@@ -2,8 +2,12 @@ package apibpadapter
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
@@ -12,7 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ApiBillingProviderAdapter is both the inbound HTTP server (receiving messages from BPs)
+// ApiBillingProviderAdapter is both the inbound mTLS HTTP server (receiving messages from BPs)
 // and the outbound HTTP client (sending to BPs), implementing port.BPSender.
 type ApiBillingProviderAdapter struct {
 	handler        port.BPHandler
@@ -20,26 +24,16 @@ type ApiBillingProviderAdapter struct {
 	clientRegistry *BPClientRegistry
 }
 
-func NewApiBillingProviderAdapter(r *gin.Engine, handler port.BPHandler, config *config.CspConfig) *ApiBillingProviderAdapter {
+func NewApiBillingProviderAdapter(handler port.BPHandler, config *config.CspConfig) *ApiBillingProviderAdapter {
 	registry, err := NewBPClientRegistry(config)
 	if err != nil {
 		log.Fatalf("Failed to create BP client registry: %v", err)
 	}
-
-	t := ApiBillingProviderAdapter{
+	return &ApiBillingProviderAdapter{
 		handler:        handler,
 		config:         config,
 		clientRegistry: registry,
 	}
-	t.RegisterRoutes(r)
-
-	return &t
-}
-
-func (t *ApiBillingProviderAdapter) Test(c *gin.Context) {
-	bp := middleware.BPFromContext(c)
-	log.Printf("Billing provider test endpoint called by %s", bp.Name)
-	c.JSON(200, gin.H{"message": "hello from billing provider test endpoint"})
 }
 
 func (t *ApiBillingProviderAdapter) RegisterRoutes(r *gin.Engine) {
@@ -48,6 +42,41 @@ func (t *ApiBillingProviderAdapter) RegisterRoutes(r *gin.Engine) {
 		r.GET("/test", t.Test)
 		// r.GET("/cost-batch-records", t.GetCostBatchRecords)
 	}
+}
+
+// Start builds the mTLS http.Server and blocks serving requests on addr.
+func (t *ApiBillingProviderAdapter) Start(addr string) error {
+	r := gin.Default()
+	t.RegisterRoutes(r)
+
+	trustedPool := x509.NewCertPool()
+	for _, bp := range t.config.BillingProviders {
+		pem, err := os.ReadFile(bp.MTLS.CertPath)
+		if err != nil {
+			return fmt.Errorf("read cert for billing provider %s: %w", bp.Name, err)
+		}
+		if !trustedPool.AppendCertsFromPEM(pem) {
+			return fmt.Errorf("append cert for billing provider %s failed", bp.Name)
+		}
+	}
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
+		TLSConfig: &tls.Config{
+			ClientAuth: tls.RequestClientCert,
+			ClientCAs:  trustedPool,
+		},
+	}
+
+	log.Printf("Starting %s (%s) adapter server on %s", t.config.ProviderName, t.config.ProviderID, addr)
+	return srv.ListenAndServeTLS(t.config.MTLSCertPath, t.config.MTLSKeyPath)
+}
+
+func (t *ApiBillingProviderAdapter) Test(c *gin.Context) {
+	bp := middleware.BPFromContext(c)
+	log.Printf("Billing provider test endpoint called by %s", bp.Name)
+	c.JSON(200, gin.H{"message": "hello from billing provider test endpoint"})
 }
 
 func (t *ApiBillingProviderAdapter) Close() error {
