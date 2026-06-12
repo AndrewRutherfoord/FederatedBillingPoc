@@ -3,38 +3,32 @@ package port
 import (
 	"context"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/adapters"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 )
 
-type BPPort interface {
-	// Outbound - CSP sends to BP
+// BPSender is what the application calls to send things to the BP.
+// Implemented by the outbound adapter.
+type BPSender interface {
 	SendAggregatedChargeRecord(ctx context.Context, record sharedmodels.AggregatedChargeRecord) error
+}
 
-	// Inbound - BP sends to CSP, port receives and surfaces to application
+// BPHandler handles incoming messages from the BP.
+// Implemented by BPPortImpl and called by the inbound adapter.
+type BPHandler interface {
 	OnCreditUpdate(ctx context.Context, update sharedmodels.CreditUpdate) error
 }
 
+// BPPortImpl contains the application logic for handling inbound BP messages.
 type BPPortImpl struct {
 	repositories *repository.Repos
-	adapter      adapters.BillingProviderAdapter
 }
 
-func NewBPPort(
-	repositories *repository.Repos,
-	adapter adapters.BillingProviderAdapter,
-) *BPPortImpl {
-	return &BPPortImpl{
-		repositories: repositories,
-		adapter:      adapter,
-	}
+func NewBPPort(repositories *repository.Repos) *BPPortImpl {
+	return &BPPortImpl{repositories: repositories}
 }
 
-func (p *BPPortImpl) SendAggregatedChargeRecord(ctx context.Context, record sharedmodels.AggregatedChargeRecord) error {
-	return nil
-}
-
+// OnCreditUpdate handles an incoming credit update from the BP.
 func (p *BPPortImpl) OnCreditUpdate(ctx context.Context, update sharedmodels.CreditUpdate) error {
 	return nil
 }

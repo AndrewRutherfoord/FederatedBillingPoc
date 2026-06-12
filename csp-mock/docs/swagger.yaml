@@ -1,24 +1,24 @@
 basePath: /
 definitions:
-  config.PricingConfig:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingConfig:
     properties:
       model:
         type: string
       tiers:
         items:
-          $ref: '#/definitions/config.PricingTier'
+          $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingTier'
         type: array
       unitPrice:
         type: number
     type: object
-  config.PricingTier:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingTier:
     properties:
       unitPrice:
         type: number
       upToGB:
         type: integer
     type: object
-  config.ResourceType:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType:
     properties:
       billingUnit:
         type: string
@@ -32,13 +32,13 @@ definitions:
       id:
         type: string
       pricing:
-        $ref: '#/definitions/config.PricingConfig'
+        $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingConfig'
       serviceCategory:
-        $ref: '#/definitions/shared.ServiceCategory'
+        $ref: '#/definitions/models.ServiceCategory'
       serviceName:
         type: string
       serviceSubcategory:
-        $ref: '#/definitions/shared.ServiceSubcategory'
+        $ref: '#/definitions/models.ServiceSubcategory'
       skuID:
         type: string
       tags:
@@ -46,44 +46,7 @@ definitions:
           type: string
         type: object
     type: object
-  customerhandlers.createBillingAccountRequest:
-    properties:
-      account_id:
-        type: string
-      billing_provider:
-        type: string
-    required:
-    - account_id
-    - billing_provider
-    type: object
-  customerhandlers.createResourceRequest:
-    properties:
-      billing_account_id:
-        type: string
-      resource_type:
-        type: string
-    required:
-    - billing_account_id
-    - resource_type
-    type: object
-  customerhandlers.registerCustomerRequest:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    required:
-    - email
-    - name
-    type: object
-  customerhandlers.setStorageRequest:
-    properties:
-      storage_gb:
-        type: number
-    required:
-    - storage_gb
-    type: object
-  db.BillingAccount:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount:
     properties:
       accountID:
         type: string
@@ -98,7 +61,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  db.Customer:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer:
     properties:
       email:
         type: string
@@ -107,7 +70,7 @@ definitions:
       name:
         type: string
     type: object
-  db.Resource:
+  github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource:
     properties:
       billingAccountID:
         type: string
@@ -133,7 +96,44 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-  shared.ServiceCategory:
+  internal_handlers.createBillingAccountRequest:
+    properties:
+      account_id:
+        type: string
+      billing_provider:
+        type: string
+    required:
+    - account_id
+    - billing_provider
+    type: object
+  internal_handlers.createResourceRequest:
+    properties:
+      billing_account_id:
+        type: string
+      resource_type:
+        type: string
+    required:
+    - billing_account_id
+    - resource_type
+    type: object
+  internal_handlers.registerCustomerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  internal_handlers.setStorageRequest:
+    properties:
+      storage_gb:
+        type: number
+    required:
+    - storage_gb
+    type: object
+  models.ServiceCategory:
     enum:
     - ai_and_machine_learning
     - analytics
@@ -175,7 +175,7 @@ definitions:
     - ServiceCategoryStorage
     - ServiceCategoryWeb
     - ServiceCategoryOther
-  shared.ServiceSubcategory:
+  models.ServiceSubcategory:
     enum:
     - ai_platforms
     - bots
@@ -343,12 +343,13 @@ definitions:
     - ServiceSubcategoryApplicationPlatforms
     - ServiceSubcategoryOtherWeb
     - ServiceSubcategoryOtherOther
-host: localhost:8443
+host: localhost:8080
 info:
   contact:
     name: Andrew Rutherfoord
-  description: Mock Cloud Service Provider billing API implementing the FOCUS spec.
-  title: CSP Mock API
+  description: Mock Cloud Service Provider customer billing API implementing the FOCUS
+    spec.
+  title: CSP Mock Customer API
   version: "1.0"
 paths:
   /billing-accounts:
@@ -360,7 +361,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/db.BillingAccount'
+              $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount'
             type: array
         "401":
           description: Unauthorized
@@ -388,14 +389,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/customerhandlers.createBillingAccountRequest'
+          $ref: '#/definitions/internal_handlers.createBillingAccountRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/db.BillingAccount'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount'
         "400":
           description: Bad Request
           schema:
@@ -433,7 +434,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/db.BillingAccount'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount'
         "401":
           description: Unauthorized
           schema:
@@ -465,7 +466,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/db.Customer'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer'
         "401":
           description: Unauthorized
           schema:
@@ -487,14 +488,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/customerhandlers.registerCustomerRequest'
+          $ref: '#/definitions/internal_handlers.registerCustomerRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/db.Customer'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer'
         "400":
           description: Bad Request
           schema:
@@ -533,7 +534,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/config.ResourceType'
+              $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType'
             type: array
       summary: List all resource types offered by this CSP
       tags:
@@ -552,7 +553,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/config.ResourceType'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType'
         "404":
           description: Not Found
           schema:
@@ -580,7 +581,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/db.Resource'
+              $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource'
             type: array
         "401":
           description: Unauthorized
@@ -608,14 +609,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/customerhandlers.createResourceRequest'
+          $ref: '#/definitions/internal_handlers.createResourceRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/db.Resource'
+            $ref: '#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource'
         "400":
           description: Bad Request
           schema:
@@ -690,7 +691,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/customerhandlers.setStorageRequest'
+          $ref: '#/definitions/internal_handlers.setStorageRequest'
       produces:
       - application/json
       responses:

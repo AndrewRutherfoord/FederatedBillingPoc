@@ -20,11 +20,11 @@ type RecordMeteringAndCostJob struct {
 	repos        *repository.Repos
 	config       *config.CspConfig
 	batchMaxSize int
-	port         port.BPPort
+	sender       port.BPSender
 }
 
-func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig, port port.BPPort) *RecordMeteringAndCostJob {
-	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000, port: port}
+func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig, sender port.BPSender) *RecordMeteringAndCostJob {
+	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000, sender: sender}
 }
 
 func (j *RecordMeteringAndCostJob) ID() string {
@@ -80,7 +80,7 @@ func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *shared
 		Build()
 }
 
-func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *sharedmodels.FocusLineItemBuilder, billingAccount *db.BillingAccount, resource *db.Resource) *sharedmodels.FocusLineItem {
+func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *sharedmodels.FocusLineItemBuilder, resource *db.Resource) *sharedmodels.FocusLineItem {
 	resourceType, err := j.repos.ResourceTypes.GetById(ctx, resource.ResourceType)
 	if err != nil {
 		log.Printf("Error fetching resource type '%s' for resource '%s': %v", resource.ResourceType, resource.ID, err)
@@ -131,7 +131,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	var hashes []string
 
 	for _, resource := range resources {
-		lineItem := j.createResourceCostRecord(ctx, baseBuilder, &billingAccount, resource)
+		lineItem := j.createResourceCostRecord(ctx, baseBuilder, resource)
 		if lineItem == nil {
 			log.Printf("Failed to create cost record for resource %s", resource.ID)
 			continue
@@ -156,7 +156,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		totalCost += item.BilledCost.InexactFloat64()
 	}
 
-	batch, err := j.repos.CostBatch.Create(ctx, billingAccount.AccountID, merkleTree.Root(), len(lineItems), totalCost, startTime)
+	batch, err := j.repos.CostBatch.Create(ctx, billingAccount.AccountID, billingAccount.BillingProviderID, j.config.ProviderID, merkleTree.Root(), len(lineItems), totalCost, startTime)
 	if err != nil {
 		log.Printf("Error creating cost batch for billing account %s: %v", billingAccount.AccountID, err)
 		return err
@@ -170,6 +170,19 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 
 	// Send it to the billing provider
 	// TODO: Implement billing provider integration
+	j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
+		BillingRecord: sharedmodels.BillingRecord{
+			BillingProviderID:  batch.BillingProviderID,
+			ResourceProviderID: batch.ResourceProviderID,
+			BillingAccountID:   batch.BillingAccountID,
+		},
+		BatchID:         batch.ID,
+		TotalBilledCost: batch.TotalCost,
+		BilledCurrency:  batch.BilledCurrency,
+		LineItemCount:   batch.TotalItems,
+		BatchHash:       batch.MerkelRoot,
+		BatchSignature:  "", // TODO: Sign the batch with the CSP's private key
+	})
 
 	return nil
 }

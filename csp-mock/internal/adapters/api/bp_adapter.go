@@ -1,31 +1,33 @@
 package apibpadapter
 
 import (
+	"context"
+	"fmt"
 	"log"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
-	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/port"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	"github.com/gin-gonic/gin"
 )
 
+// ApiBillingProviderAdapter is both the inbound HTTP server (receiving messages from BPs)
+// and the outbound HTTP client (sending to BPs), implementing port.BPSender.
 type ApiBillingProviderAdapter struct {
-	r              *gin.Engine
+	handler        port.BPHandler
 	config         *config.CspConfig
-	repos          *repository.Repos
 	clientRegistry *BPClientRegistry
 }
 
-func NewApiBillingProviderAdapter(r *gin.Engine, repos *repository.Repos, config *config.CspConfig) *ApiBillingProviderAdapter {
-
-	registry, error := NewBPClientRegistry(config)
-	if error != nil {
-		log.Fatalf("Failed to create BP client registry: %v", error)
+func NewApiBillingProviderAdapter(r *gin.Engine, handler port.BPHandler, config *config.CspConfig) *ApiBillingProviderAdapter {
+	registry, err := NewBPClientRegistry(config)
+	if err != nil {
+		log.Fatalf("Failed to create BP client registry: %v", err)
 	}
 
 	t := ApiBillingProviderAdapter{
-		repos:          repos,
+		handler:        handler,
 		config:         config,
 		clientRegistry: registry,
 	}
@@ -35,23 +37,16 @@ func NewApiBillingProviderAdapter(r *gin.Engine, repos *repository.Repos, config
 }
 
 func (t *ApiBillingProviderAdapter) Test(c *gin.Context) {
-	// curl --cert ./bp-1.crt --key bp-1.key -k https://localhost:8443/billing-provider/test
 	bp := middleware.BPFromContext(c)
-
 	log.Printf("Billing provider test endpoint called by %s", bp.Name)
-
-	c.JSON(200, gin.H{
-		"message": "hello from billing provider test endpoint",
-	})
+	c.JSON(200, gin.H{"message": "hello from billing provider test endpoint"})
 }
 
 func (t *ApiBillingProviderAdapter) RegisterRoutes(r *gin.Engine) {
-	group := r.Group("/billing-provider")
-
-	group.Use(middleware.MTLSAuth(t.config.BillingProviders))
+	r.Use(middleware.MTLSAuth(t.config.BillingProviders))
 	{
-		group.GET("/test", t.Test)
-		group.GET("/cost-batch-records", t.GetCostBatchRecords)
+		r.GET("/test", t.Test)
+		// r.GET("/cost-batch-records", t.GetCostBatchRecords)
 	}
 }
 
@@ -59,6 +54,15 @@ func (t *ApiBillingProviderAdapter) Close() error {
 	return nil
 }
 
-func (t *ApiBillingProviderAdapter) SendCostBatchRecord(record sharedmodels.AggregatedChargeRecord) error {
-	return nil
+// SendAggregatedChargeRecord implements port.BPSender. It POSTs the record to the
+// appropriate billing provider's API endpoint.
+func (t *ApiBillingProviderAdapter) SendAggregatedChargeRecord(ctx context.Context, record sharedmodels.AggregatedChargeRecord) error {
+	log.Printf("Sending aggregated charge record for batch %s to billing provider %s", record.BatchID, record.BillingRecord.BillingProviderID)
+	client, ok := t.clientRegistry.GetClient(record.BillingRecord.BillingProviderID)
+	if !ok {
+		log.Printf("No client found for billing provider %s", record.BillingRecord.BillingProviderID)
+		return fmt.Errorf("no client registered for billing provider %s", record.BillingRecord.BillingProviderID)
+	}
+	log.Printf("Found client for billing provider %s, sending record to %s", record.BillingRecord.BillingProviderID, client.BaseURL)
+	return client.SendJSON(client.BaseURL+"/cost-records", record)
 }

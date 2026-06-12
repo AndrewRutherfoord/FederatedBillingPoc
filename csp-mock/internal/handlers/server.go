@@ -47,15 +47,13 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.GET("/health", s.Health)
 
-	group := r.Group("/customer")
+	r.GET("/resource-types", s.ListResourceTypes)
+	r.GET("/resource-types/:id", s.GetResourceType)
 
-	group.GET("/resource-types", s.ListResourceTypes)
-	group.GET("/resource-types/:id", s.GetResourceType)
-
-	group.POST("/customer/register", s.RegisterCustomer)
+	r.POST("/customer/register", s.RegisterCustomer)
 
 	// Routes below require a valid customer in the Authorization header.
-	authed := group.Group("/", middleware.Auth(s.repos.Customers))
+	authed := r.Group("/", middleware.Auth(s.repos.Customers))
 	{
 		authed.GET("/customer", s.GetCustomer)
 

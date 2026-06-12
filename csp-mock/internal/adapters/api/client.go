@@ -2,6 +2,7 @@ package apibpadapter
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
@@ -26,6 +27,8 @@ func NewBPClientRegistry(config *config.CspConfig) (*BPClientRegistry, error) {
 	for _, cspConfig := range config.BillingProviders {
 		bps[cspConfig.ID] = *shared.NewHttpClient(cspConfig.ApiEndpoint, httpClient)
 	}
+
+	log.Printf("Created BP client registry with clients for billing providers: %v", config.BillingProviders)
 
 	return &BPClientRegistry{bps: bps}, nil
 }

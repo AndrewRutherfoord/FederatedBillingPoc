@@ -1,7 +1,7 @@
 package db
 
 type Customer struct {
-	ID    string `gorm:"primaryKey"`
-	Name  string `gorm:"not null"`
-	Email string `gorm:"uniqueIndex;not null"`
+	ID    string `gorm:"primaryKey" json:"id"`
+	Name  string `gorm:"not null" json:"name"`
+	Email string `gorm:"uniqueIndex;not null" json:"email"`
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type CostBatchRepository interface {
-	Create(ctx context.Context, billingAccountID string, merkelRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.CostBatch, error)
+	Create(ctx context.Context, billingAccountID string, billingProviderID string, resourceProviderID string, merkelRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.CostBatch, error)
 	GetByID(ctx context.Context, batchID string) (*db.CostBatch, error)
 	ListByBillingProvider(ctx context.Context, billingProviderID string, startTime, endTime time.Time) ([]db.CostBatch, error)
 }
@@ -22,14 +22,16 @@ func newCostBatchRepo(database *db.DB) CostBatchRepository {
 	return &costBatchRepo{db: database}
 }
 
-func (r *costBatchRepo) Create(ctx context.Context, billingAccountID string, merkelRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.CostBatch, error) {
+func (r *costBatchRepo) Create(ctx context.Context, billingAccountID string, billingProviderID string, resourceProviderID string, merkelRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.CostBatch, error) {
 	batch := &db.CostBatch{
-		ID:               uuid.NewString(),
-		BillingAccountID: billingAccountID,
-		CreatedAt:        createdAt,
-		MerkelRoot:       merkelRoot,
-		TotalItems:       totalItems,
-		TotalCost:        totalCost,
+		ID:                 uuid.NewString(),
+		BillingAccountID:   billingAccountID,
+		BillingProviderID:  billingProviderID,
+		ResourceProviderID: resourceProviderID,
+		CreatedAt:          createdAt,
+		MerkelRoot:         merkelRoot,
+		TotalItems:         totalItems,
+		TotalCost:          totalCost,
 	}
 	return batch, r.db.WithContext(ctx).Create(batch).Error
 }

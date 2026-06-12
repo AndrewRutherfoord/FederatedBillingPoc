@@ -20,7 +20,6 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 COPY --from=builder /app/time-server .
-COPY time-state.json .
 
 EXPOSE 9999
 

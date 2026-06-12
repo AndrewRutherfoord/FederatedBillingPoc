@@ -21,6 +21,7 @@ func NewHttpClient(baseURL string, client *http.Client) *HttpClient {
 }
 
 func (c *HttpClient) SendJSON(url string, data interface{}) error {
+	fmt.Printf("Sending JSON to %s: %+v", url, data)
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON: %w", err)

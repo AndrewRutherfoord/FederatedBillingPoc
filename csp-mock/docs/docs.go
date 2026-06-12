@@ -37,7 +37,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/db.BillingAccount"
+                                "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount"
                             }
                         }
                     },
@@ -84,7 +84,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/customerhandlers.createBillingAccountRequest"
+                            "$ref": "#/definitions/internal_handlers.createBillingAccountRequest"
                         }
                     }
                 ],
@@ -92,7 +92,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/db.BillingAccount"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount"
                         }
                     },
                     "400": {
@@ -152,7 +152,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/db.BillingAccount"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount"
                         }
                     },
                     "401": {
@@ -203,7 +203,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/db.Customer"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer"
                         }
                     },
                     "401": {
@@ -237,7 +237,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/customerhandlers.registerCustomerRequest"
+                            "$ref": "#/definitions/internal_handlers.registerCustomerRequest"
                         }
                     }
                 ],
@@ -245,7 +245,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/db.Customer"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer"
                         }
                     },
                     "400": {
@@ -306,7 +306,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/config.ResourceType"
+                                "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType"
                             }
                         }
                     }
@@ -335,7 +335,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/config.ResourceType"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType"
                         }
                     },
                     "404": {
@@ -384,7 +384,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/db.Resource"
+                                "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource"
                             }
                         }
                     },
@@ -431,7 +431,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/customerhandlers.createResourceRequest"
+                            "$ref": "#/definitions/internal_handlers.createResourceRequest"
                         }
                     }
                 ],
@@ -439,7 +439,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/db.Resource"
+                            "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource"
                         }
                     },
                     "400": {
@@ -560,7 +560,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/customerhandlers.setStorageRequest"
+                            "$ref": "#/definitions/internal_handlers.setStorageRequest"
                         }
                     }
                 ],
@@ -609,7 +609,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "config.PricingConfig": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingConfig": {
             "type": "object",
             "properties": {
                 "model": {
@@ -618,7 +618,7 @@ const docTemplate = `{
                 "tiers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/config.PricingTier"
+                        "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingTier"
                     }
                 },
                 "unitPrice": {
@@ -626,7 +626,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.PricingTier": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingTier": {
             "type": "object",
             "properties": {
                 "unitPrice": {
@@ -637,7 +637,7 @@ const docTemplate = `{
                 }
             }
         },
-        "config.ResourceType": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.ResourceType": {
             "type": "object",
             "properties": {
                 "billingUnit": {
@@ -657,16 +657,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pricing": {
-                    "$ref": "#/definitions/config.PricingConfig"
+                    "$ref": "#/definitions/github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingConfig"
                 },
                 "serviceCategory": {
-                    "$ref": "#/definitions/shared.ServiceCategory"
+                    "$ref": "#/definitions/models.ServiceCategory"
                 },
                 "serviceName": {
                     "type": "string"
                 },
                 "serviceSubcategory": {
-                    "$ref": "#/definitions/shared.ServiceSubcategory"
+                    "$ref": "#/definitions/models.ServiceSubcategory"
                 },
                 "skuID": {
                     "type": "string"
@@ -679,63 +679,7 @@ const docTemplate = `{
                 }
             }
         },
-        "customerhandlers.createBillingAccountRequest": {
-            "type": "object",
-            "required": [
-                "account_id",
-                "billing_provider"
-            ],
-            "properties": {
-                "account_id": {
-                    "type": "string"
-                },
-                "billing_provider": {
-                    "type": "string"
-                }
-            }
-        },
-        "customerhandlers.createResourceRequest": {
-            "type": "object",
-            "required": [
-                "billing_account_id",
-                "resource_type"
-            ],
-            "properties": {
-                "billing_account_id": {
-                    "type": "string"
-                },
-                "resource_type": {
-                    "type": "string"
-                }
-            }
-        },
-        "customerhandlers.registerCustomerRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "customerhandlers.setStorageRequest": {
-            "type": "object",
-            "required": [
-                "storage_gb"
-            ],
-            "properties": {
-                "storage_gb": {
-                    "type": "number"
-                }
-            }
-        },
-        "db.BillingAccount": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.BillingAccount": {
             "type": "object",
             "properties": {
                 "accountID": {
@@ -758,7 +702,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.Customer": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Customer": {
             "type": "object",
             "properties": {
                 "email": {
@@ -772,7 +716,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.Resource": {
+        "github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_db.Resource": {
             "type": "object",
             "properties": {
                 "billingAccountID": {
@@ -811,7 +755,63 @@ const docTemplate = `{
                 }
             }
         },
-        "shared.ServiceCategory": {
+        "internal_handlers.createBillingAccountRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "billing_provider"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string"
+                },
+                "billing_provider": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.createResourceRequest": {
+            "type": "object",
+            "required": [
+                "billing_account_id",
+                "resource_type"
+            ],
+            "properties": {
+                "billing_account_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.registerCustomerRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.setStorageRequest": {
+            "type": "object",
+            "required": [
+                "storage_gb"
+            ],
+            "properties": {
+                "storage_gb": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.ServiceCategory": {
             "type": "string",
             "enum": [
                 "ai_and_machine_learning",
@@ -856,7 +856,7 @@ const docTemplate = `{
                 "ServiceCategoryOther"
             ]
         },
-        "shared.ServiceSubcategory": {
+        "models.ServiceSubcategory": {
             "type": "string",
             "enum": [
                 "ai_platforms",
@@ -1041,11 +1041,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8443",
+	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "CSP Mock API",
-	Description:      "Mock Cloud Service Provider billing API implementing the FOCUS spec.",
+	Title:            "CSP Mock Customer API",
+	Description:      "Mock Cloud Service Provider customer billing API implementing the FOCUS spec.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
