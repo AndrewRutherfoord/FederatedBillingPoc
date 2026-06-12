@@ -5,7 +5,6 @@ import (
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type CustomerRepository interface {
@@ -15,10 +14,10 @@ type CustomerRepository interface {
 }
 
 type customerRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newCustomerRepo(database *gorm.DB) CustomerRepository {
+func newCustomerRepo(database *db.DB) CustomerRepository {
 	return &customerRepo{db: database}
 }
 

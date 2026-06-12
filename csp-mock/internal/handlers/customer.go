@@ -1,4 +1,4 @@
-package customerhandlers
+package handlers
 
 import (
 	"net/http"
@@ -26,7 +26,7 @@ type registerCustomerRequest struct {
 //	@Failure	400		{object}	map[string]string
 //	@Failure	500		{object}	map[string]string
 //	@Router		/customer/register [post]
-func (s *CustomerServer) RegisterCustomer(c *gin.Context) {
+func (s *Server) RegisterCustomer(c *gin.Context) {
 	var req registerCustomerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -51,7 +51,7 @@ func (s *CustomerServer) RegisterCustomer(c *gin.Context) {
 //	@Success	200		{object}	db.Customer
 //	@Failure	401		{object}	map[string]string
 //	@Router		/customer [get]
-func (s *CustomerServer) GetCustomer(c *gin.Context) {
+func (s *Server) GetCustomer(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 	c.JSON(http.StatusOK, customer)
 }

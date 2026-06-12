@@ -1,4 +1,4 @@
-package customerhandlers
+package handlers
 
 import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
@@ -23,7 +23,7 @@ type createBillingAccountRequest struct {
 //	@Failure	401	{object}	map[string]string
 //	@Failure	500	{object}	map[string]string
 //	@Router		/billing-accounts [get]
-func (cs *CustomerServer) ListBillingAccounts(c *gin.Context) {
+func (cs *Server) ListBillingAccounts(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
 	accounts, err := cs.repos.BillingAccounts.ListByCustomer(c.Request.Context(), customer.ID)
@@ -47,7 +47,7 @@ func (cs *CustomerServer) ListBillingAccounts(c *gin.Context) {
 //	@Failure	404			{object}	map[string]string
 //	@Failure	500			{object}	map[string]string
 //	@Router		/billing-accounts/{account_id} [get]
-func (cs *CustomerServer) GetBillingAccount(c *gin.Context) {
+func (cs *Server) GetBillingAccount(c *gin.Context) {
 	accountID := c.Param("account_id")
 
 	account, err := cs.repos.BillingAccounts.GetByAccountID(c.Request.Context(), accountID)
@@ -72,7 +72,7 @@ func (cs *CustomerServer) GetBillingAccount(c *gin.Context) {
 //	@Failure	401		{object}	map[string]string
 //	@Failure	500		{object}	map[string]string
 //	@Router		/billing-accounts [post]
-func (cs *CustomerServer) CreateBillingAccount(c *gin.Context) {
+func (s *Server) CreateBillingAccount(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
 	var req createBillingAccountRequest
@@ -81,7 +81,7 @@ func (cs *CustomerServer) CreateBillingAccount(c *gin.Context) {
 		return
 	}
 
-	billingProvider, err := cs.repos.BillingProviders.Get(c.Request.Context(), req.BillingProvider)
+	billingProvider, err := s.repos.BillingProviders.Get(c.Request.Context(), req.BillingProvider)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid billing provider"})
 		return
@@ -93,11 +93,11 @@ func (cs *CustomerServer) CreateBillingAccount(c *gin.Context) {
 		AccountID:         req.AccountID,
 		BillingProviderID: billingProvider.ID,
 		CustomerID:        customer.ID,
-		CreatedAt:         cs.clock.Now(),
-		UpdatedAt:         cs.clock.Now(),
+		CreatedAt:         s.clock.Now(),
+		UpdatedAt:         s.clock.Now(),
 	}
 
-	newAccount, err := cs.repos.BillingAccounts.Create(c.Request.Context(), account)
+	newAccount, err := s.repos.BillingAccounts.Create(c.Request.Context(), account)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})

@@ -4,6 +4,9 @@ import (
 	"net/http"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -14,15 +17,15 @@ import (
 // Add new repositories to Repos as the API grows.
 type Server struct {
 	config *config.CspConfig
+	repos  *repository.Repos
+	clock  util.Clock
 }
 
-type SubServer interface {
-	RegisterRoutes(r *gin.Engine)
-}
-
-func NewServer(config *config.CspConfig) *Server {
+func NewServer(config *config.CspConfig, repos *repository.Repos, clock util.Clock) *Server {
 	return &Server{
 		config: config,
+		repos:  repos,
+		clock:  clock,
 	}
 }
 
@@ -40,11 +43,28 @@ func (s *Server) Health(c *gin.Context) {
 	})
 }
 
-func (s *Server) RegisterRoutes(r *gin.Engine, subservers []SubServer) {
+func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.GET("/health", s.Health)
 
-	for _, ss := range subservers {
-		ss.RegisterRoutes(r)
+	group := r.Group("/customer")
+
+	group.GET("/resource-types", s.ListResourceTypes)
+	group.GET("/resource-types/:id", s.GetResourceType)
+
+	group.POST("/customer/register", s.RegisterCustomer)
+
+	// Routes below require a valid customer in the Authorization header.
+	authed := group.Group("/", middleware.Auth(s.repos.Customers))
+	{
+		authed.GET("/customer", s.GetCustomer)
+
+		authed.GET("/resources", s.ListResources)
+		authed.POST("/resources", s.CreateResource)
+		authed.DELETE("/resources/:id", s.DeleteResource)
+
+		authed.GET("/billing-accounts", s.ListBillingAccounts)
+		authed.GET("/billing-accounts/:account_id", s.GetBillingAccount)
+		authed.POST("/billing-accounts", s.CreateBillingAccount)
 	}
 }

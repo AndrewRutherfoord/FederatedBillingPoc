@@ -1,0 +1,23 @@
+# Development stage with air for hot reload
+FROM golang:latest AS dev-base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/* && \
+    go install github.com/air-verse/air@latest
+
+COPY csp-mock/go.mod csp-mock/go.sum ./
+COPY shared /shared
+RUN go mod download
+
+COPY csp-mock/ .
+
+# Target 1: Customer API development
+FROM dev-base AS customer-api
+ENV AIR_BIN="./tmp/customer-api"
+CMD ["air", "-c", ".air-customer-api.toml"]
+
+# Target 2: Billing Provider Interface development
+FROM dev-base AS billing-provider-interface
+ENV AIR_BIN="./tmp/billing-provider-interface"
+CMD ["air", "-c", ".air-billing-provider-interface.toml"]

@@ -1,4 +1,4 @@
-package customerhandlers
+package handlers
 
 import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
@@ -30,7 +30,7 @@ type setStorageRequest struct {
 // @Failure	401	{object}	map[string]string
 // @Failure	500	{object}	map[string]string
 // @Router		/resources [get]
-func (s *CustomerServer) ListResources(c *gin.Context) {
+func (s *Server) ListResources(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
 	resources, err := s.repos.Resources.ListByCustomerID(c.Request.Context(), customer.ID, 100, 0) // TODO: Add pagination support
@@ -55,7 +55,7 @@ func (s *CustomerServer) ListResources(c *gin.Context) {
 // @Failure	401		{object}	map[string]string
 // @Failure	500		{object}	map[string]string
 // @Router		/resources [post]
-func (s *CustomerServer) CreateResource(c *gin.Context) {
+func (s *Server) CreateResource(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 
 	var req createResourceRequest
@@ -107,7 +107,7 @@ func (s *CustomerServer) CreateResource(c *gin.Context) {
 //	@Failure	404	{object}	map[string]string
 //	@Failure	500	{object}	map[string]string
 //	@Router		/resources/{id}/storage [put]
-func (s *CustomerServer) SetStorageGB(c *gin.Context) {
+func (s *Server) SetStorageGB(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 	resourceID := c.Param("id")
 
@@ -143,7 +143,7 @@ func (s *CustomerServer) SetStorageGB(c *gin.Context) {
 //	@Failure	404	{object}	map[string]string
 //	@Failure	500	{object}	map[string]string
 //	@Router		/resources/{id} [delete]
-func (s *CustomerServer) DeleteResource(c *gin.Context) {
+func (s *Server) DeleteResource(c *gin.Context) {
 	customer := middleware.CustomerFromContext(c)
 	resourceID := c.Param("id")
 

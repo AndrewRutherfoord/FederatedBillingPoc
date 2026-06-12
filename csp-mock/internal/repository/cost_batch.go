@@ -6,7 +6,6 @@ import (
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type CostBatchRepository interface {
@@ -16,10 +15,10 @@ type CostBatchRepository interface {
 }
 
 type costBatchRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newCostBatchRepo(database *gorm.DB) CostBatchRepository {
+func newCostBatchRepo(database *db.DB) CostBatchRepository {
 	return &costBatchRepo{db: database}
 }
 

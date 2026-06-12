@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func Open(path string) (*gorm.DB, error) {
+type DB struct {
+	*gorm.DB
+}
+
+func Open(path string) (*DB, error) {
 	database, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("opening database: %w", err)
@@ -15,5 +19,13 @@ func Open(path string) (*gorm.DB, error) {
 	if err := database.AutoMigrate(&FocusRecord{}, &BillingAccount{}, &Customer{}, &Resource{}, &KeyValue{}, &CostBatch{}); err != nil {
 		return nil, fmt.Errorf("running migrations: %w", err)
 	}
-	return database, nil
+	return &DB{database}, nil
+}
+
+func (d *DB) Close() error {
+	sql, err := d.DB.DB()
+	if err != nil {
+		return fmt.Errorf("getting underlying sql.DB: %w", err)
+	}
+	return sql.Close()
 }

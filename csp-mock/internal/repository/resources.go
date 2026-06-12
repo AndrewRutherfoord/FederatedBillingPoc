@@ -7,7 +7,6 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 )
 
 type ResourceRepository interface {
@@ -20,10 +19,10 @@ type ResourceRepository interface {
 }
 
 type resourceRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newResourceRepo(database *gorm.DB) ResourceRepository {
+func newResourceRepo(database *db.DB) ResourceRepository {
 	return &resourceRepo{db: database}
 }
 

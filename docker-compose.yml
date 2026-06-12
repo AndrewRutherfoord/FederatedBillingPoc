@@ -1,0 +1,59 @@
+
+services:
+  time-server:
+    build:
+      context: ./time-server
+      dockerfile: Dockerfile
+    container_name: mock-clock
+    ports:
+      - "9999:9999"
+    volumes:
+      - ./time-server/time-state.json:/root/time-state.json
+    networks:
+      - csp-network
+
+  customer-api:
+    build:
+      context: .
+      dockerfile: csp-mock/Dockerfile.dev
+      target: customer-api
+    container_name: csp-mock-customer-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./csp-mock:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - /app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - MOCK_CLOCK_HOST=http://time-server:9999
+    networks:
+      - csp-network
+    depends_on:
+      - time-server
+
+  billing-provider-interface:
+    build:
+      context: .
+      dockerfile: csp-mock/Dockerfile.dev
+      target: billing-provider-interface
+    container_name: csp-mock-adapter
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./csp-mock:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - /app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - MOCK_CLOCK_HOST=http://time-server:9999
+    networks:
+      - csp-network
+    depends_on:
+      - time-server
+
+networks:
+  csp-network:
+    driver: bridge

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
-	"gorm.io/gorm"
 )
 
 type BillingAccountRepository interface {
@@ -16,10 +15,10 @@ type BillingAccountRepository interface {
 }
 
 type billingAccountRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newBillingAccountRepo(database *gorm.DB) BillingAccountRepository {
+func newBillingAccountRepo(database *db.DB) BillingAccountRepository {
 	return &billingAccountRepo{db: database}
 }
 

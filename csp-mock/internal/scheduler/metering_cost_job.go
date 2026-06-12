@@ -6,9 +6,9 @@ import (
 	"sort"
 	"time"
 
-	bpclient "github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/bp_client"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/port"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
@@ -16,15 +16,15 @@ import (
 )
 
 type RecordMeteringAndCostJob struct {
-	id             string
-	repos          *repository.Repos
-	config         *config.CspConfig
-	batchMaxSize   int
-	clientRegistry *bpclient.BPClientRegistry
+	id           string
+	repos        *repository.Repos
+	config       *config.CspConfig
+	batchMaxSize int
+	port         port.BPPort
 }
 
-func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig, clientRegistry *bpclient.BPClientRegistry) *RecordMeteringAndCostJob {
-	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000, clientRegistry: clientRegistry}
+func NewRecordMeteringAndCostJob(id string, repos *repository.Repos, config *config.CspConfig, port port.BPPort) *RecordMeteringAndCostJob {
+	return &RecordMeteringAndCostJob{id: id, repos: repos, config: config, batchMaxSize: 1000, port: port}
 }
 
 func (j *RecordMeteringAndCostJob) ID() string {

@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/config"
-	"gorm.io/gorm"
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 )
 
 // ProviderInfo holds the identity fields of this CSP instance, sourced from config.
@@ -28,7 +28,7 @@ type Repos struct {
 	KeyValue         KeyValueRepository
 }
 
-func New(cfg *config.CspConfig, database *gorm.DB) *Repos {
+func New(cfg *config.CspConfig, database *db.DB) *Repos {
 	return &Repos{
 		Provider: ProviderInfo{
 			ID:         cfg.ProviderID,

@@ -7,7 +7,6 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type FocusFilter struct {
@@ -25,10 +24,10 @@ type FocusRepository interface {
 }
 
 type focusRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newFocusRepo(database *gorm.DB) FocusRepository {
+func newFocusRepo(database *db.DB) FocusRepository {
 	return &focusRepo{db: database}
 }
 

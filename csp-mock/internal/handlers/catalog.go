@@ -1,4 +1,4 @@
-package customerhandlers
+package handlers
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ var _ config.ResourceType // swag type anchor
 //	@Produce	json
 //	@Success	200	{array}		config.ResourceType
 //	@Router		/resource-types [get]
-func (cs *CustomerServer) ListResourceTypes(c *gin.Context) {
+func (cs *Server) ListResourceTypes(c *gin.Context) {
 	c.JSON(http.StatusOK, cs.repos.ResourceTypes.List(c.Request.Context()))
 }
 
@@ -29,7 +29,7 @@ func (cs *CustomerServer) ListResourceTypes(c *gin.Context) {
 //	@Success	200	{object}	config.ResourceType
 //	@Failure	404	{object}	map[string]string
 //	@Router		/resource-types/{id} [get]
-func (cs *CustomerServer) GetResourceType(c *gin.Context) {
+func (cs *Server) GetResourceType(c *gin.Context) {
 	id := c.Param("id")
 	rt, err := cs.repos.ResourceTypes.GetById(c.Request.Context(), id)
 	if err != nil {

@@ -13,6 +13,13 @@ type HttpClient struct {
 	BaseURL string
 }
 
+func NewHttpClient(baseURL string, client *http.Client) *HttpClient {
+	return &HttpClient{
+		Client:  client,
+		BaseURL: baseURL,
+	}
+}
+
 func (c *HttpClient) SendJSON(url string, data interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {

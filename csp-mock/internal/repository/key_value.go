@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/db"
-	"gorm.io/gorm"
 )
 
 type KeyValueRepository interface {
@@ -14,10 +13,10 @@ type KeyValueRepository interface {
 }
 
 type keyValueRepo struct {
-	db *gorm.DB
+	db *db.DB
 }
 
-func newKeyValueRepo(database *gorm.DB) KeyValueRepository {
+func newKeyValueRepo(database *db.DB) KeyValueRepository {
 	return &keyValueRepo{db: database}
 }
 
