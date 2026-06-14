@@ -15,9 +15,10 @@ const router = createRouter({
       component: () => import('../views/billing-providers/OnboardingRedirectView.vue'),
     },
     {
-      path: '/billing-providers/account-overview',
+      path: '/billing-providers/:id/account-overview',
       name: 'BillingAccountOverview',
       component: () => import('../views/billing-providers/AccountOverviewView.vue'),
+      props: true,
     },
     {
       path: '/about',

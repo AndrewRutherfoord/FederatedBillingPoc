@@ -50,7 +50,7 @@ const onSubmit = async (values: Record<string, unknown>) => {
         <Column field="billing_provider_name" header="Billing Provider"></Column>
         <Column>
             <template #body="{ data }">
-                <RouterLink :to="{ name: 'BillingAccountOverview', query: { account_id: data.id } }" as="Button">View</RouterLink>
+                <RouterLink :to="{ name: 'BillingAccountOverview', params: { id: data.id } }" as="Button">View</RouterLink>
             </template>
         </Column>
     </DataTable>

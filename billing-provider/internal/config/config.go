@@ -23,7 +23,8 @@ type MTLSConfig struct {
 type CloudServiceProvider struct {
 	ID                  string              `yaml:"id" json:"id"`
 	Name                string              `yaml:"name" json:"name"`
-	APIEndpoint         string              `yaml:"api_endpoint" json:"api_endpoint"`
+	APIEndpointURL      string              `yaml:"api_endpoint_url" json:"api_endpoint_url"`
+	CustomerEndpointURL string              `yaml:"customer_endpoint_url" json:"customer_endpoint_url"`
 	SettlementFrequency SettlementFrequency `yaml:"settlement_frequency" json:"settlement_frequency"`
 	MTLS                MTLSConfig          `yaml:"mtls" json:"mtls"`
 }

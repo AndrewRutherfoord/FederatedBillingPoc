@@ -103,6 +103,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/billing/accounts/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "Get a billing account by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.billingAccountDetailResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -157,6 +203,29 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.billingAccountDetailResponse": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "billing_provider_id": {
+                    "type": "string"
+                },
+                "billing_provider_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "supported_cloud_providers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.supportedCloudProviderEntry"
+                    }
+                }
+            }
+        },
         "handlers.billingAccountResponse": {
             "type": "object",
             "properties": {
@@ -170,6 +239,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.supportedCloudProviderEntry": {
+            "type": "object",
+            "properties": {
+                "api_endpoint_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

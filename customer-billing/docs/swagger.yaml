@@ -20,6 +20,21 @@ definitions:
       redirect_url:
         type: string
     type: object
+  handlers.billingAccountDetailResponse:
+    properties:
+      alias:
+        type: string
+      billing_provider_id:
+        type: string
+      billing_provider_name:
+        type: string
+      id:
+        type: string
+      supported_cloud_providers:
+        items:
+          $ref: '#/definitions/handlers.supportedCloudProviderEntry'
+        type: array
+    type: object
   handlers.billingAccountResponse:
     properties:
       alias:
@@ -29,6 +44,15 @@ definitions:
       billing_provider_name:
         type: string
       id:
+        type: string
+    type: object
+  handlers.supportedCloudProviderEntry:
+    properties:
+      api_endpoint_url:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
 host: localhost:8082
@@ -59,6 +83,36 @@ paths:
               type: string
             type: object
       summary: Get all billing accounts
+      tags:
+      - billing
+  /billing/accounts/{id}:
+    get:
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.billingAccountDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a billing account by ID
       tags:
       - billing
   /billing/accounts/register:

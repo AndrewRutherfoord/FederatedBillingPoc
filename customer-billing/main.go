@@ -21,12 +21,12 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/handlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/scheduler"
-	_ "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	sharedscheduler "github.com/andrewrutherfoord/fed-bill-poc/shared/scheduler"
 	"github.com/gin-contrib/cors"

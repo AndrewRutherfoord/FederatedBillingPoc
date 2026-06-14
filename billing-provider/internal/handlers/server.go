@@ -39,9 +39,23 @@ func (s *Server) Health(c *gin.Context) {
 }
 
 func (s *Server) WellKnown(c *gin.Context) {
+	csps, err := s.repos.CloudServiceProviders.List(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list cloud service providers"})
+		return
+	}
+	var cspMetas []bpsharedmodels.SupportedCloudProviderMetadata
+	for _, csp := range csps {
+		cspMetas = append(cspMetas, bpsharedmodels.SupportedCloudProviderMetadata{
+			ID:          csp.ID,
+			Name:        csp.Name,
+			APIEndpoint: csp.APIEndpointURL,
+		})
+	}
 	metadata := bpsharedmodels.Metadata{
-		ID:   s.repos.Provider.ID,
-		Name: s.repos.Provider.Name,
+		ID:                      s.repos.Provider.ID,
+		Name:                    s.repos.Provider.Name,
+		SupportedCloudProviders: cspMetas,
 	}
 	c.JSON(http.StatusOK, metadata)
 }

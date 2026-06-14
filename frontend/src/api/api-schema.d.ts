@@ -117,6 +117,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a billing account by ID */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.billingAccountDetailResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -168,11 +229,23 @@ export interface components {
             account_id?: string;
             redirect_url?: string;
         };
+        "handlers.billingAccountDetailResponse": {
+            alias?: string;
+            billing_provider_id?: string;
+            billing_provider_name?: string;
+            id?: string;
+            supported_cloud_providers?: components["schemas"]["handlers.supportedCloudProviderEntry"][];
+        };
         "handlers.billingAccountResponse": {
             alias?: string;
             billing_provider_id?: string;
             billing_provider_name?: string;
             id?: string;
+        };
+        "handlers.supportedCloudProviderEntry": {
+            api_endpoint_url?: string;
+            id?: string;
+            name?: string;
         };
     };
     responses: never;
