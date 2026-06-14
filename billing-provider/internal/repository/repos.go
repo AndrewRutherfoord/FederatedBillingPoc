@@ -13,6 +13,7 @@ type ProviderInfo struct {
 type Repos struct {
 	Provider              ProviderInfo
 	CloudServiceProviders CloudServiceProviderRepository
+	BillingAccounts       BillingAccountRepository
 }
 
 func New(cfg *config.Config, database *db.DB) *Repos {
@@ -22,5 +23,6 @@ func New(cfg *config.Config, database *db.DB) *Repos {
 			Name: cfg.ProviderName,
 		},
 		CloudServiceProviders: newCloudServiceProviderRepo(cfg.CloudServiceProviders),
+		BillingAccounts:       newBillingAccountRepo(database),
 	}
 }

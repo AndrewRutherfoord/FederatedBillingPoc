@@ -1,0 +1,16 @@
+FROM golang:latest AS dev-base
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/* && \
+    go install github.com/air-verse/air@latest && \
+    go install github.com/swaggo/swag/cmd/swag@v1.16.6
+
+COPY customer-billing/go.mod customer-billing/go.sum ./
+COPY shared /shared
+RUN go mod download
+
+COPY customer-billing/ .
+
+FROM dev-base AS customer-api
+CMD ["air", "-c", ".air.toml"]

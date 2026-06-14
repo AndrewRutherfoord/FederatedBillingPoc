@@ -96,6 +96,27 @@ services:
     depends_on:
       - time-server
 
+  customer-billing-api:
+    build:
+      context: .
+      dockerfile: customer-billing/Dockerfile.dev
+      target: customer-api
+    container_name: customer-billing-api
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./customer-billing:/app
+      - ./shared:/shared
+      - /app/tmp
+    environment:
+      - API_PORT=8082
+      - MOCK_CLOCK_HOST=http://time-server:9999
+      - CB_DB_PATH=/app/customer-billing.sqlite
+    networks:
+      - csp-network
+    depends_on:
+      - time-server
+
 networks:
   csp-network:
     driver: bridge

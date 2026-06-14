@@ -5,22 +5,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
-type HttpClient struct {
+type HttpClient interface {
+	SendJSON(path string, data interface{}, out interface{}) error
+	FetchJSON(path string, out interface{}) error
+}
+
+type httpClientImpl struct {
 	Client  *http.Client
 	BaseURL string
 }
 
-func NewHttpClient(baseURL string, client *http.Client) *HttpClient {
-	return &HttpClient{
+func NewHttpClient(baseURL string) HttpClient {
+	return &httpClientImpl{
+		Client:  &http.Client{},
+		BaseURL: baseURL,
+	}
+}
+
+func NewHttpClientWithCustomClient(baseURL string, client *http.Client) HttpClient {
+	return &httpClientImpl{
 		Client:  client,
 		BaseURL: baseURL,
 	}
 }
 
-func (c *HttpClient) SendJSON(url string, data interface{}) error {
+func (c *httpClientImpl) SendJSON(path string, data interface{}, out interface{}) error {
+	url := fmt.Sprintf("%s%s", c.BaseURL, path)
 	fmt.Printf("Sending JSON to %s: %+v", url, data)
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -45,10 +59,18 @@ func (c *HttpClient) SendJSON(url string, data interface{}) error {
 		return fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(body))
 	}
 
+	if out != nil {
+		if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+			return fmt.Errorf("failed to decode response JSON: %w", err)
+		}
+	}
+
 	return nil
 }
 
-func (c *HttpClient) FetchJSON(url string, out interface{}) error {
+func (c *httpClientImpl) FetchJSON(path string, out interface{}) error {
+	url := fmt.Sprintf("%s%s", c.BaseURL, path)
+	log.Printf("Fetching JSON from %s", url)
 	resp, err := c.Client.Get(url)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)

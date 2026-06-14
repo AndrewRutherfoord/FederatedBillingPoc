@@ -17,13 +17,16 @@ package main
 //	@description				Bearer <account_id>
 
 import (
+	"flag"
 	"log"
 	"os"
 
+	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/config"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/handlers"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/scheduler"
+	_ "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/docs"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	sharedscheduler "github.com/andrewrutherfoord/fed-bill-poc/shared/scheduler"
 	"github.com/gin-contrib/cors"
@@ -31,6 +34,15 @@ import (
 )
 
 func main() {
+	// Load config
+	configPath := flag.String("config", "config.yaml", "path to config file")
+	flag.Parse()
+
+	config, err := config.Load(*configPath)
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
 	dbPath := os.Getenv("CB_DB_PATH")
 	if dbPath == "" {
 		dbPath = "customer-billing.sqlite"
@@ -40,7 +52,7 @@ func main() {
 		log.Fatalf("failed to open database: %v", err)
 	}
 
-	repos := repository.New(database)
+	repos := repository.New(config, database)
 
 	// clientRegistry, err := bpclient.NewBPClientRegistry(cfg)
 	// if err != nil {
@@ -73,8 +85,9 @@ func main() {
 	server := handlers.NewServer(repos)
 	server.RegisterRoutes(r)
 
-	log.Printf("Starting customer billing service on :8082")
-	if err := r.Run(":8082"); err != nil {
+	port := os.Getenv("API_PORT")
+	log.Printf("Starting customer billing service on :%s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

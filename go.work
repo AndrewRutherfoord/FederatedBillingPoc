@@ -3,6 +3,7 @@ go 1.26.2
 use (
 	./billing-provider
 	./csp-mock
+	./customer-billing
 	./shared
 	./time-server
 )

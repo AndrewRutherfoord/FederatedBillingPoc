@@ -33,7 +33,7 @@ func NewCSPClientRegistry(cfg *config.Config) (*CSPClientRegistry, error) {
 	return &CSPClientRegistry{csps: csps}, nil
 }
 
-func (r *CSPClientRegistry) GetClient(cspID string) (shared.HttpClient, bool) {
+func (r *CSPClientRegistry) GetClient(cspID string) (shared.HttpClientImpl, bool) {
 	client, exists := r.csps[cspID]
 	return client, exists
 }

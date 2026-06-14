@@ -1,0 +1,119 @@
+basePath: /
+definitions:
+  handlers.RegisterAcccountRequest:
+    properties:
+      account_alias:
+        type: string
+      billing_provider_base_url:
+        type: string
+      return_url:
+        type: string
+    required:
+    - account_alias
+    - billing_provider_base_url
+    - return_url
+    type: object
+  handlers.RegisterAccountResponse:
+    properties:
+      account_id:
+        type: string
+      redirect_url:
+        type: string
+    type: object
+  handlers.billingAccountResponse:
+    properties:
+      alias:
+        type: string
+      billing_provider_id:
+        type: string
+      billing_provider_name:
+        type: string
+      id:
+        type: string
+    type: object
+host: localhost:8082
+info:
+  contact:
+    name: Andrew Rutherfoord
+  description: Mock Cloud Service Provider billing API implementing the FOCUS spec.
+  title: CSP Mock API
+  version: "1.0"
+paths:
+  /billing/accounts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/handlers.billingAccountResponse'
+              type: array
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all billing accounts
+      tags:
+      - billing
+  /billing/accounts/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new billing account with a billing provider and returns
+        a redirect URL for the customer onboarding flow.
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterAcccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.RegisterAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register billing account with billing provider
+      tags:
+      - billing
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+securityDefinitions:
+  BearerAuth:
+    description: Bearer <account_id>
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

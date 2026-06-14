@@ -8,6 +8,7 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/util"
+	cspsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/cloud-service-provider"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -44,9 +45,26 @@ func (s *Server) Health(c *gin.Context) {
 	})
 }
 
+// WellKnown godoc
+//
+//	@Summary	Cloud Service Provider metadata
+//	@Description	Returns metadata about the cloud service provider, such as provider ID and name. This is used by the billing provider or the customer metering service to identify and display information about the CSP.
+//	@Tags		well-known
+//	@Produce	json
+//	@Success	200	{object}	cspsharedmodels.Metadata
+//	@Router		/.well-known/cloud-service-provider [get]
+func (s *Server) WellKnown(c *gin.Context) {
+	metadata := cspsharedmodels.Metadata{
+		ID:   s.config.ProviderID,
+		Name: s.config.ProviderName,
+	}
+	c.JSON(http.StatusOK, metadata)
+}
+
 func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.GET("/health", s.Health)
+	r.GET("/.well-known/cloud-service-provider", s.WellKnown)
 
 	r.GET("/resource-types", s.ListResourceTypes)
 	r.GET("/resource-types/:id", s.GetResourceType)

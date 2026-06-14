@@ -15,9 +15,8 @@ import (
 	"flag"
 	"log"
 
-	apicspadapter "github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/adapters/api"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/app"
-	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/port"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/handlers"
 )
 
 func main() {
@@ -30,10 +29,8 @@ func main() {
 		log.Fatalf("failed to initialise app: %v", err)
 	}
 
-	handler := port.NewCustomerPort(a.Repos)
-	adapter := apicspadapter.NewApiCustomerAdapter(handler, a.Config, a.Repos)
-
-	if err := adapter.Start(*apiPort); err != nil {
+	server := handlers.NewServer(a.Config, a.Repos)
+	if err := server.Start(*apiPort); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
