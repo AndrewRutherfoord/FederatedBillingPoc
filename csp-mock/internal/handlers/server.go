@@ -54,9 +54,22 @@ func (s *Server) Health(c *gin.Context) {
 //	@Success	200	{object}	cspsharedmodels.Metadata
 //	@Router		/.well-known/cloud-service-provider [get]
 func (s *Server) WellKnown(c *gin.Context) {
+	bps, err := s.repos.BillingProviders.List(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list billing providers"})
+		return
+	}
+	var bpMetas []cspsharedmodels.SupportedCloudProviderMetadata
+	for _, bp := range bps {
+		bpMetas = append(bpMetas, cspsharedmodels.SupportedCloudProviderMetadata{
+			ID:   bp.ID,
+			Name: bp.Name,
+		})
+	}
 	metadata := cspsharedmodels.Metadata{
-		ID:   s.config.ProviderID,
-		Name: s.config.ProviderName,
+		ID:                        s.config.ProviderID,
+		Name:                      s.config.ProviderName,
+		SupportedBillingProviders: bpMetas,
 	}
 	c.JSON(http.StatusOK, metadata)
 }

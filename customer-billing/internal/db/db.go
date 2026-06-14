@@ -17,7 +17,7 @@ func Open(path string) (*DB, error) {
 		return nil, fmt.Errorf("opening database: %w", err)
 	}
 
-	if err := database.AutoMigrate(&BillingAccount{}, &BillingProvider{}, &SupportedCloudProvider{}); err != nil {
+	if err := database.AutoMigrate(&BillingAccount{}, &BillingProvider{}, &SupportedCloudProvider{}, &LinkedCloudProvider{}, &CloudServiceProvider{}); err != nil {
 		return nil, fmt.Errorf("running migrations: %w", err)
 	}
 

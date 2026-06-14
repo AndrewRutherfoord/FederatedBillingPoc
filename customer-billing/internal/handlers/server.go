@@ -39,4 +39,5 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.POST("/billing/accounts/register", s.RegisterBillingAccount)
 	r.GET("/billing/accounts", s.ListBillingAccounts)
 	r.GET("/billing/accounts/:id", s.GetBillingAccount)
+	r.GET("/billing/accounts/:id/cloud-provider-links", s.ListBillingProviderLinkedCloudProviders)
 }

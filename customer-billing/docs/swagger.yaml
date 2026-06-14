@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  handlers.CloudProviderLink:
+    properties:
+      billing_provider_id:
+        type: string
+      billing_provider_name:
+        type: string
+      cloud_provider_id:
+        type: string
+      cloud_provider_name:
+        type: string
+      id:
+        type: string
+    required:
+    - billing_provider_id
+    - billing_provider_name
+    - cloud_provider_id
+    - cloud_provider_name
+    - id
+    type: object
   handlers.RegisterAcccountRequest:
     properties:
       account_alias:
@@ -113,6 +132,40 @@ paths:
               type: string
             type: object
       summary: Get a billing account by ID
+      tags:
+      - billing
+  /billing/accounts/{id}/cloud-provider-links:
+    get:
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/handlers.CloudProviderLink'
+              type: array
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List cloud providers linked to a billing account
       tags:
       - billing
   /billing/accounts/register:

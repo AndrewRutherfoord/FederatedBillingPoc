@@ -11,3 +11,11 @@ type BillingAccount struct {
 	OnboardingRedirectURL string
 	OnboardingComplete    *time.Time
 }
+type LinkedCloudProvider struct {
+	ID                 string `gorm:"column:id;primaryKey"`
+	BillingAccountID   string
+	CloudProviderID    string
+	InternalAccountID  string // Account ID used within the CSP
+	OnboardingComplete *time.Time
+	Created            *time.Time
+}

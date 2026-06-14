@@ -11,17 +11,17 @@ type BillingProviderClient interface {
 	RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error)
 }
 
-type BillingProviderClientImpl struct {
+type billingProviderClient struct {
 	shared.HttpClient
 }
 
-func NewBillingProviderClient(baseURL string) *BillingProviderClientImpl {
-	return &BillingProviderClientImpl{
+func NewBillingProviderClient(baseURL string) *billingProviderClient {
+	return &billingProviderClient{
 		HttpClient: shared.NewHttpClient(baseURL),
 	}
 }
 
-func (c *BillingProviderClientImpl) GetMetadata() (billingprovidermodels.Metadata, error) {
+func (c *billingProviderClient) GetMetadata() (billingprovidermodels.Metadata, error) {
 	var metadataResponse billingprovidermodels.Metadata
 	err := c.FetchJSON("/.well-known/billing-provider", &metadataResponse)
 	if err != nil {
@@ -30,7 +30,7 @@ func (c *BillingProviderClientImpl) GetMetadata() (billingprovidermodels.Metadat
 	return metadataResponse, nil
 }
 
-func (c *BillingProviderClientImpl) RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error) {
+func (c *billingProviderClient) RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error) {
 	payload := billingprovidermodels.RegisterBillingAccountRequest{
 		ReturnURL: returnURL,
 	}

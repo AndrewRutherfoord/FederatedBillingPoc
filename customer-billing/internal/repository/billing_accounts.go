@@ -16,6 +16,7 @@ type BillingAccountRepository interface {
 	ListBillingAccounts() ([]*BillingAccountWithProviderName, error)
 	GetBillingAccountByID(id string) (*BillingAccountWithProvider, error)
 	CreateBillingAccount(id string, billingProviderID string, accountAlias string, token string) (*db.BillingAccount, error)
+	LinkCloudProviderToBillingAccount(accountID string, cloudProviderID string) error
 }
 
 type billingAccountRepo struct {
@@ -75,4 +76,12 @@ func (r *billingAccountRepo) CreateBillingAccount(id string, billingProviderID s
 		return nil, err
 	}
 	return billingAccount, nil
+}
+
+func (r *billingAccountRepo) LinkCloudProviderToBillingAccount(accountID string, cloudProviderID string) error {
+	link := &db.LinkedCloudProvider{
+		BillingAccountID: accountID,
+		CloudProviderID:  cloudProviderID,
+	}
+	return r.db.Create(link).Error
 }

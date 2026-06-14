@@ -143,6 +143,58 @@
                 }
             }
         },
+        "/billing/accounts/{id}/cloud-provider-links": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "List cloud providers linked to a billing account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/handlers.CloudProviderLink"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -167,6 +219,33 @@
         }
     },
     "definitions": {
+        "handlers.CloudProviderLink": {
+            "type": "object",
+            "required": [
+                "billing_provider_id",
+                "billing_provider_name",
+                "cloud_provider_id",
+                "cloud_provider_name",
+                "id"
+            ],
+            "properties": {
+                "billing_provider_id": {
+                    "type": "string"
+                },
+                "billing_provider_name": {
+                    "type": "string"
+                },
+                "cloud_provider_id": {
+                    "type": "string"
+                },
+                "cloud_provider_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.RegisterAcccountRequest": {
             "type": "object",
             "required": [

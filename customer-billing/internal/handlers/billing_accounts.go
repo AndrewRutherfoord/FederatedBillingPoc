@@ -144,3 +144,29 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 		SupportedCloudProviders: csps,
 	})
 }
+
+type CloudProviderLink struct {
+	ID                  string `json:"id" binding:"required"`
+	BillingProviderID   string `json:"billing_provider_id" binding:"required"`
+	BillingProviderName string `json:"billing_provider_name" binding:"required"`
+	CloudProviderID     string `json:"cloud_provider_id" binding:"required"`
+	CloudProviderName   string `json:"cloud_provider_name" binding:"required"`
+}
+
+// ListBillingProviderLinkedCloudProviders godoc
+//
+//	@Summary		List cloud providers linked to a billing account
+//	@Tags			billing
+//	@Produce		json
+//	@Param			id	path		string	true	"Account ID"
+//	@Success		200	{array}	[]CloudProviderLink
+//	@Failure		404	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/billing/accounts/{id}/cloud-provider-links [get]
+func (s *Server) ListBillingProviderLinkedCloudProviders(c *gin.Context) {
+	c.JSON(http.StatusOK, []CloudProviderLink{})
+}
+
+func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
+
+}
