@@ -1,11 +1,13 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
-	"gorm.io/gorm"
+	sqlcdb "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
 )
 
-type SupportedCloudProvider struct {
+type CloudServiceProvider struct {
 	ID             string
 	Name           string
 	APIEndpointURL string
@@ -15,14 +17,14 @@ type BillingProvider struct {
 	ID                      string
 	Name                    string
 	BaseURL                 string
-	SupportedCloudProviders []SupportedCloudProvider
+	SupportedCloudProviders []CloudServiceProvider
 }
 
 type BillingProviderRepository interface {
-	ListBillingProviders() ([]*BillingProvider, error)
-	GetBillingProviderByID(id string) (*BillingProvider, error)
-	CreateBillingProvider(id string, name string, baseURL string) (BillingProvider, error)
-	UpsertBillingProvider(id string, name string, baseURL string, csps []db.SupportedCloudProvider) (BillingProvider, error)
+	ListBillingProviders(ctx context.Context) ([]*BillingProvider, error)
+	GetBillingProviderByID(ctx context.Context, id string) (*BillingProvider, error)
+	CreateBillingProvider(ctx context.Context, id string, name string, baseURL string) (BillingProvider, error)
+	UpsertBillingProvider(ctx context.Context, id string, name string, baseURL string, csps []CloudServiceProvider) (BillingProvider, error)
 }
 
 type billingProviderRepo struct {
@@ -33,82 +35,82 @@ func newBillingProviderRepo(database *db.DB) BillingProviderRepository {
 	return &billingProviderRepo{db: database}
 }
 
-func (r *billingProviderRepo) loadCSPs(bpID string) ([]SupportedCloudProvider, error) {
-	var rows []db.SupportedCloudProvider
-	if err := r.db.Where("billing_provider_id = ?", bpID).Find(&rows).Error; err != nil {
-		return nil, err
+func toBillingProvider(row sqlcdb.BillingProvider, cspRows []sqlcdb.BillingProviderSupportedCloudProvider) BillingProvider {
+	csps := make([]CloudServiceProvider, len(cspRows))
+	for i, c := range cspRows {
+		csps[i] = CloudServiceProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.ApiEndpointUrl}
 	}
-	csps := make([]SupportedCloudProvider, len(rows))
-	for i, row := range rows {
-		csps[i] = SupportedCloudProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.APIEndpointURL}
-	}
-	return csps, nil
+	return BillingProvider{ID: row.ID, Name: row.Name, BaseURL: row.ApiEndpointUrl, SupportedCloudProviders: csps}
 }
 
-func toRepoBillingProvider(row db.BillingProvider, csps []SupportedCloudProvider) BillingProvider {
-	return BillingProvider{ID: row.ID, Name: row.Name, BaseURL: row.BaseURL, SupportedCloudProviders: csps}
-}
-
-func (r *billingProviderRepo) ListBillingProviders() ([]*BillingProvider, error) {
-	var rows []db.BillingProvider
-	if err := r.db.Find(&rows).Error; err != nil {
+func (r *billingProviderRepo) ListBillingProviders(ctx context.Context) ([]*BillingProvider, error) {
+	rows, err := r.db.Queries.ListBillingProviders(ctx)
+	if err != nil {
 		return nil, err
 	}
 	result := make([]*BillingProvider, len(rows))
 	for i, row := range rows {
-		csps, err := r.loadCSPs(row.ID)
+		csps, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, row.ID)
 		if err != nil {
 			return nil, err
 		}
-		bp := toRepoBillingProvider(row, csps)
+		bp := toBillingProvider(row, csps)
 		result[i] = &bp
 	}
 	return result, nil
 }
 
-func (r *billingProviderRepo) GetBillingProviderByID(id string) (*BillingProvider, error) {
-	var row db.BillingProvider
-	if err := r.db.First(&row, "billing_provider_id = ?", id).Error; err != nil {
-		return nil, err
-	}
-	csps, err := r.loadCSPs(id)
+func (r *billingProviderRepo) GetBillingProviderByID(ctx context.Context, id string) (*BillingProvider, error) {
+	row, err := r.db.Queries.GetBillingProvider(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	bp := toRepoBillingProvider(row, csps)
+	csps, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	bp := toBillingProvider(row, csps)
 	return &bp, nil
 }
 
-func (r *billingProviderRepo) CreateBillingProvider(id string, name string, baseURL string) (BillingProvider, error) {
-	row := db.BillingProvider{ID: id, Name: name, BaseURL: baseURL}
-	if err := r.db.Create(&row).Error; err != nil {
+func (r *billingProviderRepo) CreateBillingProvider(ctx context.Context, id string, name string, baseURL string) (BillingProvider, error) {
+	err := r.db.Queries.CreateBillingProvider(ctx, sqlcdb.CreateBillingProviderParams{
+		ID:             id,
+		Name:           name,
+		ApiEndpointUrl: baseURL,
+	})
+	if err != nil {
 		return BillingProvider{}, err
 	}
-	return toRepoBillingProvider(row, nil), nil
+	return BillingProvider{ID: id, Name: name, BaseURL: baseURL}, nil
 }
 
-func (r *billingProviderRepo) UpsertBillingProvider(id string, name string, baseURL string, csps []db.SupportedCloudProvider) (BillingProvider, error) {
-	row := db.BillingProvider{ID: id, Name: name, BaseURL: baseURL}
-
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(&row).Error; err != nil {
+func (r *billingProviderRepo) UpsertBillingProvider(ctx context.Context, id string, name string, baseURL string, csps []CloudServiceProvider) (BillingProvider, error) {
+	err := r.db.WithTx(ctx, func(q *sqlcdb.Queries) error {
+		if err := q.UpsertBillingProvider(ctx, sqlcdb.UpsertBillingProviderParams{
+			ID:             id,
+			Name:           name,
+			ApiEndpointUrl: baseURL,
+		}); err != nil {
 			return err
 		}
-		if err := tx.Where("billing_provider_id = ?", id).Delete(&db.SupportedCloudProvider{}).Error; err != nil {
+		if err := q.DeleteBillingProviderSupportedCSPs(ctx, id); err != nil {
 			return err
 		}
-		if len(csps) > 0 {
-			return tx.Create(&csps).Error
+		for _, csp := range csps {
+			if err := q.CreateBillingProviderSupportedCSP(ctx, sqlcdb.CreateBillingProviderSupportedCSPParams{
+				ID:                csp.ID,
+				BillingProviderID: id,
+				Name:              csp.Name,
+				ApiEndpointUrl:    csp.APIEndpointURL,
+			}); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
 	if err != nil {
 		return BillingProvider{}, err
 	}
-
-	repoCSPs := make([]SupportedCloudProvider, len(csps))
-	for i, c := range csps {
-		repoCSPs[i] = SupportedCloudProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.APIEndpointURL}
-	}
-	return toRepoBillingProvider(row, repoCSPs), nil
+	return BillingProvider{ID: id, Name: name, BaseURL: baseURL, SupportedCloudProviders: csps}, nil
 }

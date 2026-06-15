@@ -69,6 +69,7 @@ func (s *Server) WellKnown(c *gin.Context) {
 	metadata := cspsharedmodels.Metadata{
 		ID:                        s.config.ProviderID,
 		Name:                      s.config.ProviderName,
+		APIEndpointURL:            s.config.CustomerAPIEndpointURL,
 		SupportedBillingProviders: bpMetas,
 	}
 	c.JSON(http.StatusOK, metadata)

@@ -9,6 +9,7 @@ import (
 
 type CloudServiceProviderClient interface {
 	GetMetadata() (cspsharedmodels.Metadata, error)
+	RegisterCloudProviderAccount(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error)
 }
 
 type cloudServiceProviderClient struct {
@@ -30,7 +31,7 @@ func (c *cloudServiceProviderClient) GetMetadata() (cspsharedmodels.Metadata, er
 	return metadataResponse, nil
 }
 
-func (c *cloudServiceProviderClient) RegisterCloudProviderLink(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error) {
+func (c *cloudServiceProviderClient) RegisterCloudProviderAccount(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error) {
 	payload := cspsharedmodels.RegisterLinkedCloudProviderRequest{
 		BillingProviderID: billingProviderID,
 		BillingAccountID:  billingAccountID,

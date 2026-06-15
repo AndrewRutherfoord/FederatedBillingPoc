@@ -1,38 +1,41 @@
 package repository
 
-import "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+import (
+	"context"
 
-type CloudServiceProvider struct {
-	ID             string
-	Name           string
-	APIEndpointURL string
-}
+	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+	sqlcdb "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
+)
 
 type CloudServiceProviderRepository interface {
-	GetByID(id string) (CloudServiceProvider, error)
-	Create(name string, APIEndpointURL string) (CloudServiceProvider, error)
+	GetByID(ctx context.Context, id string) (CloudServiceProvider, error)
+	Upsert(ctx context.Context, id string, name string, apiEndpointURL string) (CloudServiceProvider, error)
 }
 
-type cloudServiceProvider struct {
+type cloudServiceProviderRepo struct {
 	db *db.DB
 }
 
 func newCloudServiceProviderRepo(database *db.DB) CloudServiceProviderRepository {
-	return &cloudServiceProvider{db: database}
+	return &cloudServiceProviderRepo{db: database}
 }
 
-func (r *cloudServiceProvider) GetByID(id string) (CloudServiceProvider, error) {
-	var row db.CloudServiceProvider
-	if err := r.db.Where("cloud_provider_id = ?", id).First(&row).Error; err != nil {
+func (r *cloudServiceProviderRepo) GetByID(ctx context.Context, id string) (CloudServiceProvider, error) {
+	row, err := r.db.Queries.GetBillingProviderSupportedCSP(ctx, id)
+	if err != nil {
 		return CloudServiceProvider{}, err
 	}
-	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.BaseURL}, nil
+	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl}, nil
 }
 
-func (r *cloudServiceProvider) Create(name string, APIEndpointURL string) (CloudServiceProvider, error) {
-	newCSP := db.CloudServiceProvider{Name: name, BaseURL: APIEndpointURL}
-	if err := r.db.Create(&newCSP).Error; err != nil {
+func (r *cloudServiceProviderRepo) Upsert(ctx context.Context, id string, name string, apiEndpointURL string) (CloudServiceProvider, error) {
+	row, err := r.db.Queries.UpdateBillingProviderSupportedCSP(ctx, sqlcdb.UpdateBillingProviderSupportedCSPParams{
+		Name:           name,
+		ApiEndpointUrl: apiEndpointURL,
+		ID:             id,
+	})
+	if err != nil {
 		return CloudServiceProvider{}, err
 	}
-	return CloudServiceProvider{ID: newCSP.ID, Name: newCSP.Name, APIEndpointURL: newCSP.BaseURL}, nil
+	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl}, nil
 }

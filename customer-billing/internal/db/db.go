@@ -1,33 +1,51 @@
 package db
 
 import (
+	"context"
+	"database/sql"
+	"embed"
 	"fmt"
 
-	"github.com/glebarez/sqlite"
-	"gorm.io/gorm"
+	sqlc "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
+	_ "github.com/glebarez/go-sqlite"
 )
 
+//go:embed migrations/*.sql
+var embedMigrations embed.FS
+
 type DB struct {
-	*gorm.DB
+	*sqlc.Queries
+	conn *sql.DB
 }
 
 func Open(path string) (*DB, error) {
-	database, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	conn, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("opening database: %w", err)
 	}
 
-	if err := database.AutoMigrate(&BillingAccount{}, &BillingProvider{}, &SupportedCloudProvider{}, &CloudServiceProviderAccount{}, &CloudServiceProvider{}); err != nil {
-		return nil, fmt.Errorf("running migrations: %w", err)
+	if err := conn.Ping(); err != nil {
+		return nil, fmt.Errorf("pinging database: %w", err)
 	}
 
-	return &DB{database}, nil
+	return &DB{
+		Queries: sqlc.New(conn),
+		conn:    conn,
+	}, nil
 }
 
 func (d *DB) Close() error {
-	sql, err := d.DB.DB()
+	return d.conn.Close()
+}
+
+func (d *DB) WithTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
+	tx, err := d.conn.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("getting underlying sql.DB: %w", err)
+		return err
 	}
-	return sql.Close()
+	if err := fn(sqlc.New(tx)); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }

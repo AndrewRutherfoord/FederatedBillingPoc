@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/clients"
@@ -39,7 +40,7 @@ func (s *Server) RegisterBillingAccount(c *gin.Context) {
 		return
 	}
 
-	bp, err := services.SyncBillingProviderMetadata(s.repos, req.BillingProviderBaseURL)
+	bp, err := services.SyncBillingProviderMetadata(c.Request.Context(), s.repos, req.BillingProviderBaseURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sync billing provider metadata"})
 		return
@@ -56,7 +57,7 @@ func (s *Server) RegisterBillingAccount(c *gin.Context) {
 	}
 
 	// Store the pending account locally
-	if _, err := s.repos.BillingAccount.CreateBillingAccount(bpResponse.ID, bp.ID, req.AccountAlias, ""); err != nil {
+	if err := s.repos.BillingAccount.CreateBillingAccount(c.Request.Context(), bpResponse.ID, bp.ID, req.AccountAlias); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save billing account"})
 		return
 	}
@@ -83,7 +84,7 @@ type billingAccountResponse struct {
 //	@Failure		500	{object}	map[string]string
 //	@Router			/billing/accounts [get]
 func (s *Server) ListBillingAccounts(c *gin.Context) {
-	accounts, err := s.repos.BillingAccount.ListBillingAccounts()
+	accounts, err := s.repos.BillingAccount.ListBillingAccounts(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get billing accounts"})
 		return
@@ -126,7 +127,7 @@ type supportedCloudProviderEntry struct {
 //	@Failure		500	{object}	map[string]string
 //	@Router			/billing/accounts/{id} [get]
 func (s *Server) GetBillingAccount(c *gin.Context) {
-	account, err := s.repos.BillingAccount.GetBillingAccountByID(c.Param("id"))
+	account, err := s.repos.BillingAccount.GetBillingAccountByID(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "billing account not found"})
 		return
@@ -181,25 +182,37 @@ func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
 		return
 	}
 
-	billingAccount, err := s.repos.BillingAccount.GetBillingAccountByID(req.AccountID)
+	billingAccount, err := s.repos.BillingAccount.GetBillingAccountByID(c.Request.Context(), req.AccountID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "billing account not found"})
 		return
 	}
 
-	var csp repository.SupportedCloudProvider
+	var csp repository.CloudServiceProvider
 	for _, provider := range billingAccount.BillingProvider.SupportedCloudProviders {
 		if provider.ID == req.CloudProviderID {
 			csp = provider
 			break
 		}
 	}
+	log.Printf("Found matching cloud provider in billing provider metadata: %+v", csp)
 
-	cspMeta, err := services.SyncCloudServiceProviderMetadata(s.repos, csp.APIEndpointURL)
+	cspMeta, err := services.SyncCloudServiceProviderMetadata(c.Request.Context(), s.repos, csp.APIEndpointURL)
 
 	client := clients.NewCloudServiceProviderClient(csp.APIEndpointURL)
 
-	cspResponse, err := client.RegisterCloudProviderLink(billingAccount.BillingProvider.ID, billingAccount.ID, req.ReturnURL)
+	cspResponse, err := client.RegisterCloudProviderAccount(billingAccount.BillingProvider.ID, billingAccount.ID, req.ReturnURL)
 
 	// TODO: Store the link
+
+	// Store the pending account locally
+	if err := s.repos.CloudServiceProviderAccount.Create(c.Request.Context(), bpResponse.ID, bp.ID, req.AccountAlias); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save billing account"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, RegisterAccountResponse{
+		AccountID:   bpResponse.ID,
+		RedirectURL: bpResponse.RedirectURL,
+	})
 }

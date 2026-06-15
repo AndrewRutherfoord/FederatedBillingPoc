@@ -1,22 +1,30 @@
 package repository
 
-import "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+import (
+	"context"
+	"time"
+
+	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+	sqlcdb "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
+)
 
 type BillingAccountWithProviderName struct {
-	db.BillingAccount
+	ID                  string
+	BillingProviderID   string
+	Alias               string
 	BillingProviderName string
 }
 
 type BillingAccountWithProvider struct {
-	db.BillingAccount
+	ID              string
 	BillingProvider BillingProvider
+	Alias           string
 }
 
 type BillingAccountRepository interface {
-	ListBillingAccounts() ([]*BillingAccountWithProviderName, error)
-	GetBillingAccountByID(id string) (*BillingAccountWithProvider, error)
-	CreateBillingAccount(id string, billingProviderID string, accountAlias string, token string) (*db.BillingAccount, error)
-	LinkCloudProviderToBillingAccount(accountID string, cloudProviderID string) error
+	ListBillingAccounts(ctx context.Context) ([]*BillingAccountWithProviderName, error)
+	GetBillingAccountByID(ctx context.Context, id string) (*BillingAccountWithProvider, error)
+	CreateBillingAccount(ctx context.Context, id string, billingProviderID string, accountAlias string) error
 }
 
 type billingAccountRepo struct {
@@ -27,61 +35,51 @@ func newBillingAccountRepo(database *db.DB) BillingAccountRepository {
 	return &billingAccountRepo{db: database}
 }
 
-func (r *billingAccountRepo) ListBillingAccounts() ([]*BillingAccountWithProviderName, error) {
-	var billingAccounts []*BillingAccountWithProviderName
-	if err := r.db.
-		Model(&db.BillingAccount{}).
-		Select("billing_accounts.*, billing_providers.name AS billing_provider_name").
-		Joins("LEFT JOIN billing_providers ON billing_providers.billing_provider_id = billing_accounts.billing_provider_id").
-		Find(&billingAccounts).Error; err != nil {
+func (r *billingAccountRepo) ListBillingAccounts(ctx context.Context) ([]*BillingAccountWithProviderName, error) {
+	rows, err := r.db.Queries.ListBillingAccounts(ctx)
+	if err != nil {
 		return nil, err
 	}
-	return billingAccounts, nil
+	result := make([]*BillingAccountWithProviderName, len(rows))
+	for i, row := range rows {
+		result[i] = &BillingAccountWithProviderName{
+			ID:                  row.ID,
+			BillingProviderID:   row.BillingProviderID,
+			Alias:               row.Alias,
+			BillingProviderName: row.BillingProviderName.String,
+		}
+	}
+	return result, nil
 }
 
-func (r *billingAccountRepo) GetBillingAccountByID(id string) (*BillingAccountWithProvider, error) {
-	var account db.BillingAccount
-	if err := r.db.First(&account, "account_id = ?", id).Error; err != nil {
+func (r *billingAccountRepo) GetBillingAccountByID(ctx context.Context, id string) (*BillingAccountWithProvider, error) {
+	account, err := r.db.Queries.GetBillingAccount(ctx, id)
+	if err != nil {
 		return nil, err
 	}
 
-	var bpRow db.BillingProvider
-	if err := r.db.First(&bpRow, "billing_provider_id = ?", account.BillingProviderID).Error; err != nil {
+	bpRow, err := r.db.Queries.GetBillingProvider(ctx, account.BillingProviderID)
+	if err != nil {
 		return nil, err
 	}
 
-	var cspRows []db.SupportedCloudProvider
-	if err := r.db.Where("billing_provider_id = ?", bpRow.ID).Find(&cspRows).Error; err != nil {
+	cspRows, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, bpRow.ID)
+	if err != nil {
 		return nil, err
-	}
-	csps := make([]SupportedCloudProvider, len(cspRows))
-	for i, c := range cspRows {
-		csps[i] = SupportedCloudProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.APIEndpointURL}
 	}
 
 	return &BillingAccountWithProvider{
-		BillingAccount:  account,
-		BillingProvider: toRepoBillingProvider(bpRow, csps),
+		ID:              account.ID,
+		Alias:           account.Alias,
+		BillingProvider: toBillingProvider(bpRow, cspRows),
 	}, nil
 }
 
-func (r *billingAccountRepo) CreateBillingAccount(id string, billingProviderID string, accountAlias string, token string) (*db.BillingAccount, error) {
-	billingAccount := &db.BillingAccount{
+func (r *billingAccountRepo) CreateBillingAccount(ctx context.Context, id string, billingProviderID string, accountAlias string) error {
+	return r.db.Queries.CreateBillingAccount(ctx, sqlcdb.CreateBillingAccountParams{
 		ID:                id,
 		BillingProviderID: billingProviderID,
 		Alias:             accountAlias,
-		Token:             token,
-	}
-	if err := r.db.Create(billingAccount).Error; err != nil {
-		return nil, err
-	}
-	return billingAccount, nil
-}
-
-func (r *billingAccountRepo) LinkCloudProviderToBillingAccount(accountID string, cloudProviderID string) error {
-	link := &db.CloudServiceProviderAccount{
-		BillingAccountID: accountID,
-		CloudProviderID:  cloudProviderID,
-	}
-	return r.db.Create(link).Error
+		CreatedAt:         time.Now(),
+	})
 }

@@ -6,17 +6,19 @@ import (
 )
 
 type Repos struct {
-	Customer             CustomerRepository
-	BillingProvider      BillingProviderRepository
-	BillingAccount       BillingAccountRepository
-	CloudServiceProvider CloudServiceProviderRepository
+	Customer                    CustomerRepository
+	BillingProvider             BillingProviderRepository
+	BillingAccount              BillingAccountRepository
+	CloudServiceProvider        CloudServiceProviderRepository
+	CloudServiceProviderAccount CloudServiceProviderAccountRepository
 }
 
 func New(config *config.Config, database *db.DB) *Repos {
 	return &Repos{
-		Customer:             newCustomerRepo(config),
-		BillingProvider:      newBillingProviderRepo(database),
-		BillingAccount:       newBillingAccountRepo(database),
-		CloudServiceProvider: newCloudServiceProviderRepo(database),
+		Customer:                    newCustomerRepo(config),
+		BillingProvider:             newBillingProviderRepo(database),
+		BillingAccount:              newBillingAccountRepo(database),
+		CloudServiceProvider:        newCloudServiceProviderRepo(database),
+		CloudServiceProviderAccount: newCloudServiceProviderAccountRepo(database),
 	}
 }

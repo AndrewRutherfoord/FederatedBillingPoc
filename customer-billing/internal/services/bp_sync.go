@@ -1,8 +1,9 @@
 package services
 
 import (
+	"context"
+
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/clients"
-	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
 )
 
@@ -10,7 +11,7 @@ import (
 // provider and upserts the provider record and its supported CSPs locally.
 // Safe to call repeatedly — used both during account registration and by
 // scheduled sync jobs.
-func SyncBillingProviderMetadata(repos *repository.Repos, baseURL string) (repository.BillingProvider, error) {
+func SyncBillingProviderMetadata(ctx context.Context, repos *repository.Repos, baseURL string) (repository.BillingProvider, error) {
 	client := clients.NewBillingProviderClient(baseURL)
 
 	metadata, err := client.GetMetadata()
@@ -18,15 +19,14 @@ func SyncBillingProviderMetadata(repos *repository.Repos, baseURL string) (repos
 		return repository.BillingProvider{}, err
 	}
 
-	csps := make([]db.SupportedCloudProvider, len(metadata.SupportedCloudProviders))
+	csps := make([]repository.CloudServiceProvider, len(metadata.SupportedCloudProviders))
 	for i, csp := range metadata.SupportedCloudProviders {
-		csps[i] = db.SupportedCloudProvider{
-			ID:                csp.ID,
-			BillingProviderID: metadata.ID,
-			Name:              csp.Name,
-			APIEndpointURL:    csp.APIEndpoint,
+		csps[i] = repository.CloudServiceProvider{
+			ID:             csp.ID,
+			Name:           csp.Name,
+			APIEndpointURL: csp.APIEndpoint,
 		}
 	}
 
-	return repos.BillingProvider.UpsertBillingProvider(metadata.ID, metadata.Name, baseURL, csps)
+	return repos.BillingProvider.UpsertBillingProvider(ctx, metadata.ID, metadata.Name, baseURL, csps)
 }

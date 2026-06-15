@@ -80,17 +80,18 @@ type MeteringConfig struct {
 
 // CspConfig is the root structure for the mock CSP config.yaml.
 type CspConfig struct {
-	ProviderID       string            `yaml:"provider_id"`
-	ProviderName     string            `yaml:"provider_name"`
-	Currency         string            `yaml:"currency"`
-	RegionID         string            `yaml:"region_id"`
-	RegionName       string            `yaml:"region_name"`
-	AvailabilityZone string            `yaml:"availability_zone"`
-	ResourceTypes    []ResourceType    `yaml:"resource_types"`
-	BillingProviders []BillingProvider `yaml:"billing_providers"`
-	Metering         MeteringConfig    `yaml:"metering"`
-	MTLSKeyPath      string            `yaml:"mtls_key_path"`
-	MTLSCertPath     string            `yaml:"mtls_cert_path"`
+	ProviderID             string            `yaml:"provider_id"`
+	ProviderName           string            `yaml:"provider_name"`
+	Currency               string            `yaml:"currency"`
+	RegionID               string            `yaml:"region_id"`
+	RegionName             string            `yaml:"region_name"`
+	AvailabilityZone       string            `yaml:"availability_zone"`
+	CustomerAPIEndpointURL string            `yaml:"customer_api_endpoint_url"` // Customer API endpoint URL that customer metering seric calls
+	ResourceTypes          []ResourceType    `yaml:"resource_types"`
+	BillingProviders       []BillingProvider `yaml:"billing_providers"`
+	Metering               MeteringConfig    `yaml:"metering"`
+	MTLSKeyPath            string            `yaml:"mtls_key_path"`
+	MTLSCertPath           string            `yaml:"mtls_cert_path"`
 }
 
 // Load reads and parses the YAML config at path.
