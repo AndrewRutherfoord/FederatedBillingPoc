@@ -11,7 +11,8 @@ type BillingAccount struct {
 	OnboardingRedirectURL string
 	OnboardingComplete    *time.Time
 }
-type LinkedCloudProvider struct {
+
+type CloudServiceProviderAccount struct {
 	ID                 string `gorm:"column:id;primaryKey"`
 	BillingAccountID   string
 	CloudProviderID    string

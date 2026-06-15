@@ -79,7 +79,7 @@ func (r *billingAccountRepo) CreateBillingAccount(id string, billingProviderID s
 }
 
 func (r *billingAccountRepo) LinkCloudProviderToBillingAccount(accountID string, cloudProviderID string) error {
-	link := &db.LinkedCloudProvider{
+	link := &db.CloudServiceProviderAccount{
 		BillingAccountID: accountID,
 		CloudProviderID:  cloudProviderID,
 	}

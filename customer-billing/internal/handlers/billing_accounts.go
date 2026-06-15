@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/clients"
+	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +12,7 @@ import (
 type RegisterAcccountRequest struct {
 	AccountAlias           string `json:"account_alias" binding:"required"`
 	BillingProviderBaseURL string `json:"billing_provider_base_url" binding:"required"`
-	ReturnURL              string `json:"return_url" binding:"required"`
+	ReturnURL              string `json:"return_url" binding:"required"` // TODO: I'm not sure I like the frontend setting the URL... Might need to change this...
 }
 
 type RegisterAccountResponse struct {
@@ -167,6 +168,38 @@ func (s *Server) ListBillingProviderLinkedCloudProviders(c *gin.Context) {
 	c.JSON(http.StatusOK, []CloudProviderLink{})
 }
 
-func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
+type RegisterLinkedCloudProviderRequest struct {
+	AccountID       string `json:"account_id" binding:"required"`        // The billing account ID to link the cloud provider to
+	CloudProviderID string `json:"cloud_provider_id" binding:"required"` // The identifier from the billing provider metadata
+	ReturnURL       string `json:"return_url" binding:"required"`
+}
 
+func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
+	var req RegisterLinkedCloudProviderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	billingAccount, err := s.repos.BillingAccount.GetBillingAccountByID(req.AccountID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "billing account not found"})
+		return
+	}
+
+	var csp repository.SupportedCloudProvider
+	for _, provider := range billingAccount.BillingProvider.SupportedCloudProviders {
+		if provider.ID == req.CloudProviderID {
+			csp = provider
+			break
+		}
+	}
+
+	cspMeta, err := services.SyncCloudServiceProviderMetadata(s.repos, csp.APIEndpointURL)
+
+	client := clients.NewCloudServiceProviderClient(csp.APIEndpointURL)
+
+	cspResponse, err := client.RegisterCloudProviderLink(billingAccount.BillingProvider.ID, billingAccount.ID, req.ReturnURL)
+
+	// TODO: Store the link
 }

@@ -4,24 +4,34 @@
 			"name": "ROOT",
 			"path": "../"
 		},
-		// {
-		// 	"name": "Billing Provider",
-		// 	"path": "../billing_provider"
-		// },
-		// {
-		// 	"name": "Schemas",
-		// 	"path": "../fed-bill-schemas"
-		// },
-		// {
-		// 	"name": "Mock CSP",
-		// 	"path": "../mock-csp"
-		// }
+		{
+			"name": "Shared",
+			"path": "../shared"
+		},
+		{
+			"name": "Billing Provider",
+			"path": "../billing-provider"
+		},
+		{
+			"name": "CSP Mock",
+			"path": "../csp-mock"
+		},
+		{
+			"name": "Customer Billing",
+			"path": "../customer-billing"
+		},
+		{
+			"name": "Frontend",
+			"path": "../frontend"
+		}
 	],
 	"settings": {
         "files.exclude": {
-            // "fed-bill-schemas/": true,
-            // "mock-csp/": true,
-            // "billing_provider/": true,
+			"shared/": true,
+			"billing-provider/": true,
+			"csp-mock/": true,
+			"customer-billing/": true,
+			"frontend/": true
         },
 	}
 }

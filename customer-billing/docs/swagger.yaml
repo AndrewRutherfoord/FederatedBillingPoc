@@ -26,6 +26,8 @@ definitions:
       billing_provider_base_url:
         type: string
       return_url:
+        description: 'TODO: I''m not sure I like the frontend setting the URL... Might
+          need to change this...'
         type: string
     required:
     - account_alias

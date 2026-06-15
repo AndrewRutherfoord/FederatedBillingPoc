@@ -1,8 +1,10 @@
 package clients
 
 import (
-"github.com/andrewrutherfoord/fed-bill-poc/shared"
-cspsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/cloud-service-provider"
+	"fmt"
+
+	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	cspsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/cloud-service-provider"
 )
 
 type CloudServiceProviderClient interface {
@@ -19,10 +21,6 @@ func NewCloudServiceProviderClient(baseURL string) CloudServiceProviderClient {
 	}
 }
 
-
-func (c *cloudServiceProviderClient) GetMetadata() (map[string]string, error) {
-
-
 func (c *cloudServiceProviderClient) GetMetadata() (cspsharedmodels.Metadata, error) {
 	var metadataResponse cspsharedmodels.Metadata
 	err := c.FetchJSON("/.well-known/cloud-service-provider", &metadataResponse)
@@ -31,4 +29,18 @@ func (c *cloudServiceProviderClient) GetMetadata() (cspsharedmodels.Metadata, er
 	}
 	return metadataResponse, nil
 }
+
+func (c *cloudServiceProviderClient) RegisterCloudProviderLink(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error) {
+	payload := cspsharedmodels.RegisterLinkedCloudProviderRequest{
+		BillingProviderID: billingProviderID,
+		BillingAccountID:  billingAccountID,
+		ReturnURL:         returnURL,
+	}
+
+	var response cspsharedmodels.RegisterLinkedCloudProviderResponse
+	err := c.SendJSON("/billing/accounts", payload, &response)
+	if err != nil {
+		return cspsharedmodels.RegisterLinkedCloudProviderResponse{}, fmt.Errorf("failed to register linked cloud provider: %w", err)
+	}
+	return response, nil
 }

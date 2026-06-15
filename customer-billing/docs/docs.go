@@ -267,6 +267,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "return_url": {
+                    "description": "TODO: I'm not sure I like the frontend setting the URL... Might need to change this...",
                     "type": "string"
                 }
             }
