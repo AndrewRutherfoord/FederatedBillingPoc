@@ -178,7 +178,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/billing/accounts/{id}/cloud-provider-links": {
+    "/billing/accounts/{id}/cloud-provider-accounts": {
         parameters: {
             query?: never;
             header?: never;
@@ -239,6 +239,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/accounts/{id}/cloud-provider-accounts/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a cloud provider account with a billing account
+         * @description Registers a new cloud provider account with the billing provider and returns a redirect URL for the customer onboarding flow.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Request body */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["handlers.RegisterLinkedCloudProviderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.RegisterAccountResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -287,16 +367,23 @@ export interface components {
             cloud_provider_id: string;
             cloud_provider_name: string;
             id: string;
-            name: string;
         };
         "handlers.RegisterAcccountRequest": {
             account_alias: string;
             billing_provider_base_url: string;
+            /** @description TODO: I'm not sure I like the frontend setting the URL... Might need to change this... */
             return_url: string;
         };
         "handlers.RegisterAccountResponse": {
             account_id?: string;
             redirect_url?: string;
+        };
+        "handlers.RegisterLinkedCloudProviderRequest": {
+            /** @description The billing account ID to link the cloud provider to */
+            account_id: string;
+            /** @description The identifier from the billing provider metadata */
+            cloud_provider_id: string;
+            return_url: string;
         };
         "handlers.billingAccountDetailResponse": {
             alias?: string;

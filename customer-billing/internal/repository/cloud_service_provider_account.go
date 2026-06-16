@@ -2,13 +2,22 @@ package repository
 
 import (
 	"context"
-	"errors"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+	sqlcdb "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
+	"github.com/google/uuid"
 )
 
+type CloudServiceProviderAccountLink struct {
+	ID                string
+	BillingAccountID  string
+	CloudProviderID   string
+	CloudProviderName string
+}
+
 type CloudServiceProviderAccountRepository interface {
-	Create(ctx context.Context, accountID string, cloudServiceProviderID string, billingAccountID string) (CloudServiceProvider, error)
+	Create(ctx context.Context, billingAccountID string, cloudProviderID string) (CloudServiceProviderAccountLink, error)
+	ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLink, error)
 }
 
 type cloudServiceProviderAccountRepository struct {
@@ -19,6 +28,35 @@ func newCloudServiceProviderAccountRepo(database *db.DB) CloudServiceProviderAcc
 	return &cloudServiceProviderAccountRepository{db: database}
 }
 
-func (r *cloudServiceProviderAccountRepository) Create(ctx context.Context, accountID string, cloudServiceProviderID string, billingAccountID string) (CloudServiceProvider, error) {
-	return CloudServiceProvider{}, errors.New("not implemented")
+func (r *cloudServiceProviderAccountRepository) Create(ctx context.Context, billingAccountID string, cloudProviderID string) (CloudServiceProviderAccountLink, error) {
+	row, err := r.db.CreateCloudServiceProviderAccount(ctx, sqlcdb.CreateCloudServiceProviderAccountParams{
+		ID:               uuid.NewString(),
+		BillingAccountID: billingAccountID,
+		CloudProviderID:  cloudProviderID,
+	})
+	if err != nil {
+		return CloudServiceProviderAccountLink{}, err
+	}
+	return CloudServiceProviderAccountLink{
+		ID:               row.ID,
+		BillingAccountID: row.BillingAccountID,
+		CloudProviderID:  row.CloudProviderID,
+	}, nil
+}
+
+func (r *cloudServiceProviderAccountRepository) ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLink, error) {
+	rows, err := r.db.ListCloudServiceProviderAccountsByBillingAccount(ctx, billingAccountID)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]CloudServiceProviderAccountLink, len(rows))
+	for i, row := range rows {
+		result[i] = CloudServiceProviderAccountLink{
+			ID:                row.ID,
+			BillingAccountID:  row.BillingAccountID,
+			CloudProviderID:   row.CloudProviderID,
+			CloudProviderName: row.CloudProviderName,
+		}
+	}
+	return result, nil
 }

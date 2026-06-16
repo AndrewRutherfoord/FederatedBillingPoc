@@ -24,6 +24,9 @@ migrate-status:
 migrate-reset:
 	$(GOOSE) -dir $(MIGRATIONS_DIR) sqlite3 $(DB_PATH) reset
 
+sqlc-generate:
+	sqlc generate
+
 dev:
 	air
 

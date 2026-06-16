@@ -17,15 +17,16 @@ type ProviderInfo struct {
 // Repos is the single access point for all repositories.
 // Pass it wherever data access is needed.
 type Repos struct {
-	Provider         ProviderInfo
-	Customers        CustomerRepository
-	Resources        ResourceRepository
-	ResourceTypes    ResourceTypeRepository
-	BillingProviders BillingProviderRepository
-	BillingAccounts  BillingAccountRepository
-	Focus            FocusRepository
-	CostBatch        CostBatchRepository
-	KeyValue         KeyValueRepository
+	Provider            ProviderInfo
+	Customers           CustomerRepository
+	Resources           ResourceRepository
+	ResourceTypes       ResourceTypeRepository
+	BillingProviders    BillingProviderRepository
+	BillingAccounts     BillingAccountRepository
+	OnboardingSessions  OnboardingSessionRepository
+	Focus               FocusRepository
+	CostBatch           CostBatchRepository
+	KeyValue            KeyValueRepository
 }
 
 func New(cfg *config.CspConfig, database *db.DB) *Repos {
@@ -37,13 +38,14 @@ func New(cfg *config.CspConfig, database *db.DB) *Repos {
 			RegionID:   cfg.RegionID,
 			RegionName: cfg.RegionName,
 		},
-		Customers:        newCustomerRepo(database),
-		Resources:        newResourceRepo(database),
-		ResourceTypes:    newResourceTypeRepo(cfg.ResourceTypes),
-		BillingProviders: newBillingProviderRepo(cfg.BillingProviders),
-		BillingAccounts:  newBillingAccountRepo(database),
-		Focus:            newFocusRepo(database),
-		CostBatch:        newCostBatchRepo(database),
-		KeyValue:         newKeyValueRepo(database),
+		Customers:          newCustomerRepo(database),
+		Resources:          newResourceRepo(database),
+		ResourceTypes:      newResourceTypeRepo(cfg.ResourceTypes),
+		BillingProviders:   newBillingProviderRepo(cfg.BillingProviders),
+		BillingAccounts:    newBillingAccountRepo(database),
+		OnboardingSessions: newOnboardingSessionRepo(database),
+		Focus:              newFocusRepo(database),
+		CostBatch:          newCostBatchRepo(database),
+		KeyValue:           newKeyValueRepo(database),
 	}
 }

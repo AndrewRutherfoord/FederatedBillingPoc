@@ -149,7 +149,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/billing/accounts/{id}/cloud-provider-links": {
+        "/billing/accounts/{id}/cloud-provider-accounts": {
             "get": {
                 "produces": [
                     "application/json"
@@ -201,6 +201,133 @@ const docTemplate = `{
                 }
             }
         },
+        "/billing/accounts/{id}/cloud-provider-accounts/complete": {
+            "post": {
+                "description": "Called by the frontend after the CSP redirect. Stores the CSP account link in the billing account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "Complete cloud provider account onboarding",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Billing account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.completeCloudProviderOnboardingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CloudProviderLink"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/billing/accounts/{id}/cloud-provider-accounts/register": {
+            "post": {
+                "description": "Registers a new cloud provider account with the billing provider and returns a redirect URL for the customer onboarding flow.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "Register a cloud provider account with a billing account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterLinkedCloudProviderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterAccountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -227,20 +354,7 @@ const docTemplate = `{
     "definitions": {
         "handlers.CloudProviderLink": {
             "type": "object",
-            "required": [
-                "billing_provider_id",
-                "billing_provider_name",
-                "cloud_provider_id",
-                "cloud_provider_name",
-                "id"
-            ],
             "properties": {
-                "billing_provider_id": {
-                    "type": "string"
-                },
-                "billing_provider_name": {
-                    "type": "string"
-                },
                 "cloud_provider_id": {
                     "type": "string"
                 },
@@ -283,6 +397,27 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.RegisterLinkedCloudProviderRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "cloud_provider_id",
+                "return_url"
+            ],
+            "properties": {
+                "account_id": {
+                    "description": "The billing account ID to link the cloud provider to",
+                    "type": "string"
+                },
+                "cloud_provider_id": {
+                    "description": "The identifier from the billing provider metadata",
+                    "type": "string"
+                },
+                "return_url": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.billingAccountDetailResponse": {
             "type": "object",
             "properties": {
@@ -319,6 +454,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.completeCloudProviderOnboardingRequest": {
+            "type": "object",
+            "required": [
+                "csp_provider_id"
+            ],
+            "properties": {
+                "csp_provider_id": {
                     "type": "string"
                 }
             }

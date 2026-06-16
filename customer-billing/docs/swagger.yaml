@@ -2,22 +2,12 @@ basePath: /
 definitions:
   handlers.CloudProviderLink:
     properties:
-      billing_provider_id:
-        type: string
-      billing_provider_name:
-        type: string
       cloud_provider_id:
         type: string
       cloud_provider_name:
         type: string
       id:
         type: string
-    required:
-    - billing_provider_id
-    - billing_provider_name
-    - cloud_provider_id
-    - cloud_provider_name
-    - id
     type: object
   handlers.RegisterAcccountRequest:
     properties:
@@ -40,6 +30,21 @@ definitions:
         type: string
       redirect_url:
         type: string
+    type: object
+  handlers.RegisterLinkedCloudProviderRequest:
+    properties:
+      account_id:
+        description: The billing account ID to link the cloud provider to
+        type: string
+      cloud_provider_id:
+        description: The identifier from the billing provider metadata
+        type: string
+      return_url:
+        type: string
+    required:
+    - account_id
+    - cloud_provider_id
+    - return_url
     type: object
   handlers.billingAccountDetailResponse:
     properties:
@@ -66,6 +71,13 @@ definitions:
         type: string
       id:
         type: string
+    type: object
+  handlers.completeCloudProviderOnboardingRequest:
+    properties:
+      csp_provider_id:
+        type: string
+    required:
+    - csp_provider_id
     type: object
   handlers.supportedCloudProviderEntry:
     properties:
@@ -136,7 +148,7 @@ paths:
       summary: Get a billing account by ID
       tags:
       - billing
-  /billing/accounts/{id}/cloud-provider-links:
+  /billing/accounts/{id}/cloud-provider-accounts:
     get:
       parameters:
       - description: Account ID
@@ -168,6 +180,92 @@ paths:
               type: string
             type: object
       summary: List cloud providers linked to a billing account
+      tags:
+      - billing
+  /billing/accounts/{id}/cloud-provider-accounts/complete:
+    post:
+      consumes:
+      - application/json
+      description: Called by the frontend after the CSP redirect. Stores the CSP account
+        link in the billing account.
+      parameters:
+      - description: Billing account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.completeCloudProviderOnboardingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CloudProviderLink'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Complete cloud provider account onboarding
+      tags:
+      - billing
+  /billing/accounts/{id}/cloud-provider-accounts/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new cloud provider account with the billing provider
+        and returns a redirect URL for the customer onboarding flow.
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterLinkedCloudProviderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.RegisterAccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a cloud provider account with a billing account
       tags:
       - billing
   /billing/accounts/register:

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"embed"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -14,6 +16,9 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+//go:embed templates/*
+var templatesFS embed.FS
 
 // Server holds all application dependencies and owns route registration.
 // Add new repositories to Repos as the API grows.
@@ -85,6 +90,11 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 
 	r.POST("/customer/register", s.RegisterCustomer)
 
+	// Called by the customer-billing service to initiate onboarding (no customer auth).
+	r.POST("/billing/accounts", s.InitiateBillingAccountOnboarding)
+	r.GET("/onboarding/:session_id", s.OnboardingForm)
+	r.POST("/onboarding/:session_id", s.OnboardingSubmit)
+
 	// Routes below require a valid customer in the Authorization header.
 	authed := r.Group("/", middleware.Auth(s.repos.Customers))
 	{
@@ -104,9 +114,19 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 func (s *Server) Start(addr string) error {
 	r := gin.Default()
 	r.Use(cors.Default())
+	r.SetHTMLTemplate(mustParseTemplates())
+
 	s.RegisterRoutes(r)
 
 	srv := &http.Server{Addr: addr, Handler: r}
 	log.Printf("Starting %s (%s) customer API on %s", s.config.ProviderName, s.config.ProviderID, addr)
 	return srv.ListenAndServe()
+}
+
+func mustParseTemplates() *template.Template {
+	tmpl, err := template.ParseFS(templatesFS, "templates/*.html")
+	if err != nil {
+		panic("failed to parse templates: " + err.Error())
+	}
+	return tmpl
 }

@@ -9,8 +9,8 @@ mtls_cert_path: "../keys/bp-1.crt"
 cloud_service_providers:
   - id: "mock-csp-1"
     name: "MockCloud EU-West"
-    api_endpoint_url: "https://csp-mock-adapter:8443"
-    customer_endpoint_url: "https://billing-provider-customer-api:8081"
+    api_endpoint_url: "https://cloud-service-provider-billing-provider-interface:8443"
+    customer_endpoint_url: "https://cloud-service-provider-customer-api:8081"
     settlement_frequency: "weekly"
     mtls:
       common_name: "csp-adapter"

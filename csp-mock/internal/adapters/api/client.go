@@ -9,7 +9,7 @@ import (
 )
 
 type BPClientRegistry struct {
-	bps map[string]shared.HttpClientImpl
+	bps map[string]shared.HttpClient
 }
 
 func NewBPClientRegistry(config *config.CspConfig) (*BPClientRegistry, error) {
@@ -23,9 +23,9 @@ func NewBPClientRegistry(config *config.CspConfig) (*BPClientRegistry, error) {
 		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
 
-	bps := make(map[string]shared.HttpClientImpl)
+	bps := make(map[string]shared.HttpClient)
 	for _, cspConfig := range config.BillingProviders {
-		bps[cspConfig.ID] = *shared.NewHttpClient(cspConfig.ApiEndpoint, httpClient)
+		bps[cspConfig.ID] = shared.NewHttpClientWithCustomClient(cspConfig.ApiEndpoint, httpClient)
 	}
 
 	log.Printf("Created BP client registry with clients for billing providers: %v", config.BillingProviders)
@@ -33,7 +33,7 @@ func NewBPClientRegistry(config *config.CspConfig) (*BPClientRegistry, error) {
 	return &BPClientRegistry{bps: bps}, nil
 }
 
-func (r *BPClientRegistry) GetClient(bpID string) (shared.HttpClientImpl, bool) {
+func (r *BPClientRegistry) GetClient(bpID string) (shared.HttpClient, bool) {
 	client, exists := r.bps[bpID]
 	return client, exists
 }

@@ -12,7 +12,7 @@ services:
     networks:
       - csp-network
 
-  customer-api:
+  cloud-service-provider-customer-api:
     build:
       context: .
       dockerfile: csp-mock/Dockerfile.dev
@@ -33,12 +33,11 @@ services:
     depends_on:
       - time-server
 
-  billing-provider-interface:
+  cloud-service-provider-billing-provider-interface:
     build:
       context: .
       dockerfile: csp-mock/Dockerfile.dev
       target: billing-provider-interface
-    container_name: csp-mock-adapter
     ports:
       - "8443:8443"
     volumes:
@@ -59,7 +58,6 @@ services:
       context: .
       dockerfile: billing-provider/Dockerfile.dev
       target: cloud-service-provider-api
-    container_name: billing-provider-csp-api
     ports:
       - "8444:8444"
     volumes:
@@ -80,7 +78,6 @@ services:
       context: .
       dockerfile: billing-provider/Dockerfile.dev
       target: customer-api
-    container_name: billing-provider-customer-api
     ports:
       - "8081:8081"
     volumes:
@@ -101,7 +98,6 @@ services:
       context: .
       dockerfile: customer-billing/Dockerfile.dev
       target: customer-api
-    container_name: customer-billing-api
     ports:
       - "8082:8082"
     volumes:

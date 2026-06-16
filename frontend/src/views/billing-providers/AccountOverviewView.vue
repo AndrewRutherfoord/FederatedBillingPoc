@@ -10,7 +10,7 @@
             <DataTable :value="cloudProviderLinks" class="mt-2">
                 <template #empty>No linked cloud providers found.</template>
                 <Column field="cloud_provider_name" header="Cloud Provider"></Column>
-                <Column field="cloud_provider_name" header="Cloud Provider"></Column>
+                <Column field="cloud_provider_id" header="Provider ID"></Column>
             </DataTable>
         </div>
 
@@ -18,7 +18,8 @@
             <Form @submit="onSubmit">
                 <SelectField name="cloud_service_provider_id" label="Cloud Service Provider"
                     :options="cloudProviderOptions" class="mb-2"></SelectField>
-                <Button label="Link Provider" type="submit" class="mt-2" />
+                <p v-if="linkError" class="text-red-500 text-sm mt-1">{{ linkError }}</p>
+                <Button label="Link Provider" type="submit" class="mt-2" :loading="linking" />
             </Form>
         </Dialog>
     </main>
@@ -29,53 +30,69 @@ import { computed, ref } from 'vue';
 import { DataTable, Column, Dialog } from 'primevue';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
-import TextField from '@/components/form/TextField.vue';
 import { Form } from 'vee-validate';
 import SelectField from '@/components/form/SelectField.vue';
 
 const formDialogVisible = ref(false);
+const linking = ref(false);
+const linkError = ref<string | null>(null);
 
 const props = defineProps<{
     id: string
 }>();
 
-
-const { state: billingAccount, execute: refreshBillingAccount } = useAsyncState(async () => {
+const { state: billingAccount } = useAsyncState(async () => {
     const { data } = await client.GET("/billing/accounts/{id}", {
-        params: {
-            path: {
-                id: props.id
-            }
-        }
+        params: { path: { id: props.id } }
     });
     return data;
 }, null);
 
-
-const { state: cloudProviderLinks, execute: refreshCloudProviderLinks } = useAsyncState(async () => {
-    const { data } = await client.GET("/billing/accounts/{id}/cloud-provider-links", {
-        params: {
-            path: {
-                id: props.id
-            }
-        }
+const { state: cloudProviderLinks } = useAsyncState(async () => {
+    const { data } = await client.GET("/billing/accounts/{id}/cloud-provider-accounts", {
+        params: { path: { id: props.id } }
     });
     return data;
 }, null);
 
-// @ts-ignore - Unecessarily pedandic...
 const cloudProviderOptions = computed<{ name: string; id: string }[]>(() => {
     if (!billingAccount.value) return [];
-    return billingAccount.value.supported_cloud_providers?.map(csp => ({
+    // @ts-ignore
+    return billingAccount.value.supported_cloud_providers?.map((csp: any) => ({
         id: csp.id,
         name: csp.name,
-    })) ?? []
-})
+    })) ?? [];
+});
 
 const onSubmit = async (values: { cloud_service_provider_id: string }) => {
-    console.log("Submitting form with values:", values);
+    if (!billingAccount.value) return;
+    linkError.value = null;
+    linking.value = true;
 
-}
+    const returnURL = `${window.location.origin}/cloud-service-providers/onboarding-complete-callback`;
+
+    try {
+        const { data, error } = await client.POST("/billing/accounts/{id}/cloud-provider-accounts/register", {
+            params: { path: { id: props.id } },
+            body: {
+                account_id: props.id,
+                cloud_provider_id: values.cloud_service_provider_id,
+                return_url: returnURL,
+            },
+        });
+
+        if (error || !data) {
+            linkError.value = 'Failed to initiate cloud provider onboarding.';
+            return;
+        }
+
+        window.location.href = (data as any).redirect_url;
+    } catch {
+        linkError.value = 'An unexpected error occurred.';
+    } finally {
+        linking.value = false;
+    }
+};
 </script>
 
 <style scoped></style>

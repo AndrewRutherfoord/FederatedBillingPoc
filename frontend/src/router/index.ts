@@ -21,6 +21,11 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/cloud-service-providers/onboarding-complete-callback',
+      name: 'CspOnboardingCompleteCallback',
+      component: () => import('../views/cloud-service-providers/OnboardingRedirectView.vue'),
+    },
+    {
       path: '/about',
       name: 'About',
       component: () => import('../views/AboutView.vue'),

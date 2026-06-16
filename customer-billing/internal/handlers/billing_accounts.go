@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/clients"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
@@ -148,11 +149,9 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 }
 
 type CloudProviderLink struct {
-	ID                  string `json:"id" binding:"required"`
-	BillingProviderID   string `json:"billing_provider_id" binding:"required"`
-	BillingProviderName string `json:"billing_provider_name" binding:"required"`
-	CloudProviderID     string `json:"cloud_provider_id" binding:"required"`
-	CloudProviderName   string `json:"cloud_provider_name" binding:"required"`
+	ID                string `json:"id"`
+	CloudProviderID   string `json:"cloud_provider_id"`
+	CloudProviderName string `json:"cloud_provider_name"`
 }
 
 // ListBillingProviderLinkedCloudProviders godoc
@@ -164,9 +163,23 @@ type CloudProviderLink struct {
 //	@Success		200	{array}	[]CloudProviderLink
 //	@Failure		404	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
-//	@Router			/billing/accounts/{id}/cloud-provider-links [get]
+//	@Router			/billing/accounts/{id}/cloud-provider-accounts [get]
 func (s *Server) ListBillingProviderLinkedCloudProviders(c *gin.Context) {
-	c.JSON(http.StatusOK, []CloudProviderLink{})
+	links, err := s.repos.CloudServiceProviderAccount.ListByBillingAccount(c.Request.Context(), c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list linked cloud providers"})
+		return
+	}
+
+	result := make([]CloudProviderLink, len(links))
+	for i, l := range links {
+		result[i] = CloudProviderLink{
+			ID:                  l.ID,
+			CloudProviderID:     l.CloudProviderID,
+			CloudProviderName:   l.CloudProviderName,
+		}
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 type RegisterLinkedCloudProviderRequest struct {
@@ -175,7 +188,21 @@ type RegisterLinkedCloudProviderRequest struct {
 	ReturnURL       string `json:"return_url" binding:"required"`
 }
 
-func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
+// RegisterCloudProviderAccount godoc
+//
+//	@Summary		Register a cloud provider account with a billing account
+//	@Description	Registers a new cloud provider account with the billing provider and returns a redirect URL for the customer onboarding flow.
+//	@Tags			billing
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path	string						true	"Account ID"
+//	@Param			request	body	RegisterLinkedCloudProviderRequest	true	"Request body"
+//	@Success		201	{object}	RegisterAccountResponse
+//	@Failure		400	{object}	map[string]string
+//	@Failure		404	{object}	map[string]string
+//	@Failure		500	{object}	map[string]string
+//	@Router			/billing/accounts/{id}/cloud-provider-accounts/register [post]
+func (s *Server) RegisterCloudProviderAccount(c *gin.Context) {
 	var req RegisterLinkedCloudProviderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -195,24 +222,75 @@ func (s *Server) RegisterLinkedCloudProvider(c *gin.Context) {
 			break
 		}
 	}
+	if csp.ID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cloud provider not supported by this billing provider"})
+		return
+	}
 	log.Printf("Found matching cloud provider in billing provider metadata: %+v", csp)
 
-	cspMeta, err := services.SyncCloudServiceProviderMetadata(c.Request.Context(), s.repos, csp.APIEndpointURL)
+	if _, err := services.SyncCloudServiceProviderMetadata(c.Request.Context(), s.repos, csp.APIEndpointURL); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sync cloud provider metadata"})
+		return
+	}
 
-	client := clients.NewCloudServiceProviderClient(csp.APIEndpointURL)
+	// Embed the billing account and CSP provider IDs into the return URL so the frontend
+	// can call the complete endpoint after the CSP redirect.
+	u, _ := url.Parse(req.ReturnURL)
+	q := u.Query()
+	q.Set("billing_account_id", billingAccount.ID)
+	q.Set("csp_provider_id", csp.ID)
+	u.RawQuery = q.Encode()
+	cspReturnURL := u.String()
 
-	cspResponse, err := client.RegisterCloudProviderAccount(billingAccount.BillingProvider.ID, billingAccount.ID, req.ReturnURL)
-
-	// TODO: Store the link
-
-	// Store the pending account locally
-	if err := s.repos.CloudServiceProviderAccount.Create(c.Request.Context(), bpResponse.ID, bp.ID, req.AccountAlias); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save billing account"})
+	cspClient := clients.NewCloudServiceProviderClient(csp.APIEndpointURL)
+	cspResponse, err := cspClient.RegisterCloudProviderAccount(billingAccount.BillingProvider.ID, billingAccount.ID, cspReturnURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to initiate cloud provider onboarding"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, RegisterAccountResponse{
-		AccountID:   bpResponse.ID,
-		RedirectURL: bpResponse.RedirectURL,
+		AccountID:   cspResponse.ID,
+		RedirectURL: cspResponse.RedirectURL,
 	})
 }
+
+type completeCloudProviderOnboardingRequest struct {
+	CspProviderID string `json:"csp_provider_id" binding:"required"`
+}
+
+// CompleteCloudProviderAccountOnboarding godoc
+//
+//	@Summary		Complete cloud provider account onboarding
+//	@Description	Called by the frontend after the CSP redirect. Stores the CSP account link in the billing account.
+//	@Tags			billing
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path	string									true	"Billing account ID"
+//	@Param			request	body	completeCloudProviderOnboardingRequest	true	"Request body"
+//	@Success		201		{object}	CloudProviderLink
+//	@Failure		400		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Router			/billing/accounts/{id}/cloud-provider-accounts/complete [post]
+func (s *Server) CompleteCloudProviderAccountOnboarding(c *gin.Context) {
+	billingAccountID := c.Param("id")
+
+	var req completeCloudProviderOnboardingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	link, err := s.repos.CloudServiceProviderAccount.Create(c.Request.Context(), billingAccountID, req.CspProviderID)
+	if err != nil {
+		log.Printf("Failed to store CSP account link for billing account %s: %v", billingAccountID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to store cloud provider account link"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, CloudProviderLink{
+		ID:              link.ID,
+		CloudProviderID: link.CloudProviderID,
+	})
+}
+

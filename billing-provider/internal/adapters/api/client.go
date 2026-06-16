@@ -25,7 +25,7 @@ func NewCSPClientRegistry(cfg *config.Config) (*CSPClientRegistry, error) {
 
 	csps := make(map[string]shared.HttpClient)
 	for _, csp := range cfg.CloudServiceProviders {
-		csps[csp.ID] = *shared.NewHttpClient(csp.APIEndpoint, httpClient)
+		csps[csp.ID] = shared.NewHttpClientWithCustomClient(csp.APIEndpointURL, httpClient)
 	}
 
 	log.Printf("Created CSP client registry for: %v", cfg.CloudServiceProviders)
@@ -33,7 +33,7 @@ func NewCSPClientRegistry(cfg *config.Config) (*CSPClientRegistry, error) {
 	return &CSPClientRegistry{csps: csps}, nil
 }
 
-func (r *CSPClientRegistry) GetClient(cspID string) (shared.HttpClientImpl, bool) {
+func (r *CSPClientRegistry) GetClient(cspID string) (shared.HttpClient, bool) {
 	client, exists := r.csps[cspID]
 	return client, exists
 }
