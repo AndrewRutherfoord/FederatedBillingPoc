@@ -9,10 +9,11 @@ import (
 )
 
 type BillingAccountWithProviderName struct {
-	ID                  string
-	BillingProviderID   string
-	Alias               string
-	BillingProviderName string
+	ID                     string
+	BillingProviderID      string
+	Alias                  string
+	BillingProviderName    string
+	BillingProviderBaseURL string
 }
 
 type BillingAccountWithProvider struct {
@@ -43,10 +44,11 @@ func (r *billingAccountRepo) ListBillingAccounts(ctx context.Context) ([]*Billin
 	result := make([]*BillingAccountWithProviderName, len(rows))
 	for i, row := range rows {
 		result[i] = &BillingAccountWithProviderName{
-			ID:                  row.ID,
-			BillingProviderID:   row.BillingProviderID,
-			Alias:               row.Alias,
-			BillingProviderName: row.BillingProviderName.String,
+			ID:                     row.ID,
+			BillingProviderID:      row.BillingProviderID,
+			Alias:                  row.Alias,
+			BillingProviderName:    row.BillingProviderName.String,
+			BillingProviderBaseURL: row.BillingProviderBaseUrl.String,
 		}
 	}
 	return result, nil

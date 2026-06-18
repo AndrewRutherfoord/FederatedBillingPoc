@@ -53,19 +53,20 @@ func (q *Queries) GetBillingAccount(ctx context.Context, id string) (BillingAcco
 }
 
 const listBillingAccounts = `-- name: ListBillingAccounts :many
-SELECT ba.id, ba.billing_provider_id, ba.alias, ba.created_at, ba.onboarding_redirect_url, ba.onboarding_complete, bp.name AS billing_provider_name
+SELECT ba.id, ba.billing_provider_id, ba.alias, ba.created_at, ba.onboarding_redirect_url, ba.onboarding_complete, bp.name AS billing_provider_name, bp.api_endpoint_url  AS billing_provider_base_url
 FROM billing_accounts ba
 LEFT JOIN billing_providers bp ON bp.id = ba.billing_provider_id
 `
 
 type ListBillingAccountsRow struct {
-	ID                    string
-	BillingProviderID     string
-	Alias                 string
-	CreatedAt             time.Time
-	OnboardingRedirectUrl sql.NullString
-	OnboardingComplete    sql.NullTime
-	BillingProviderName   sql.NullString
+	ID                     string
+	BillingProviderID      string
+	Alias                  string
+	CreatedAt              time.Time
+	OnboardingRedirectUrl  sql.NullString
+	OnboardingComplete     sql.NullTime
+	BillingProviderName    sql.NullString
+	BillingProviderBaseUrl sql.NullString
 }
 
 func (q *Queries) ListBillingAccounts(ctx context.Context) ([]ListBillingAccountsRow, error) {
@@ -85,6 +86,7 @@ func (q *Queries) ListBillingAccounts(ctx context.Context) ([]ListBillingAccount
 			&i.OnboardingRedirectUrl,
 			&i.OnboardingComplete,
 			&i.BillingProviderName,
+			&i.BillingProviderBaseUrl,
 		); err != nil {
 			return nil, err
 		}

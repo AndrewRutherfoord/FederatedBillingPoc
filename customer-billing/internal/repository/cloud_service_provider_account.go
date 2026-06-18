@@ -15,9 +15,15 @@ type CloudServiceProviderAccountLink struct {
 	CloudProviderName string
 }
 
+type CloudServiceProviderAccountLinkWithTotalCost struct {
+	CloudServiceProviderAccountLink
+	TotalCost       float64
+	BillingCurrency string
+}
+
 type CloudServiceProviderAccountRepository interface {
 	Create(ctx context.Context, billingAccountID string, cloudProviderID string) (CloudServiceProviderAccountLink, error)
-	ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLink, error)
+	ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLinkWithTotalCost, error)
 }
 
 type cloudServiceProviderAccountRepository struct {
@@ -44,18 +50,22 @@ func (r *cloudServiceProviderAccountRepository) Create(ctx context.Context, bill
 	}, nil
 }
 
-func (r *cloudServiceProviderAccountRepository) ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLink, error) {
-	rows, err := r.db.ListCloudServiceProviderAccountsByBillingAccount(ctx, billingAccountID)
+func (r *cloudServiceProviderAccountRepository) ListByBillingAccount(ctx context.Context, billingAccountID string) ([]CloudServiceProviderAccountLinkWithTotalCost, error) {
+	rows, err := r.db.ListCloudServiceProviderAccountsByBillingAccountWithTotalCost(ctx, billingAccountID)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]CloudServiceProviderAccountLink, len(rows))
+	result := make([]CloudServiceProviderAccountLinkWithTotalCost, len(rows))
 	for i, row := range rows {
-		result[i] = CloudServiceProviderAccountLink{
-			ID:                row.ID,
-			BillingAccountID:  row.BillingAccountID,
-			CloudProviderID:   row.CloudProviderID,
-			CloudProviderName: row.CloudProviderName,
+		result[i] = CloudServiceProviderAccountLinkWithTotalCost{
+			CloudServiceProviderAccountLink: CloudServiceProviderAccountLink{
+				ID:                row.ID,
+				BillingAccountID:  row.BillingAccountID,
+				CloudProviderID:   row.CloudProviderID,
+				CloudProviderName: row.CloudProviderName,
+			},
+			TotalCost:       row.TotalCost.Float64,
+			BillingCurrency: row.BillingCurrency.String,
 		}
 	}
 	return result, nil

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/andrewrutherfoord/fed-bill-poc/shared/models"
+	billingprovidermodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
 	"github.com/gin-gonic/gin"
 )
 
@@ -89,6 +91,47 @@ func (s *Server) OnboardSubmit(c *gin.Context) {
 	q.Set("account_id", id)
 	u.RawQuery = q.Encode()
 	c.Redirect(http.StatusSeeOther, u.String())
+}
+
+func (s *Server) GetBillingAccountRecords(c *gin.Context) {
+	var req billingprovidermodels.GetBillingAccountRecordsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	batches, err := s.repos.CostBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), req.BillingAccountID, req.From, req.To)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch billing records"})
+		return
+	}
+
+	records := make([]models.AggregatedChargeRecord, 0, len(batches))
+	for _, batch := range batches {
+		records = append(records, models.AggregatedChargeRecord{
+			BillingRecord: models.BillingRecord{
+				BillingProviderID:  s.repos.Provider.ID,
+				ResourceProviderID: batch.CloudServiceProviderID,
+				BillingAccountID:   batch.BillingAccountID,
+			},
+			BatchID:         batch.ID,
+			TotalBilledCost: batch.TotalCost,
+			BilledCurrency:  "EUR",
+			LineItemCount:   batch.TotalItems,
+			BatchHash:       batch.MerkelRoot,
+			BatchSignature:  batch.Signature,
+			CreatedAt:       batch.CreatedAt,
+		})
+	}
+
+	response := billingprovidermodels.GetBillingAccountRecordsResponse{
+		Records: records,
+		Count:   len(records),
+		From:    req.From,
+		To:      req.To,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func scheme(r *http.Request) string {

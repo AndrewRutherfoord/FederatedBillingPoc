@@ -24,7 +24,7 @@ services:
       - ./csp-mock:/app
       - ./keys:/keys
       - ./shared:/shared
-      - /app/tmp
+      - csp-mock-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
       - MOCK_CLOCK_HOST=http://time-server:9999
@@ -44,7 +44,7 @@ services:
       - ./csp-mock:/app
       - ./keys:/keys
       - ./shared:/shared
-      - /app/tmp
+      - csp-mock-billing-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
       - MOCK_CLOCK_HOST=http://time-server:9999
@@ -64,7 +64,7 @@ services:
       - ./billing-provider:/app
       - ./keys:/keys
       - ./shared:/shared
-      - /app/tmp
+      - billing-provider-csp-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
       - MOCK_CLOCK_HOST=http://time-server:9999
@@ -84,7 +84,7 @@ services:
       - ./billing-provider:/app
       - ./keys:/keys
       - ./shared:/shared
-      - /app/tmp
+      - billing-provider-customer-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
       - MOCK_CLOCK_HOST=http://time-server:9999
@@ -103,7 +103,7 @@ services:
     volumes:
       - ./customer-billing:/app
       - ./shared:/shared
-      - /app/tmp
+      - customer-billing-tmp:/app/tmp
     environment:
       - API_PORT=8082
       - MOCK_CLOCK_HOST=http://time-server:9999
@@ -116,3 +116,10 @@ services:
 networks:
   csp-network:
     driver: bridge
+
+volumes:
+  csp-mock-tmp:
+  csp-mock-billing-tmp:
+  billing-provider-csp-tmp:
+  billing-provider-customer-tmp:
+  customer-billing-tmp:

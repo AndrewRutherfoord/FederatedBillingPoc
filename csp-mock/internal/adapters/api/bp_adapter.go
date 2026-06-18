@@ -92,6 +92,6 @@ func (t *ApiBillingProviderAdapter) SendAggregatedChargeRecord(ctx context.Conte
 		log.Printf("No client found for billing provider %s", record.BillingRecord.BillingProviderID)
 		return fmt.Errorf("no client registered for billing provider %s", record.BillingRecord.BillingProviderID)
 	}
-	log.Printf("Found client for billing provider %s, sending record to %s", record.BillingRecord.BillingProviderID, client.BaseURL)
-	return client.SendJSON(client.BaseURL+"/cost-records", record, nil)
+	log.Printf("Found client for billing provider %s, sending record to %s", record.BillingRecord.BillingProviderID)
+	return client.SendJSON("/cost-records", record, nil)
 }

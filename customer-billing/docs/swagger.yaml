@@ -2,12 +2,16 @@ basePath: /
 definitions:
   handlers.CloudProviderLink:
     properties:
+      billing_currency:
+        type: string
       cloud_provider_id:
         type: string
       cloud_provider_name:
         type: string
       id:
         type: string
+      total_cost:
+        type: number
     type: object
   handlers.RegisterAcccountRequest:
     properties:

@@ -67,6 +67,7 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.POST("/billing/accounts", s.RegisterBillingAccount)
 	r.GET("/billing/accounts/:id/onboard", s.OnboardForm)
 	r.POST("/billing/accounts/:id/onboard", s.OnboardSubmit)
+	r.POST("/billing/accounts/records", s.GetBillingAccountRecords)
 }
 
 // Start creates the gin engine, registers routes, and blocks serving on addr.

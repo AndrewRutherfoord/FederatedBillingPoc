@@ -169,7 +169,6 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	}
 
 	// Send it to the billing provider
-	// TODO: Implement billing provider integration
 	return j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
 		BillingRecord: sharedmodels.BillingRecord{
 			BillingProviderID:  batch.BillingProviderID,
@@ -182,6 +181,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		LineItemCount:   batch.TotalItems,
 		BatchHash:       batch.MerkelRoot,
 		BatchSignature:  "", // TODO: Sign the batch with the CSP's private key
+		CreatedAt:       batch.CreatedAt,
 	})
 }
 

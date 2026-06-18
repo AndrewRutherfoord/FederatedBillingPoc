@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createCloudServiceProviderAccount = `-- name: CreateCloudServiceProviderAccount :one
@@ -68,6 +69,54 @@ func (q *Queries) ListCloudServiceProviderAccountsByBillingAccount(ctx context.C
 			&i.BillingAccountID,
 			&i.CloudProviderID,
 			&i.CloudProviderName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCloudServiceProviderAccountsByBillingAccountWithTotalCost = `-- name: ListCloudServiceProviderAccountsByBillingAccountWithTotalCost :many
+SELECT cspa.id, cspa.billing_account_id, cspa.cloud_provider_id, bpsc.name AS cloud_provider_name, SUM(bacb.total_cost) AS total_cost, bacb.billed_currency AS billing_currency
+FROM cloud_service_provider_accounts cspa
+JOIN billing_provider_supported_cloud_provider bpsc ON bpsc.id = cspa.cloud_provider_id
+LEFT JOIN billing_account_cost_batch bacb ON bacb.cloud_service_provider_id = cspa.cloud_provider_id AND bacb.billing_account_id = cspa.billing_account_id
+WHERE cspa.billing_account_id = ?
+GROUP BY cspa.id, cspa.billing_account_id, cspa.cloud_provider_id, bpsc.name, bacb.billed_currency
+`
+
+type ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow struct {
+	ID                string
+	BillingAccountID  string
+	CloudProviderID   string
+	CloudProviderName string
+	TotalCost         sql.NullFloat64
+	BillingCurrency   sql.NullString
+}
+
+func (q *Queries) ListCloudServiceProviderAccountsByBillingAccountWithTotalCost(ctx context.Context, billingAccountID string) ([]ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow, error) {
+	rows, err := q.db.QueryContext(ctx, listCloudServiceProviderAccountsByBillingAccountWithTotalCost, billingAccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow
+	for rows.Next() {
+		var i ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.BillingAccountID,
+			&i.CloudProviderID,
+			&i.CloudProviderName,
+			&i.TotalCost,
+			&i.BillingCurrency,
 		); err != nil {
 			return nil, err
 		}

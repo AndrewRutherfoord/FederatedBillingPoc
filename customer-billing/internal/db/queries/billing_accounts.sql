@@ -16,6 +16,6 @@ SET onboarding_redirect_url = ?, onboarding_complete = ?
 WHERE id = ?;
 
 -- name: ListBillingAccounts :many
-SELECT ba.id, ba.billing_provider_id, ba.alias, ba.created_at, ba.onboarding_redirect_url, ba.onboarding_complete, bp.name AS billing_provider_name
+SELECT ba.id, ba.billing_provider_id, ba.alias, ba.created_at, ba.onboarding_redirect_url, ba.onboarding_complete, bp.name AS billing_provider_name, bp.api_endpoint_url  AS billing_provider_base_url
 FROM billing_accounts ba
 LEFT JOIN billing_providers bp ON bp.id = ba.billing_provider_id;

@@ -355,6 +355,9 @@ const docTemplate = `{
         "handlers.CloudProviderLink": {
             "type": "object",
             "properties": {
+                "billing_currency": {
+                    "type": "string"
+                },
                 "cloud_provider_id": {
                     "type": "string"
                 },
@@ -363,6 +366,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
                 }
             }
         },

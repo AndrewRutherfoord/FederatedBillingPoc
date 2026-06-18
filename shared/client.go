@@ -41,6 +41,8 @@ func (c *httpClientImpl) SendJSON(path string, data interface{}, out interface{}
 		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
 
+	// TODO: Retry?
+	// TODO: Make this not only POST...
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)

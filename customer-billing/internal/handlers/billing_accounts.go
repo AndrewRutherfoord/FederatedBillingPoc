@@ -149,9 +149,11 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 }
 
 type CloudProviderLink struct {
-	ID                string `json:"id"`
-	CloudProviderID   string `json:"cloud_provider_id"`
-	CloudProviderName string `json:"cloud_provider_name"`
+	ID                string  `json:"id"`
+	CloudProviderID   string  `json:"cloud_provider_id"`
+	CloudProviderName string  `json:"cloud_provider_name"`
+	TotalCost         float64 `json:"total_cost"`
+	BillingCurrency   string  `json:"billing_currency"`
 }
 
 // ListBillingProviderLinkedCloudProviders godoc
@@ -174,9 +176,11 @@ func (s *Server) ListBillingProviderLinkedCloudProviders(c *gin.Context) {
 	result := make([]CloudProviderLink, len(links))
 	for i, l := range links {
 		result[i] = CloudProviderLink{
-			ID:                  l.ID,
-			CloudProviderID:     l.CloudProviderID,
-			CloudProviderName:   l.CloudProviderName,
+			ID:                l.ID,
+			CloudProviderID:   l.CloudProviderID,
+			CloudProviderName: l.CloudProviderName,
+			TotalCost:         l.TotalCost,
+			BillingCurrency:   l.BillingCurrency,
 		}
 	}
 	c.JSON(http.StatusOK, result)
@@ -293,4 +297,3 @@ func (s *Server) CompleteCloudProviderAccountOnboarding(c *gin.Context) {
 		CloudProviderID: link.CloudProviderID,
 	})
 }
-

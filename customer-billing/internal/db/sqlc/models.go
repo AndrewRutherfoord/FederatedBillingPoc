@@ -18,6 +18,20 @@ type BillingAccount struct {
 	OnboardingComplete    sql.NullTime
 }
 
+type BillingAccountCostBatch struct {
+	ID                     string
+	BillingAccountID       string
+	BillingPeriodID        string
+	CloudServiceProviderID string
+	TotalItems             int64
+	TotalCost              float64
+	BilledCurrency         string
+	MerkelRoot             string
+	BatchSignature         string
+	CreatedAt              time.Time
+	ReceivedAt             time.Time
+}
+
 type BillingProvider struct {
 	ID             string
 	Name           string

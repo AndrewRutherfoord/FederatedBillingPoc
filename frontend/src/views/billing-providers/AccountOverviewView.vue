@@ -11,6 +11,16 @@
                 <template #empty>No linked cloud providers found.</template>
                 <Column field="cloud_provider_name" header="Cloud Provider"></Column>
                 <Column field="cloud_provider_id" header="Provider ID"></Column>
+                <Column header="Total Cost">
+                    <template #body="slotProps">
+                        <span v-if="slotProps.data.total_cost !== undefined">
+                            {{ slotProps.data.total_cost }} {{ slotProps.data.billing_currency }}
+                        </span>
+                        <span v-else>
+                            N/A
+                        </span>
+                    </template>
+                </Column>
             </DataTable>
         </div>
 

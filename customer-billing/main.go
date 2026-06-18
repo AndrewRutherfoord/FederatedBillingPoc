@@ -60,12 +60,6 @@ func main() {
 	// }
 
 	sched := sharedscheduler.NewWithPersistence(scheduler.NewSchedulerPersistence())
-	err = sharedscheduler.RegisterJobs(sched, []sharedscheduler.JobToRegister{
-		// sharedscheduler.NewJobToRegister(
-		// scheduler.NewRecordMeteringAndCostJob("record-metering-and-cost", repos, cfg, clientRegistry),
-		// "0 0 * * * *", // Every hour at :00 seconds
-		// ),
-	})
 	if err != nil {
 		log.Fatalf("failed to register jobs: %v", err)
 	}
@@ -77,7 +71,14 @@ func main() {
 
 	// Mock clock that allows manual time advancement for testing. It uses a centralised mock time server. Later it can be swapped out for a regular clock that just returns the current time.
 	// On the clock advancing it calls the scheduler's OnTimeAdvance method which triggers any jobs
-	_ = shared.NewMockClock(clockHost, []shared.OnTimeAdvanceCallback{sched})
+	clock := shared.NewMockClock(clockHost, []shared.OnTimeAdvanceCallback{sched})
+
+	err = sharedscheduler.RegisterJobs(sched, []sharedscheduler.JobToRegister{
+		sharedscheduler.NewJobToRegister(
+			scheduler.NewFetchBillingProviderRecordsJob("fetch-billing-provider-records", repos, config, clock),
+			"0 0 * * * *", // Every hour at :00 seconds
+		),
+	})
 
 	r := gin.Default()
 	r.Use(cors.Default())

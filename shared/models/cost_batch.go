@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type BillingRecord struct {
 	BillingProviderID  string `json:"billing_provider_id"`
 	ResourceProviderID string `json:"resource_provider_id"`
@@ -9,12 +11,13 @@ type BillingRecord struct {
 type AggregatedChargeRecord struct {
 	BillingRecord // embed common billing record fields
 
-	BatchID         string  `json:"batch_id"`
-	TotalBilledCost float64 `json:"total_billed_cost"`
-	BilledCurrency  string  `json:"billed_currency"`
-	LineItemCount   int     `json:"line_item_count"`
-	BatchHash       string  `json:"batch_hash"`
-	BatchSignature  string  `json:"batch_signature"`
+	BatchID         string    `json:"batch_id"`
+	TotalBilledCost float64   `json:"total_billed_cost"`
+	BilledCurrency  string    `json:"billed_currency"`
+	LineItemCount   int       `json:"line_item_count"`
+	BatchHash       string    `json:"batch_hash"`
+	BatchSignature  string    `json:"batch_signature"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 type AggregatedChargeMeteringRecords struct {
