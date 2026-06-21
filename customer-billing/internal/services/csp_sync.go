@@ -19,5 +19,7 @@ func SyncCloudServiceProviderMetadata(ctx context.Context, repos *repository.Rep
 		return repository.CloudServiceProvider{}, err
 	}
 
+	// metadata.APIEndpointURL is the CSP's own self-reported customer-facing endpoint,
+	// which takes precedence over whatever the billing provider initially advertised.
 	return repos.CloudServiceProvider.Upsert(ctx, metadata.ID, metadata.Name, metadata.APIEndpointURL)
 }

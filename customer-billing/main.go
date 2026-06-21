@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	dbPath := os.Getenv("CB_DB_PATH")
+	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = "customer-billing.sqlite"
 	}

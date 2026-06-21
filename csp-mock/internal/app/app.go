@@ -36,7 +36,7 @@ func NewApp(cfg Config) *App {
 	// Open database
 	dbPath := cfg.DBPath
 	if dbPath == "" {
-		dbPath = os.Getenv("CSP_DB_PATH")
+		dbPath = os.Getenv("DB_PATH")
 		if dbPath == "" {
 			dbPath = "csp-mock.sqlite"
 		}
@@ -57,7 +57,7 @@ func NewApp(cfg Config) *App {
 	if clockHost == "" {
 		clockHost = os.Getenv("MOCK_CLOCK_HOST")
 		if clockHost == "" {
-			clockHost = "http://time-server:9999"
+			clockHost = "http://localhost:9999"
 		}
 	}
 	clock := shared.NewMockClock(clockHost, []shared.OnTimeAdvanceCallback{sched})

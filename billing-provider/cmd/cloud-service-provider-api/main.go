@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("failed to initialise app: %v", err)
 	}
 
-	handler := port.NewCSPPort(a.Repos)
+	handler := port.NewCSPPort(a.Repos, a.Clock)
 	adapter := apicspadapter.NewApiCSPAdapter(handler, a.Config, a.Repos)
 	defer adapter.Close()
 

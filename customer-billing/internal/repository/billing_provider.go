@@ -8,9 +8,10 @@ import (
 )
 
 type CloudServiceProvider struct {
-	ID             string
-	Name           string
-	APIEndpointURL string
+	ID                     string
+	Name                   string
+	APIEndpointURL         string
+	CustomerAPIEndpointURL string
 }
 
 type BillingProvider struct {
@@ -38,7 +39,7 @@ func newBillingProviderRepo(database *db.DB) BillingProviderRepository {
 func toBillingProvider(row sqlcdb.BillingProvider, cspRows []sqlcdb.BillingProviderSupportedCloudProvider) BillingProvider {
 	csps := make([]CloudServiceProvider, len(cspRows))
 	for i, c := range cspRows {
-		csps[i] = CloudServiceProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.ApiEndpointUrl}
+		csps[i] = CloudServiceProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.ApiEndpointUrl, CustomerAPIEndpointURL: c.CustomerApiEndpointUrl}
 	}
 	return BillingProvider{ID: row.ID, Name: row.Name, BaseURL: row.ApiEndpointUrl, SupportedCloudProviders: csps}
 }
@@ -99,10 +100,11 @@ func (r *billingProviderRepo) UpsertBillingProvider(ctx context.Context, id stri
 		}
 		for _, csp := range csps {
 			if err := q.CreateBillingProviderSupportedCSP(ctx, sqlcdb.CreateBillingProviderSupportedCSPParams{
-				ID:                csp.ID,
-				BillingProviderID: id,
-				Name:              csp.Name,
-				ApiEndpointUrl:    csp.APIEndpointURL,
+				ID:                     csp.ID,
+				BillingProviderID:      id,
+				Name:                   csp.Name,
+				ApiEndpointUrl:         csp.APIEndpointURL,
+				CustomerApiEndpointUrl: csp.CustomerAPIEndpointURL,
 			}); err != nil {
 				return err
 			}

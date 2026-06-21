@@ -2,7 +2,7 @@
 
 # Variables
 MIGRATIONS_DIR := ./internal/db/migrations
-DB_PATH := ./customer-billing.sqlite
+DB_PATH := ../dbs/customer-billing.sqlite
 GOOSE := goose
 
 migrate-create:

@@ -355,7 +355,13 @@ const docTemplate = `{
         "handlers.CloudProviderLink": {
             "type": "object",
             "properties": {
+                "billing_account_id": {
+                    "type": "string"
+                },
                 "billing_currency": {
+                    "type": "string"
+                },
+                "cloud_provider_account_id": {
                     "type": "string"
                 },
                 "cloud_provider_id": {
@@ -478,7 +484,7 @@ const docTemplate = `{
         "handlers.supportedCloudProviderEntry": {
             "type": "object",
             "properties": {
-                "api_endpoint_url": {
+                "customer_api_endpoint_url": {
                     "type": "string"
                 },
                 "id": {

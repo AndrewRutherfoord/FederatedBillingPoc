@@ -2,6 +2,7 @@ package clients
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
@@ -56,6 +57,7 @@ func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string
 
 	var response billingprovidermodels.GetBillingAccountRecordsResponse
 	err := c.SendJSON("/billing/accounts/records", payload, &response)
+	log.Printf("Fetched %d records for billing account %s from %s to %s", len(response.Records), billingAccountID, from.Format(time.RFC3339), to.Format(time.RFC3339))
 	if err != nil {
 		return []sharedmodels.AggregatedChargeRecord{}, fmt.Errorf("failed to fetch billing account records: %w", err)
 	}

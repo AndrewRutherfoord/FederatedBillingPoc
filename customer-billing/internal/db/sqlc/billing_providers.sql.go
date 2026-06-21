@@ -26,15 +26,16 @@ func (q *Queries) CreateBillingProvider(ctx context.Context, arg CreateBillingPr
 }
 
 const createBillingProviderSupportedCSP = `-- name: CreateBillingProviderSupportedCSP :exec
-INSERT INTO billing_provider_supported_cloud_provider (id, billing_provider_id, name, api_endpoint_url)
-VALUES (?, ?, ?, ?)
+INSERT INTO billing_provider_supported_cloud_provider (id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url)
+VALUES (?, ?, ?, ?, ?)
 `
 
 type CreateBillingProviderSupportedCSPParams struct {
-	ID                string
-	BillingProviderID string
-	Name              string
-	ApiEndpointUrl    string
+	ID                     string
+	BillingProviderID      string
+	Name                   string
+	ApiEndpointUrl         string
+	CustomerApiEndpointUrl string
 }
 
 func (q *Queries) CreateBillingProviderSupportedCSP(ctx context.Context, arg CreateBillingProviderSupportedCSPParams) error {
@@ -43,6 +44,7 @@ func (q *Queries) CreateBillingProviderSupportedCSP(ctx context.Context, arg Cre
 		arg.BillingProviderID,
 		arg.Name,
 		arg.ApiEndpointUrl,
+		arg.CustomerApiEndpointUrl,
 	)
 	return err
 }
@@ -70,7 +72,7 @@ func (q *Queries) GetBillingProvider(ctx context.Context, id string) (BillingPro
 }
 
 const getBillingProviderSupportedCSP = `-- name: GetBillingProviderSupportedCSP :one
-SELECT id, billing_provider_id, name, api_endpoint_url FROM billing_provider_supported_cloud_provider
+SELECT id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url FROM billing_provider_supported_cloud_provider
 WHERE id = ?
 `
 
@@ -82,12 +84,13 @@ func (q *Queries) GetBillingProviderSupportedCSP(ctx context.Context, id string)
 		&i.BillingProviderID,
 		&i.Name,
 		&i.ApiEndpointUrl,
+		&i.CustomerApiEndpointUrl,
 	)
 	return i, err
 }
 
 const listBillingProviderSupportedCSPs = `-- name: ListBillingProviderSupportedCSPs :many
-SELECT id, billing_provider_id, name, api_endpoint_url FROM billing_provider_supported_cloud_provider
+SELECT id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url FROM billing_provider_supported_cloud_provider
 WHERE billing_provider_id = ?
 `
 
@@ -105,6 +108,7 @@ func (q *Queries) ListBillingProviderSupportedCSPs(ctx context.Context, billingP
 			&i.BillingProviderID,
 			&i.Name,
 			&i.ApiEndpointUrl,
+			&i.CustomerApiEndpointUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -146,27 +150,28 @@ func (q *Queries) ListBillingProviders(ctx context.Context) ([]BillingProvider, 
 	return items, nil
 }
 
-const updateBillingProviderSupportedCSP = `-- name: UpdateBillingProviderSupportedCSP :one
+const updateBillingProviderSupportedCSPCustomerEndpoint = `-- name: UpdateBillingProviderSupportedCSPCustomerEndpoint :one
 UPDATE billing_provider_supported_cloud_provider
-SET name = ?, api_endpoint_url = ?
+SET name = ?, customer_api_endpoint_url = ?
 WHERE id = ?
-RETURNING id, billing_provider_id, name, api_endpoint_url
+RETURNING id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url
 `
 
-type UpdateBillingProviderSupportedCSPParams struct {
-	Name           string
-	ApiEndpointUrl string
-	ID             string
+type UpdateBillingProviderSupportedCSPCustomerEndpointParams struct {
+	Name                   string
+	CustomerApiEndpointUrl string
+	ID                     string
 }
 
-func (q *Queries) UpdateBillingProviderSupportedCSP(ctx context.Context, arg UpdateBillingProviderSupportedCSPParams) (BillingProviderSupportedCloudProvider, error) {
-	row := q.db.QueryRowContext(ctx, updateBillingProviderSupportedCSP, arg.Name, arg.ApiEndpointUrl, arg.ID)
+func (q *Queries) UpdateBillingProviderSupportedCSPCustomerEndpoint(ctx context.Context, arg UpdateBillingProviderSupportedCSPCustomerEndpointParams) (BillingProviderSupportedCloudProvider, error) {
+	row := q.db.QueryRowContext(ctx, updateBillingProviderSupportedCSPCustomerEndpoint, arg.Name, arg.CustomerApiEndpointUrl, arg.ID)
 	var i BillingProviderSupportedCloudProvider
 	err := row.Scan(
 		&i.ID,
 		&i.BillingProviderID,
 		&i.Name,
 		&i.ApiEndpointUrl,
+		&i.CustomerApiEndpointUrl,
 	)
 	return i, err
 }

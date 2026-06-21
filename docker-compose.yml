@@ -5,12 +5,9 @@ services:
       context: ./time-server
       dockerfile: Dockerfile
     container_name: mock-clock
-    ports:
-      - "9999:9999"
+    network_mode: host
     volumes:
       - ./time-server/time-state.json:/root/time-state.json
-    networks:
-      - csp-network
 
   cloud-service-provider-customer-api:
     build:
@@ -18,18 +15,17 @@ services:
       dockerfile: csp-mock/Dockerfile.dev
       target: customer-api
     container_name: csp-mock-customer-api
-    ports:
-      - "8080:8080"
+    network_mode: host
     volumes:
       - ./csp-mock:/app
       - ./keys:/keys
       - ./shared:/shared
+      - ./dbs:/dbs
       - csp-mock-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
-      - MOCK_CLOCK_HOST=http://time-server:9999
-    networks:
-      - csp-network
+      - DB_PATH=/dbs/csp-mock.sqlite
+      - MOCK_CLOCK_HOST=http://localhost:9999
     depends_on:
       - time-server
 
@@ -38,18 +34,17 @@ services:
       context: .
       dockerfile: csp-mock/Dockerfile.dev
       target: billing-provider-interface
-    ports:
-      - "8443:8443"
+    network_mode: host
     volumes:
       - ./csp-mock:/app
       - ./keys:/keys
       - ./shared:/shared
+      - ./dbs:/dbs
       - csp-mock-billing-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
-      - MOCK_CLOCK_HOST=http://time-server:9999
-    networks:
-      - csp-network
+      - MOCK_CLOCK_HOST=http://localhost:9999
+      - DB_PATH=/dbs/csp-mock.sqlite
     depends_on:
       - time-server
 
@@ -58,18 +53,17 @@ services:
       context: .
       dockerfile: billing-provider/Dockerfile.dev
       target: cloud-service-provider-api
-    ports:
-      - "8444:8444"
+    network_mode: host
     volumes:
       - ./billing-provider:/app
       - ./keys:/keys
       - ./shared:/shared
+      - ./dbs:/dbs
       - billing-provider-csp-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
-      - MOCK_CLOCK_HOST=http://time-server:9999
-    networks:
-      - csp-network
+      - MOCK_CLOCK_HOST=http://localhost:9999
+      - DB_PATH=/dbs/billing-provider.sqlite
     depends_on:
       - time-server
 
@@ -78,18 +72,17 @@ services:
       context: .
       dockerfile: billing-provider/Dockerfile.dev
       target: customer-api
-    ports:
-      - "8081:8081"
+    network_mode: host
     volumes:
       - ./billing-provider:/app
       - ./keys:/keys
       - ./shared:/shared
+      - ./dbs:/dbs
       - billing-provider-customer-tmp:/app/tmp
     environment:
       - CGO_ENABLED=1
-      - MOCK_CLOCK_HOST=http://time-server:9999
-    networks:
-      - csp-network
+      - MOCK_CLOCK_HOST=http://localhost:9999
+      - DB_PATH=/dbs/billing-provider.sqlite
     depends_on:
       - time-server
 
@@ -98,24 +91,18 @@ services:
       context: .
       dockerfile: customer-billing/Dockerfile.dev
       target: customer-api
-    ports:
-      - "8082:8082"
+    network_mode: host
     volumes:
       - ./customer-billing:/app
+      - ./dbs:/dbs
       - ./shared:/shared
       - customer-billing-tmp:/app/tmp
     environment:
       - API_PORT=8082
-      - MOCK_CLOCK_HOST=http://time-server:9999
-      - CB_DB_PATH=/app/customer-billing.sqlite
-    networks:
-      - csp-network
+      - MOCK_CLOCK_HOST=http://localhost:9999
+      - DB_PATH=/dbs/customer-billing.sqlite
     depends_on:
       - time-server
-
-networks:
-  csp-network:
-    driver: bridge
 
 volumes:
   csp-mock-tmp:

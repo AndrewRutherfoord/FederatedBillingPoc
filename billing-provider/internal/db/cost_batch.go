@@ -15,5 +15,6 @@ type CostBatch struct {
 	MerkelRoot string
 	Signature  string // Cloud Service Provider Signature of MerkelRoot to ensure authenticity of the data
 
-	CreatedAt time.Time `gorm:"not null"`
+	CreatedAt  time.Time `gorm:"not null"`
+	ReceivedAt time.Time
 }

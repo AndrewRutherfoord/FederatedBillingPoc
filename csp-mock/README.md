@@ -12,7 +12,7 @@ go run .  -config ./config.yaml
 go run ./csp-mock/main.go -config ./csp-mock/config.yaml
 
 # To specify the database path (optional, defaults to csp-mock.sqlite in the working directory):
-CSP_DB_PATH=./my-db.sqlite go run ./csp-mock/main.go -config ./csp-mock/config.yaml
+DB_PATH=./my-db.sqlite go run ./csp-mock/main.go -config ./csp-mock/config.yaml
 ```
 
 The server starts on `:8081`. It expects `config.yaml` in the working directory and creates `csp-mock.sqlite` on first run.

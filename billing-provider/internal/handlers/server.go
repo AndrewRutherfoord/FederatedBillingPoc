@@ -49,7 +49,7 @@ func (s *Server) WellKnown(c *gin.Context) {
 		cspMetas = append(cspMetas, bpsharedmodels.SupportedCloudProviderMetadata{
 			ID:          csp.ID,
 			Name:        csp.Name,
-			APIEndpoint: csp.APIEndpointURL,
+			APIEndpoint: csp.CustomerEndpointURL,
 		})
 	}
 	metadata := bpsharedmodels.Metadata{

@@ -9,7 +9,7 @@ import (
 
 type CloudServiceProviderRepository interface {
 	GetByID(ctx context.Context, id string) (CloudServiceProvider, error)
-	Upsert(ctx context.Context, id string, name string, apiEndpointURL string) (CloudServiceProvider, error)
+	Upsert(ctx context.Context, id string, name string, customerAPIEndpointURL string) (CloudServiceProvider, error)
 }
 
 type cloudServiceProviderRepo struct {
@@ -25,17 +25,20 @@ func (r *cloudServiceProviderRepo) GetByID(ctx context.Context, id string) (Clou
 	if err != nil {
 		return CloudServiceProvider{}, err
 	}
-	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl}, nil
+	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl, CustomerAPIEndpointURL: row.CustomerApiEndpointUrl}, nil
 }
 
-func (r *cloudServiceProviderRepo) Upsert(ctx context.Context, id string, name string, apiEndpointURL string) (CloudServiceProvider, error) {
-	row, err := r.db.Queries.UpdateBillingProviderSupportedCSP(ctx, sqlcdb.UpdateBillingProviderSupportedCSPParams{
-		Name:           name,
-		ApiEndpointUrl: apiEndpointURL,
-		ID:             id,
+// Upsert refreshes a CSP's customer-facing endpoint with the value the CSP itself
+// reports via its own .well-known metadata, which is authoritative over whatever
+// the billing provider initially advertised.
+func (r *cloudServiceProviderRepo) Upsert(ctx context.Context, id string, name string, customerAPIEndpointURL string) (CloudServiceProvider, error) {
+	row, err := r.db.Queries.UpdateBillingProviderSupportedCSPCustomerEndpoint(ctx, sqlcdb.UpdateBillingProviderSupportedCSPCustomerEndpointParams{
+		Name:                   name,
+		CustomerApiEndpointUrl: customerAPIEndpointURL,
+		ID:                     id,
 	})
 	if err != nil {
 		return CloudServiceProvider{}, err
 	}
-	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl}, nil
+	return CloudServiceProvider{ID: row.ID, Name: row.Name, APIEndpointURL: row.ApiEndpointUrl, CustomerAPIEndpointURL: row.CustomerApiEndpointUrl}, nil
 }

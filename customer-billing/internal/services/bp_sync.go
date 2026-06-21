@@ -22,9 +22,10 @@ func SyncBillingProviderMetadata(ctx context.Context, repos *repository.Repos, b
 	csps := make([]repository.CloudServiceProvider, len(metadata.SupportedCloudProviders))
 	for i, csp := range metadata.SupportedCloudProviders {
 		csps[i] = repository.CloudServiceProvider{
-			ID:             csp.ID,
-			Name:           csp.Name,
-			APIEndpointURL: csp.APIEndpoint,
+			ID:                     csp.ID,
+			Name:                   csp.Name,
+			APIEndpointURL:         csp.APIEndpoint,
+			CustomerAPIEndpointURL: csp.APIEndpoint,
 		}
 	}
 

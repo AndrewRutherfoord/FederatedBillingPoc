@@ -26,7 +26,7 @@ func New(configPath string) (*App, error) {
 	}
 	log.Printf("Loaded config: ProviderID=%s, ProviderName=%s", cfg.ProviderID, cfg.ProviderName)
 
-	dbPath := os.Getenv("BP_DB_PATH")
+	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
 		dbPath = "billing-provider.sqlite"
 	}
@@ -35,7 +35,7 @@ func New(configPath string) (*App, error) {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
 
-	clock := shared.NewMockClock("http://time-server:9999", []shared.OnTimeAdvanceCallback{})
+	clock := shared.NewMockClock("http://localhost:9999", []shared.OnTimeAdvanceCallback{})
 
 	return &App{
 		Config: cfg,

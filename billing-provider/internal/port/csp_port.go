@@ -7,6 +7,7 @@ import (
 
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/repository"
+	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 )
 
@@ -19,10 +20,11 @@ type CSPHandler interface {
 // CSPPortImpl contains the application logic for handling inbound CSP messages.
 type CSPPortImpl struct {
 	repositories *repository.Repos
+	clock        shared.Clock
 }
 
-func NewCSPPort(repositories *repository.Repos) *CSPPortImpl {
-	return &CSPPortImpl{repositories: repositories}
+func NewCSPPort(repositories *repository.Repos, clock shared.Clock) *CSPPortImpl {
+	return &CSPPortImpl{repositories: repositories, clock: clock}
 }
 
 // OnAggregatedChargeRecord handles a cost batch pushed by a CSP.
@@ -49,6 +51,7 @@ func (p *CSPPortImpl) OnAggregatedChargeRecord(ctx context.Context, record share
 		MerkelRoot:             record.BatchHash,
 		Signature:              record.BatchSignature,
 		CreatedAt:              record.CreatedAt,
+		ReceivedAt:             p.clock.Now(),
 	}
 
 	return p.repositories.CostBatch.Create(ctx, costBatch)

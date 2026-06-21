@@ -42,6 +42,7 @@ func (s *Server) RegisterBillingAccount(c *gin.Context) {
 	}
 
 	bp, err := services.SyncBillingProviderMetadata(c.Request.Context(), s.repos, req.BillingProviderBaseURL)
+	log.Printf("Synced billing provider metadata: %+v; Error: %v", bp, err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sync billing provider metadata"})
 		return
@@ -112,9 +113,9 @@ type billingAccountDetailResponse struct {
 }
 
 type supportedCloudProviderEntry struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	APIEndpointURL string `json:"api_endpoint_url"`
+	ID                     string `json:"id"`
+	Name                   string `json:"name"`
+	CustomerAPIEndpointURL string `json:"customer_api_endpoint_url"`
 }
 
 // GetBillingAccount godoc
@@ -136,7 +137,7 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 
 	csps := make([]supportedCloudProviderEntry, len(account.BillingProvider.SupportedCloudProviders))
 	for i, csp := range account.BillingProvider.SupportedCloudProviders {
-		csps[i] = supportedCloudProviderEntry{ID: csp.ID, Name: csp.Name, APIEndpointURL: csp.APIEndpointURL}
+		csps[i] = supportedCloudProviderEntry{ID: csp.ID, Name: csp.Name, CustomerAPIEndpointURL: csp.CustomerAPIEndpointURL}
 	}
 
 	c.JSON(http.StatusOK, billingAccountDetailResponse{
@@ -149,11 +150,13 @@ func (s *Server) GetBillingAccount(c *gin.Context) {
 }
 
 type CloudProviderLink struct {
-	ID                string  `json:"id"`
-	CloudProviderID   string  `json:"cloud_provider_id"`
-	CloudProviderName string  `json:"cloud_provider_name"`
-	TotalCost         float64 `json:"total_cost"`
-	BillingCurrency   string  `json:"billing_currency"`
+	ID                     string  `json:"id"`
+	CloudProviderID        string  `json:"cloud_provider_id"`
+	CloudProviderName      string  `json:"cloud_provider_name"`
+	TotalCost              float64 `json:"total_cost"`
+	BillingCurrency        string  `json:"billing_currency"`
+	BillingAccountID       string  `json:"billing_account_id"`
+	CloudProviderAccountID string  `json:"cloud_provider_account_id"`
 }
 
 // ListBillingProviderLinkedCloudProviders godoc
@@ -179,6 +182,7 @@ func (s *Server) ListBillingProviderLinkedCloudProviders(c *gin.Context) {
 			ID:                l.ID,
 			CloudProviderID:   l.CloudProviderID,
 			CloudProviderName: l.CloudProviderName,
+			BillingAccountID:  l.BillingAccountID,
 			TotalCost:         l.TotalCost,
 			BillingCurrency:   l.BillingCurrency,
 		}
@@ -232,7 +236,8 @@ func (s *Server) RegisterCloudProviderAccount(c *gin.Context) {
 	}
 	log.Printf("Found matching cloud provider in billing provider metadata: %+v", csp)
 
-	if _, err := services.SyncCloudServiceProviderMetadata(c.Request.Context(), s.repos, csp.APIEndpointURL); err != nil {
+	syncedCSP, err := services.SyncCloudServiceProviderMetadata(c.Request.Context(), s.repos, csp.CustomerAPIEndpointURL)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sync cloud provider metadata"})
 		return
 	}
@@ -246,7 +251,7 @@ func (s *Server) RegisterCloudProviderAccount(c *gin.Context) {
 	u.RawQuery = q.Encode()
 	cspReturnURL := u.String()
 
-	cspClient := clients.NewCloudServiceProviderClient(csp.APIEndpointURL)
+	cspClient := clients.NewCloudServiceProviderClient(syncedCSP.CustomerAPIEndpointURL)
 	cspResponse, err := cspClient.RegisterCloudProviderAccount(billingAccount.BillingProvider.ID, billingAccount.ID, cspReturnURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to initiate cloud provider onboarding"})

@@ -167,6 +167,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		log.Printf("Error saving line items for batch %s: %v", batch.ID, err)
 		return err
 	}
+	log.Printf("Successfully created cost batch %s for billing account %s with %d line items", batch.ID, billingAccount.AccountID, len(lineItems))
 
 	// Send it to the billing provider
 	return j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
@@ -188,15 +189,17 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 func (j *RecordMeteringAndCostJob) Execute(ctx context.Context, startTime time.Time) error {
 	log.Printf("RecordMeteringAndCostJob executed: %s", j.id)
 
-	billingAccount, err := j.repos.BillingAccounts.List(ctx)
+	billingAccounts, err := j.repos.BillingAccounts.List(ctx)
 	if err != nil {
 		log.Printf("Error occurred while fetching customers: %v", err)
 		return err
 	}
+	log.Printf("Found %d billing accounts to process", len(billingAccounts))
 
-	for _, ba := range billingAccount {
+	for _, ba := range billingAccounts {
 		for page := 0; ; page++ {
 			resources, err := j.repos.Resources.ListByBillingAccountID(ctx, ba.AccountID, j.batchMaxSize, page*j.batchMaxSize)
+			log.Printf("Fetched %d resources for billing account %s (page %d)", len(resources), ba.AccountID, page)
 			if err != nil {
 				log.Printf("Error fetching resources for billing account %s: %v", ba.AccountID, err)
 				return err

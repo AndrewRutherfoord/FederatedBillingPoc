@@ -49,7 +49,11 @@ func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.
 		return err
 	}
 
+	storedBatchs := 0
 	for _, record := range records {
+		if record.BatchID == latestBatch.ID {
+			continue
+		}
 		_, err := j.repos.BillingAccountCostBatch.Create(ctx, repository.CreateBillingAccountCostBatchParams{
 			ID:                     record.BatchID,
 			BillingAccountID:       account.ID,
@@ -64,9 +68,13 @@ func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.
 			ReceivedAt:             j.clock.Now(),
 		})
 		if err != nil {
-			return err
+			log.Printf("Error saving billing account cost batch for account %s: %v", account.ID, err)
+			continue
 		}
+		storedBatchs++
 	}
+
+	log.Printf("Fetched %d records for billing account %s, stored %d new batches", len(records), account.ID, storedBatchs)
 
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 type CloudServiceProviderClient interface {
 	GetMetadata() (cspsharedmodels.Metadata, error)
 	RegisterCloudProviderAccount(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error)
+	// GetBillingCostRecords(billingAccountID string, from time.Time, to time.Time) ([]cspsharedmodels.BillingCostRecord, error)
 }
 
 type cloudServiceProviderClient struct {
@@ -45,3 +46,8 @@ func (c *cloudServiceProviderClient) RegisterCloudProviderAccount(billingProvide
 	}
 	return response, nil
 }
+
+// func (c *cloudServiceProviderClient) GetBillingCostRecords(billingAccountID string, from time.Time, to time.Time) ([]cspsharedmodels.BillingCostRecord, error) {
+
+// 	return []cspsharedmodels.AggregatedChargeMeteringRecords {}, nil
+// }

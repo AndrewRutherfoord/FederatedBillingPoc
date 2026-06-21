@@ -39,10 +39,11 @@ type BillingProvider struct {
 }
 
 type BillingProviderSupportedCloudProvider struct {
-	ID                string
-	BillingProviderID string
-	Name              string
-	ApiEndpointUrl    string
+	ID                     string
+	BillingProviderID      string
+	Name                   string
+	ApiEndpointUrl         string
+	CustomerApiEndpointUrl string
 }
 
 type CloudServiceProviderAccount struct {
