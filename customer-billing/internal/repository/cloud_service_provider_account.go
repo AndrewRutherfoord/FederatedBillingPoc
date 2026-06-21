@@ -17,8 +17,9 @@ type CloudServiceProviderAccountLink struct {
 
 type CloudServiceProviderAccountLinkWithTotalCost struct {
 	CloudServiceProviderAccountLink
-	TotalCost       float64
-	BillingCurrency string
+	TotalCost              float64
+	BillingCurrency        string
+	CustomerAPIEndpointURL string
 }
 
 type CloudServiceProviderAccountRepository interface {
@@ -36,9 +37,9 @@ func newCloudServiceProviderAccountRepo(database *db.DB) CloudServiceProviderAcc
 
 func (r *cloudServiceProviderAccountRepository) Create(ctx context.Context, billingAccountID string, cloudProviderID string) (CloudServiceProviderAccountLink, error) {
 	row, err := r.db.CreateCloudServiceProviderAccount(ctx, sqlcdb.CreateCloudServiceProviderAccountParams{
-		ID:               uuid.NewString(),
-		BillingAccountID: billingAccountID,
-		CloudProviderID:  cloudProviderID,
+		ID:                     uuid.NewString(),
+		BillingAccountID:       billingAccountID,
+		CloudServiceProviderID: cloudProviderID,
 	})
 	if err != nil {
 		return CloudServiceProviderAccountLink{}, err
@@ -46,7 +47,7 @@ func (r *cloudServiceProviderAccountRepository) Create(ctx context.Context, bill
 	return CloudServiceProviderAccountLink{
 		ID:               row.ID,
 		BillingAccountID: row.BillingAccountID,
-		CloudProviderID:  row.CloudProviderID,
+		CloudProviderID:  row.CloudServiceProviderID,
 	}, nil
 }
 
@@ -61,11 +62,12 @@ func (r *cloudServiceProviderAccountRepository) ListByBillingAccount(ctx context
 			CloudServiceProviderAccountLink: CloudServiceProviderAccountLink{
 				ID:                row.ID,
 				BillingAccountID:  row.BillingAccountID,
-				CloudProviderID:   row.CloudProviderID,
-				CloudProviderName: row.CloudProviderName,
+				CloudProviderID:   row.CloudServiceProviderID,
+				CloudProviderName: row.CloudServiceProviderName,
 			},
-			TotalCost:       row.TotalCost.Float64,
-			BillingCurrency: row.BillingCurrency.String,
+			TotalCost:              row.TotalCost.Float64,
+			BillingCurrency:        row.BillingCurrency.String,
+			CustomerAPIEndpointURL: row.CustomerApiEndpointUrl,
 		}
 	}
 	return result, nil

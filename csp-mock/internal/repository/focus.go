@@ -11,6 +11,7 @@ import (
 
 type FocusFilter struct {
 	BillingAccountID string
+	BatchID          string
 	From             time.Time
 	To               time.Time
 }
@@ -59,6 +60,9 @@ func (r *focusRepo) List(ctx context.Context, filter FocusFilter) ([]sharedmodel
 	q := r.db.WithContext(ctx).Model(&db.FocusRecord{})
 	if filter.BillingAccountID != "" {
 		q = q.Where("billing_account_id = ?", filter.BillingAccountID)
+	}
+	if filter.BatchID != "" {
+		q = q.Where("batch_id = ?", filter.BatchID)
 	}
 	if !filter.From.IsZero() {
 		q = q.Where("charge_period_start >= ?", filter.From)

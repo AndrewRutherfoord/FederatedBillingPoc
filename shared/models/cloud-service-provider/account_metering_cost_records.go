@@ -13,8 +13,8 @@ type GetBillingAccountRecordsRequest struct {
 }
 
 type GetBillingAccountRecordsResponse struct {
-	Records []models.AggregatedChargeMeteringRecords `json:"records"`
-	Count   int                                      `json:"count"`
-	From    time.Time                                `json:"from"`
-	To      time.Time                                `json:"to"`
+	Batches []models.ChargeBatchDetail `json:"batches"`
+	Count   int                        `json:"count"`
+	From    time.Time                  `json:"from"`
+	To      time.Time                  `json:"to"`
 }

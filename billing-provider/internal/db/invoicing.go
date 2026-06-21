@@ -20,5 +20,5 @@ type InvoiceBatch struct {
 	InvoiceID              string  `gorm:"not null;index"`
 	Amount                 float64 `gorm:"not null"`
 	CloudServiceProviderID string  `gorm:"not null;index"`
-	CostBatchID            string  `gorm:"not null;index"` // Link back to the cost batch that generated this line item
+	ChargeBatchID          string  `gorm:"not null;index"` // Link back to the charge batch that generated this line item
 }

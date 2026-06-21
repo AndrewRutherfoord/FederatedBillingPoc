@@ -178,6 +178,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/accounts/{id}/charge-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List charge batches for a billing account, merging the billing provider's and cloud provider's reports
+         * @description Each charge batch is returned once, with the billing provider's report and the cloud service provider's own report of the same batch ID side by side (either may be missing), plus a status indicating whether they agree.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Billing account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.ChargeBatchEntry"][];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/billing/accounts/{id}/cloud-provider-accounts": {
         parameters: {
             query?: never;
@@ -233,6 +286,75 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/accounts/{id}/cloud-provider-accounts/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete cloud provider account onboarding
+         * @description Called by the frontend after the CSP redirect. Stores the CSP account link in the billing account.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Billing account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description Request body */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["handlers.completeCloudProviderOnboardingRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.CloudProviderLink"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -319,6 +441,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/accounts/{id}/resource-charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List aggregated billed cost per resource
+         * @description Aggregates billed cost per resource entirely from the FOCUS line items fetched directly from the CSP (not from anything reported by the billing provider), so each row also shows which cloud service provider it came from.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Billing account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.ResourceChargeEntry"][];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -361,12 +536,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        "handlers.ChargeBatchEntry": {
+            batch_id?: string;
+            billing_account_id?: string;
+            billing_provider_report?: components["schemas"]["handlers.chargeBatchReportEntry"];
+            cloud_provider_report?: components["schemas"]["handlers.chargeBatchReportEntry"];
+            cloud_service_provider_id?: string;
+            status?: string;
+        };
         "handlers.CloudProviderLink": {
-            billing_provider_id: string;
-            billing_provider_name: string;
-            cloud_provider_id: string;
-            cloud_provider_name: string;
-            id: string;
+            billing_account_id?: string;
+            billing_currency?: string;
+            cloud_provider_account_id?: string;
+            cloud_provider_id?: string;
+            cloud_provider_name?: string;
+            id?: string;
+            total_cost?: number;
         };
         "handlers.RegisterAcccountRequest": {
             account_alias: string;
@@ -385,6 +570,17 @@ export interface components {
             cloud_provider_id: string;
             return_url: string;
         };
+        "handlers.ResourceChargeEntry": {
+            billing_currency?: string;
+            cloud_service_provider_id?: string;
+            line_item_count?: number;
+            resource_id?: string;
+            resource_name?: string;
+            resource_type?: string;
+            service_category?: string;
+            service_name?: string;
+            total_billed_cost?: number;
+        };
         "handlers.billingAccountDetailResponse": {
             alias?: string;
             billing_provider_id?: string;
@@ -398,8 +594,20 @@ export interface components {
             billing_provider_name?: string;
             id?: string;
         };
+        "handlers.chargeBatchReportEntry": {
+            batch_signature?: string;
+            billed_currency?: string;
+            created_at?: string;
+            merkle_root?: string;
+            received_at?: string;
+            total_cost?: number;
+            total_items?: number;
+        };
+        "handlers.completeCloudProviderOnboardingRequest": {
+            csp_provider_id: string;
+        };
         "handlers.supportedCloudProviderEntry": {
-            api_endpoint_url?: string;
+            customer_api_endpoint_url?: string;
             id?: string;
             name?: string;
         };

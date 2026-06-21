@@ -34,7 +34,7 @@ func (j *FetchBillingProviderRecordsJob) ID() string {
 func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.Context, account *repository.BillingAccountWithProviderName) error {
 	bpClient := clients.NewBillingProviderClient(account.BillingProviderBaseURL)
 
-	latestBatch, err := j.repos.BillingAccountCostBatch.GetLatestBatchForBillingAccount(ctx, account.ID)
+	latestBatch, err := j.repos.BillingAccountChargeBatch.GetLatestBatchForBillingAccount(ctx, account.ID)
 	if err != nil {
 		return err
 	}
@@ -44,37 +44,37 @@ func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.
 		fromTime = latestBatch.CreatedAt
 	}
 
-	records, err := bpClient.GetBillingAccountRecords(account.ID, fromTime, j.clock.Now())
+	batches, err := bpClient.GetBillingAccountRecords(account.ID, fromTime, j.clock.Now())
 	if err != nil {
 		return err
 	}
 
-	storedBatchs := 0
-	for _, record := range records {
-		if record.BatchID == latestBatch.ID {
+	storedBatches := 0
+	for _, batch := range batches {
+		if latestBatch != nil && batch.BatchID == latestBatch.ID {
 			continue
 		}
-		_, err := j.repos.BillingAccountCostBatch.Create(ctx, repository.CreateBillingAccountCostBatchParams{
-			ID:                     record.BatchID,
+		_, err := j.repos.BillingAccountChargeBatch.Create(ctx, repository.CreateBillingAccountChargeBatchParams{
+			ID:                     batch.BatchID,
 			BillingAccountID:       account.ID,
 			BillingPeriodID:        "", // TODO
-			CloudServiceProviderID: record.ResourceProviderID,
-			TotalItems:             int32(record.LineItemCount),
-			TotalCost:              record.TotalBilledCost,
-			BilledCurrency:         record.BilledCurrency,
-			MerkelRoot:             record.BatchHash,
-			BatchSignature:         record.BatchSignature,
-			CreatedAt:              record.CreatedAt,
+			CloudServiceProviderID: batch.CloudServiceProviderID,
+			TotalItems:             int32(batch.LineItemCount),
+			TotalCost:              batch.TotalBilledCost,
+			BilledCurrency:         batch.BilledCurrency,
+			MerkleRoot:             batch.MerkleRoot,
+			BatchSignature:         batch.BatchSignature,
+			CreatedAt:              batch.CreatedAt,
 			ReceivedAt:             j.clock.Now(),
 		})
 		if err != nil {
-			log.Printf("Error saving billing account cost batch for account %s: %v", account.ID, err)
+			log.Printf("Error saving billing account charge batch for account %s: %v", account.ID, err)
 			continue
 		}
-		storedBatchs++
+		storedBatches++
 	}
 
-	log.Printf("Fetched %d records for billing account %s, stored %d new batches", len(records), account.ID, storedBatchs)
+	log.Printf("Fetched %d charge batches for billing account %s, stored %d new batches", len(batches), account.ID, storedBatches)
 
 	return nil
 }

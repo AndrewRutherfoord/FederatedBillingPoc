@@ -13,7 +13,7 @@ import (
 type BillingProviderClient interface {
 	GetMetadata() (billingprovidermodels.Metadata, error)
 	RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error)
-	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.BillingRecord, error)
+	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatch, error)
 }
 
 type billingProviderClient struct {
@@ -48,7 +48,7 @@ func (c *billingProviderClient) RegisterBillingAccount(returnURL string) (billin
 	return response, nil
 }
 
-func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.AggregatedChargeRecord, error) {
+func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatch, error) {
 	payload := billingprovidermodels.GetBillingAccountRecordsRequest{
 		BillingAccountID: billingAccountID,
 		From:             from,
@@ -57,14 +57,14 @@ func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string
 
 	var response billingprovidermodels.GetBillingAccountRecordsResponse
 	err := c.SendJSON("/billing/accounts/records", payload, &response)
-	log.Printf("Fetched %d records for billing account %s from %s to %s", len(response.Records), billingAccountID, from.Format(time.RFC3339), to.Format(time.RFC3339))
+	log.Printf("Fetched %d charge batches for billing account %s from %s to %s", len(response.Batches), billingAccountID, from.Format(time.RFC3339), to.Format(time.RFC3339))
 	if err != nil {
-		return []sharedmodels.AggregatedChargeRecord{}, fmt.Errorf("failed to fetch billing account records: %w", err)
+		return []sharedmodels.ChargeBatch{}, fmt.Errorf("failed to fetch billing account records: %w", err)
 	}
 
-	if len(response.Records) != response.Count {
-		return []sharedmodels.AggregatedChargeRecord{}, fmt.Errorf("response count mismatch: expected %d, got %d", response.Count, len(response.Records))
+	if len(response.Batches) != response.Count {
+		return []sharedmodels.ChargeBatch{}, fmt.Errorf("response count mismatch: expected %d, got %d", response.Count, len(response.Batches))
 	}
 
-	return response.Records, nil
+	return response.Batches, nil
 }

@@ -1,6 +1,16 @@
 <template>
     <main v-if="billingAccount">
-        <h2>{{ billingAccount?.alias }} - Billing Account Overview</h2>
+        <div class="flex justify-between items-center">
+            <h2>{{ billingAccount?.alias }} - Billing Account Overview</h2>
+            <div class="flex gap-2">
+                <RouterLink :to="{ name: 'ChargeBatches', params: { id: props.id } }" class="p-button p-button-text">
+                    View Charge Batches
+                </RouterLink>
+                <RouterLink :to="{ name: 'ResourceCharges', params: { id: props.id } }" class="p-button p-button-text">
+                    View Resource Charges
+                </RouterLink>
+            </div>
+        </div>
         <hr>
         <div>
             <div class="flex justify-between items-center my-2">

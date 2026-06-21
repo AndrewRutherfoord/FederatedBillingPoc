@@ -108,28 +108,28 @@ func (a *ApiCSPAdapter) ListCloudServiceProviders(c *gin.Context) {
 
 // ReceiveCostRecord godoc
 //
-//	@Summary	Receive an aggregated charge record from a CSP
+//	@Summary	Receive a charge batch from a CSP
 //	@Tags		cost-records
 //	@Accept		json
 //	@Produce	json
-//	@Param		record	body		sharedmodels.AggregatedChargeRecord	true	"Aggregated charge record"
+//	@Param		batch	body		sharedmodels.ChargeBatch	true	"Charge batch"
 //	@Success	202
 //	@Failure	400	{object}	map[string]string
 //	@Failure	500	{object}	map[string]string
 //	@Router		/cost-records [post]
 func (a *ApiCSPAdapter) ReceiveCostRecord(c *gin.Context) {
 	csp := middleware.CSPFromContext(c)
-	log.Printf("Received cost record from CSP %s", csp.Name)
+	log.Printf("Received charge batch from CSP %s", csp.Name)
 
-	var record sharedmodels.AggregatedChargeRecord
-	if err := c.ShouldBindJSON(&record); err != nil {
+	var batch sharedmodels.ChargeBatch
+	if err := c.ShouldBindJSON(&batch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	if err := a.handler.OnAggregatedChargeRecord(c.Request.Context(), record); err != nil {
-		log.Printf("failed to process cost record from CSP %s: %v", csp.Name, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process cost record"})
+	if err := a.handler.OnChargeBatch(c.Request.Context(), batch); err != nil {
+		log.Printf("failed to process charge batch from CSP %s: %v", csp.Name, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process charge batch"})
 		return
 	}
 

@@ -42,4 +42,6 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.POST("/billing/accounts/:id/cloud-provider-accounts/register", s.RegisterCloudProviderAccount)
 	r.POST("/billing/accounts/:id/cloud-provider-accounts/complete", s.CompleteCloudProviderAccountOnboarding)
 	r.GET("/billing/accounts/:id/cloud-provider-accounts", s.ListBillingProviderLinkedCloudProviders)
+	r.GET("/billing/accounts/:id/charge-batches", s.ListChargeBatches)
+	r.GET("/billing/accounts/:id/resource-charges", s.ListResourceCharges)
 }

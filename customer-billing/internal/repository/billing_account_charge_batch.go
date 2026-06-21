@@ -9,21 +9,21 @@ import (
 	sqlcdb "github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db/sqlc"
 )
 
-type BillingAccountCostBatchRepository interface {
-	GetLatestBatchForBillingAccount(ctx context.Context, billingAccountID string) (*sqlcdb.BillingAccountCostBatch, error)
-	Create(ctx context.Context, params CreateBillingAccountCostBatchParams) (*sqlcdb.BillingAccountCostBatch, error)
+type BillingAccountChargeBatchRepository interface {
+	GetLatestBatchForBillingAccount(ctx context.Context, billingAccountID string) (*sqlcdb.BillingAccountChargeBatch, error)
+	Create(ctx context.Context, params CreateBillingAccountChargeBatchParams) (*sqlcdb.BillingAccountChargeBatch, error)
 }
 
-type billingAccountCostBatchRepo struct {
+type billingAccountChargeBatchRepo struct {
 	db *db.DB
 }
 
-func newBillingAccountCostBatchRepo(database *db.DB) BillingAccountCostBatchRepository {
-	return &billingAccountCostBatchRepo{db: database}
+func newBillingAccountChargeBatchRepo(database *db.DB) BillingAccountChargeBatchRepository {
+	return &billingAccountChargeBatchRepo{db: database}
 }
 
-func (r *billingAccountCostBatchRepo) GetLatestBatchForBillingAccount(ctx context.Context, billingAccountID string) (*sqlcdb.BillingAccountCostBatch, error) {
-	row, err := r.db.Queries.GetLatestBillingAccountCostBatchByAccount(ctx, billingAccountID)
+func (r *billingAccountChargeBatchRepo) GetLatestBatchForBillingAccount(ctx context.Context, billingAccountID string) (*sqlcdb.BillingAccountChargeBatch, error) {
+	row, err := r.db.Queries.GetLatestBillingAccountChargeBatchByAccount(ctx, billingAccountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -33,7 +33,7 @@ func (r *billingAccountCostBatchRepo) GetLatestBatchForBillingAccount(ctx contex
 	return &row, nil
 }
 
-type CreateBillingAccountCostBatchParams struct {
+type CreateBillingAccountChargeBatchParams struct {
 	ID                     string
 	BillingAccountID       string
 	BillingPeriodID        string
@@ -41,14 +41,14 @@ type CreateBillingAccountCostBatchParams struct {
 	TotalItems             int32
 	TotalCost              float64
 	BilledCurrency         string
-	MerkelRoot             string
+	MerkleRoot             string
 	BatchSignature         string
 	CreatedAt              time.Time
 	ReceivedAt             time.Time
 }
 
-func (r *billingAccountCostBatchRepo) Create(ctx context.Context, params CreateBillingAccountCostBatchParams) (*sqlcdb.BillingAccountCostBatch, error) {
-	result, err := r.db.Queries.CreateBillingAccountCostBatch(ctx, sqlcdb.CreateBillingAccountCostBatchParams{
+func (r *billingAccountChargeBatchRepo) Create(ctx context.Context, params CreateBillingAccountChargeBatchParams) (*sqlcdb.BillingAccountChargeBatch, error) {
+	result, err := r.db.Queries.CreateBillingAccountChargeBatch(ctx, sqlcdb.CreateBillingAccountChargeBatchParams{
 		ID:                     params.ID,
 		BillingAccountID:       params.BillingAccountID,
 		BillingPeriodID:        params.BillingPeriodID,
@@ -56,7 +56,7 @@ func (r *billingAccountCostBatchRepo) Create(ctx context.Context, params CreateB
 		TotalItems:             int64(params.TotalItems),
 		TotalCost:              params.TotalCost,
 		BilledCurrency:         params.BilledCurrency,
-		MerkelRoot:             params.MerkelRoot,
+		MerkleRoot:             params.MerkleRoot,
 		BatchSignature:         params.BatchSignature,
 		CreatedAt:              params.CreatedAt,
 		ReceivedAt:             params.ReceivedAt,

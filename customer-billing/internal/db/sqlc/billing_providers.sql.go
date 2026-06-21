@@ -25,40 +25,6 @@ func (q *Queries) CreateBillingProvider(ctx context.Context, arg CreateBillingPr
 	return err
 }
 
-const createBillingProviderSupportedCSP = `-- name: CreateBillingProviderSupportedCSP :exec
-INSERT INTO billing_provider_supported_cloud_provider (id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url)
-VALUES (?, ?, ?, ?, ?)
-`
-
-type CreateBillingProviderSupportedCSPParams struct {
-	ID                     string
-	BillingProviderID      string
-	Name                   string
-	ApiEndpointUrl         string
-	CustomerApiEndpointUrl string
-}
-
-func (q *Queries) CreateBillingProviderSupportedCSP(ctx context.Context, arg CreateBillingProviderSupportedCSPParams) error {
-	_, err := q.db.ExecContext(ctx, createBillingProviderSupportedCSP,
-		arg.ID,
-		arg.BillingProviderID,
-		arg.Name,
-		arg.ApiEndpointUrl,
-		arg.CustomerApiEndpointUrl,
-	)
-	return err
-}
-
-const deleteBillingProviderSupportedCSPs = `-- name: DeleteBillingProviderSupportedCSPs :exec
-DELETE FROM billing_provider_supported_cloud_provider
-WHERE billing_provider_id = ?
-`
-
-func (q *Queries) DeleteBillingProviderSupportedCSPs(ctx context.Context, billingProviderID string) error {
-	_, err := q.db.ExecContext(ctx, deleteBillingProviderSupportedCSPs, billingProviderID)
-	return err
-}
-
 const getBillingProvider = `-- name: GetBillingProvider :one
 SELECT id, name, api_endpoint_url FROM billing_providers
 WHERE id = ?
@@ -69,58 +35,6 @@ func (q *Queries) GetBillingProvider(ctx context.Context, id string) (BillingPro
 	var i BillingProvider
 	err := row.Scan(&i.ID, &i.Name, &i.ApiEndpointUrl)
 	return i, err
-}
-
-const getBillingProviderSupportedCSP = `-- name: GetBillingProviderSupportedCSP :one
-SELECT id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url FROM billing_provider_supported_cloud_provider
-WHERE id = ?
-`
-
-func (q *Queries) GetBillingProviderSupportedCSP(ctx context.Context, id string) (BillingProviderSupportedCloudProvider, error) {
-	row := q.db.QueryRowContext(ctx, getBillingProviderSupportedCSP, id)
-	var i BillingProviderSupportedCloudProvider
-	err := row.Scan(
-		&i.ID,
-		&i.BillingProviderID,
-		&i.Name,
-		&i.ApiEndpointUrl,
-		&i.CustomerApiEndpointUrl,
-	)
-	return i, err
-}
-
-const listBillingProviderSupportedCSPs = `-- name: ListBillingProviderSupportedCSPs :many
-SELECT id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url FROM billing_provider_supported_cloud_provider
-WHERE billing_provider_id = ?
-`
-
-func (q *Queries) ListBillingProviderSupportedCSPs(ctx context.Context, billingProviderID string) ([]BillingProviderSupportedCloudProvider, error) {
-	rows, err := q.db.QueryContext(ctx, listBillingProviderSupportedCSPs, billingProviderID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []BillingProviderSupportedCloudProvider
-	for rows.Next() {
-		var i BillingProviderSupportedCloudProvider
-		if err := rows.Scan(
-			&i.ID,
-			&i.BillingProviderID,
-			&i.Name,
-			&i.ApiEndpointUrl,
-			&i.CustomerApiEndpointUrl,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listBillingProviders = `-- name: ListBillingProviders :many
@@ -148,32 +62,6 @@ func (q *Queries) ListBillingProviders(ctx context.Context) ([]BillingProvider, 
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateBillingProviderSupportedCSPCustomerEndpoint = `-- name: UpdateBillingProviderSupportedCSPCustomerEndpoint :one
-UPDATE billing_provider_supported_cloud_provider
-SET name = ?, customer_api_endpoint_url = ?
-WHERE id = ?
-RETURNING id, billing_provider_id, name, api_endpoint_url, customer_api_endpoint_url
-`
-
-type UpdateBillingProviderSupportedCSPCustomerEndpointParams struct {
-	Name                   string
-	CustomerApiEndpointUrl string
-	ID                     string
-}
-
-func (q *Queries) UpdateBillingProviderSupportedCSPCustomerEndpoint(ctx context.Context, arg UpdateBillingProviderSupportedCSPCustomerEndpointParams) (BillingProviderSupportedCloudProvider, error) {
-	row := q.db.QueryRowContext(ctx, updateBillingProviderSupportedCSPCustomerEndpoint, arg.Name, arg.CustomerApiEndpointUrl, arg.ID)
-	var i BillingProviderSupportedCloudProvider
-	err := row.Scan(
-		&i.ID,
-		&i.BillingProviderID,
-		&i.Name,
-		&i.ApiEndpointUrl,
-		&i.CustomerApiEndpointUrl,
-	)
-	return i, err
 }
 
 const upsertBillingProvider = `-- name: UpsertBillingProvider :exec

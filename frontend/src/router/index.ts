@@ -21,6 +21,18 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/billing-providers/:id/charge-batches',
+      name: 'ChargeBatches',
+      component: () => import('../views/billing-providers/ChargeBatchesView.vue'),
+      props: true,
+    },
+    {
+      path: '/billing-providers/:id/resource-charges',
+      name: 'ResourceCharges',
+      component: () => import('../views/billing-providers/ResourceChargesView.vue'),
+      props: true,
+    },
+    {
       path: '/cloud-service-providers/onboarding-complete-callback',
       name: 'CspOnboardingCompleteCallback',
       component: () => import('../views/cloud-service-providers/OnboardingRedirectView.vue'),

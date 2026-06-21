@@ -149,6 +149,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/billing/accounts/{id}/charge-batches": {
+            "get": {
+                "description": "Each charge batch is returned once, with the billing provider's report and the cloud service provider's own report of the same batch ID side by side (either may be missing), plus a status indicating whether they agree.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "List charge batches for a billing account, merging the billing provider's and cloud provider's reports",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Billing account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.ChargeBatchEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/billing/accounts/{id}/cloud-provider-accounts": {
             "get": {
                 "produces": [
@@ -328,6 +369,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/billing/accounts/{id}/resource-charges": {
+            "get": {
+                "description": "Aggregates billed cost per resource entirely from the FOCUS line items fetched directly from the CSP (not from anything reported by the billing provider), so each row also shows which cloud service provider it came from.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "List aggregated billed cost per resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Billing account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.ResourceChargeEntry"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "produces": [
@@ -352,6 +434,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.ChargeBatchEntry": {
+            "type": "object",
+            "properties": {
+                "batch_id": {
+                    "type": "string"
+                },
+                "billing_account_id": {
+                    "type": "string"
+                },
+                "billing_provider_report": {
+                    "$ref": "#/definitions/handlers.chargeBatchReportEntry"
+                },
+                "cloud_provider_report": {
+                    "$ref": "#/definitions/handlers.chargeBatchReportEntry"
+                },
+                "cloud_service_provider_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.CloudProviderLink": {
             "type": "object",
             "properties": {
@@ -430,6 +535,38 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ResourceChargeEntry": {
+            "type": "object",
+            "properties": {
+                "billing_currency": {
+                    "type": "string"
+                },
+                "cloud_service_provider_id": {
+                    "type": "string"
+                },
+                "line_item_count": {
+                    "type": "integer"
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "resource_name": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
+                },
+                "service_category": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "total_billed_cost": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.billingAccountDetailResponse": {
             "type": "object",
             "properties": {
@@ -467,6 +604,32 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.chargeBatchReportEntry": {
+            "type": "object",
+            "properties": {
+                "batch_signature": {
+                    "type": "string"
+                },
+                "billed_currency": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "merkle_root": {
+                    "type": "string"
+                },
+                "received_at": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
+                },
+                "total_items": {
+                    "type": "integer"
                 }
             }
         },

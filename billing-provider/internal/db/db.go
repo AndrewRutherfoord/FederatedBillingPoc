@@ -18,7 +18,7 @@ func Open(path string) (*DB, error) {
 	}
 
 	if err := database.AutoMigrate(
-		&CostBatch{},
+		&ChargeBatch{},
 		&BillingAccount{},
 		&BillingAccountLink{},
 		&BillingPeriod{},

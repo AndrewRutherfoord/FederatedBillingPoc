@@ -95,6 +95,10 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.GET("/onboarding/:session_id", s.OnboardingForm)
 	r.POST("/onboarding/:session_id", s.OnboardingSubmit)
 
+	// Called by the customer-billing service to independently fetch this CSP's view of a
+	// billing account's charge batches, bypassing the billing provider.
+	r.POST("/billing/accounts/records", s.GetBillingAccountRecords)
+
 	// Routes below require a valid customer in the Authorization header.
 	authed := r.Group("/", middleware.Auth(s.repos.Customers))
 	{

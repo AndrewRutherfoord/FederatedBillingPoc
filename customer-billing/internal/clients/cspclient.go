@@ -2,15 +2,17 @@ package clients
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	cspsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/cloud-service-provider"
 )
 
 type CloudServiceProviderClient interface {
 	GetMetadata() (cspsharedmodels.Metadata, error)
 	RegisterCloudProviderAccount(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error)
-	// GetBillingCostRecords(billingAccountID string, from time.Time, to time.Time) ([]cspsharedmodels.BillingCostRecord, error)
+	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatchDetail, error)
 }
 
 type cloudServiceProviderClient struct {
@@ -47,7 +49,24 @@ func (c *cloudServiceProviderClient) RegisterCloudProviderAccount(billingProvide
 	return response, nil
 }
 
-// func (c *cloudServiceProviderClient) GetBillingCostRecords(billingAccountID string, from time.Time, to time.Time) ([]cspsharedmodels.BillingCostRecord, error) {
+// GetBillingAccountRecords fetches this CSP's own report of a billing account's charge
+// batches, including the raw FOCUS line items, independently of the billing provider.
+func (c *cloudServiceProviderClient) GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatchDetail, error) {
+	payload := cspsharedmodels.GetBillingAccountRecordsRequest{
+		BillingAccountID: billingAccountID,
+		From:             from,
+		To:               to,
+	}
 
-// 	return []cspsharedmodels.AggregatedChargeMeteringRecords {}, nil
-// }
+	var response cspsharedmodels.GetBillingAccountRecordsResponse
+	err := c.SendJSON("/billing/accounts/records", payload, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch billing account records: %w", err)
+	}
+
+	if len(response.Batches) != response.Count {
+		return nil, fmt.Errorf("response count mismatch: expected %d, got %d", response.Count, len(response.Batches))
+	}
+
+	return response.Batches, nil
+}

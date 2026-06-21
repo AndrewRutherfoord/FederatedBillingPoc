@@ -21,7 +21,7 @@ func newCloudServiceProviderRepo(database *db.DB) CloudServiceProviderRepository
 }
 
 func (r *cloudServiceProviderRepo) GetByID(ctx context.Context, id string) (CloudServiceProvider, error) {
-	row, err := r.db.Queries.GetBillingProviderSupportedCSP(ctx, id)
+	row, err := r.db.Queries.GetCloudServiceProvider(ctx, id)
 	if err != nil {
 		return CloudServiceProvider{}, err
 	}
@@ -32,7 +32,7 @@ func (r *cloudServiceProviderRepo) GetByID(ctx context.Context, id string) (Clou
 // reports via its own .well-known metadata, which is authoritative over whatever
 // the billing provider initially advertised.
 func (r *cloudServiceProviderRepo) Upsert(ctx context.Context, id string, name string, customerAPIEndpointURL string) (CloudServiceProvider, error) {
-	row, err := r.db.Queries.UpdateBillingProviderSupportedCSPCustomerEndpoint(ctx, sqlcdb.UpdateBillingProviderSupportedCSPCustomerEndpointParams{
+	row, err := r.db.Queries.UpdateCloudServiceProviderCustomerEndpoint(ctx, sqlcdb.UpdateCloudServiceProviderCustomerEndpointParams{
 		Name:                   name,
 		CustomerApiEndpointUrl: customerAPIEndpointURL,
 		ID:                     id,

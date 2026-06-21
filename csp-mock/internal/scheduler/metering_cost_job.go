@@ -156,9 +156,9 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 		totalCost += item.BilledCost.InexactFloat64()
 	}
 
-	batch, err := j.repos.CostBatch.Create(ctx, billingAccount.AccountID, billingAccount.BillingProviderID, j.config.ProviderID, merkleTree.Root(), len(lineItems), totalCost, startTime)
+	batch, err := j.repos.ChargeBatch.Create(ctx, billingAccount.AccountID, billingAccount.BillingProviderID, j.config.ProviderID, merkleTree.Root(), len(lineItems), totalCost, startTime)
 	if err != nil {
-		log.Printf("Error creating cost batch for billing account %s: %v", billingAccount.AccountID, err)
+		log.Printf("Error creating charge batch for billing account %s: %v", billingAccount.AccountID, err)
 		return err
 	}
 
@@ -170,17 +170,17 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	log.Printf("Successfully created cost batch %s for billing account %s with %d line items", batch.ID, billingAccount.AccountID, len(lineItems))
 
 	// Send it to the billing provider
-	return j.sender.SendAggregatedChargeRecord(ctx, sharedmodels.AggregatedChargeRecord{
-		BillingRecord: sharedmodels.BillingRecord{
-			BillingProviderID:  batch.BillingProviderID,
-			ResourceProviderID: batch.ResourceProviderID,
-			BillingAccountID:   batch.BillingAccountID,
+	return j.sender.SendChargeBatch(ctx, sharedmodels.ChargeBatch{
+		BillingContext: sharedmodels.BillingContext{
+			BillingProviderID:      batch.BillingProviderID,
+			CloudServiceProviderID: batch.CloudServiceProviderID,
+			BillingAccountID:       batch.BillingAccountID,
 		},
 		BatchID:         batch.ID,
 		TotalBilledCost: batch.TotalCost,
 		BilledCurrency:  batch.BilledCurrency,
 		LineItemCount:   batch.TotalItems,
-		BatchHash:       batch.MerkelRoot,
+		MerkleRoot:      batch.MerkleRoot,
 		BatchSignature:  "", // TODO: Sign the batch with the CSP's private key
 		CreatedAt:       batch.CreatedAt,
 	})

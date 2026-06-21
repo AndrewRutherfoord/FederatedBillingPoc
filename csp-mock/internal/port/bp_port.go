@@ -10,7 +10,7 @@ import (
 // BPSender is what the application calls to send things to the BP.
 // Implemented by the outbound adapter.
 type BPSender interface {
-	SendAggregatedChargeRecord(ctx context.Context, record sharedmodels.AggregatedChargeRecord) error
+	SendChargeBatch(ctx context.Context, batch sharedmodels.ChargeBatch) error
 }
 
 // BPHandler handles incoming messages from the BP.

@@ -65,7 +65,7 @@ func (r *billingAccountRepo) GetBillingAccountByID(ctx context.Context, id strin
 		return nil, err
 	}
 
-	cspRows, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, bpRow.ID)
+	cspRows, err := r.db.Queries.ListCloudServiceProvidersByBillingProvider(ctx, bpRow.ID)
 	if err != nil {
 		return nil, err
 	}

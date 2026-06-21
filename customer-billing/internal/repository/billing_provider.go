@@ -36,7 +36,7 @@ func newBillingProviderRepo(database *db.DB) BillingProviderRepository {
 	return &billingProviderRepo{db: database}
 }
 
-func toBillingProvider(row sqlcdb.BillingProvider, cspRows []sqlcdb.BillingProviderSupportedCloudProvider) BillingProvider {
+func toBillingProvider(row sqlcdb.BillingProvider, cspRows []sqlcdb.CloudServiceProvider) BillingProvider {
 	csps := make([]CloudServiceProvider, len(cspRows))
 	for i, c := range cspRows {
 		csps[i] = CloudServiceProvider{ID: c.ID, Name: c.Name, APIEndpointURL: c.ApiEndpointUrl, CustomerAPIEndpointURL: c.CustomerApiEndpointUrl}
@@ -51,7 +51,7 @@ func (r *billingProviderRepo) ListBillingProviders(ctx context.Context) ([]*Bill
 	}
 	result := make([]*BillingProvider, len(rows))
 	for i, row := range rows {
-		csps, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, row.ID)
+		csps, err := r.db.Queries.ListCloudServiceProvidersByBillingProvider(ctx, row.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +66,7 @@ func (r *billingProviderRepo) GetBillingProviderByID(ctx context.Context, id str
 	if err != nil {
 		return nil, err
 	}
-	csps, err := r.db.Queries.ListBillingProviderSupportedCSPs(ctx, id)
+	csps, err := r.db.Queries.ListCloudServiceProvidersByBillingProvider(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +95,11 @@ func (r *billingProviderRepo) UpsertBillingProvider(ctx context.Context, id stri
 		}); err != nil {
 			return err
 		}
-		if err := q.DeleteBillingProviderSupportedCSPs(ctx, id); err != nil {
+		if err := q.DeleteCloudServiceProvidersByBillingProvider(ctx, id); err != nil {
 			return err
 		}
 		for _, csp := range csps {
-			if err := q.CreateBillingProviderSupportedCSP(ctx, sqlcdb.CreateBillingProviderSupportedCSPParams{
+			if err := q.CreateCloudServiceProvider(ctx, sqlcdb.CreateCloudServiceProviderParams{
 				ID:                     csp.ID,
 				BillingProviderID:      id,
 				Name:                   csp.Name,

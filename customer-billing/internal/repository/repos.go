@@ -6,21 +6,27 @@ import (
 )
 
 type Repos struct {
-	Customer                    CustomerRepository
-	BillingProvider             BillingProviderRepository
-	BillingAccount              BillingAccountRepository
-	BillingAccountCostBatch     BillingAccountCostBatchRepository
-	CloudServiceProvider        CloudServiceProviderRepository
-	CloudServiceProviderAccount CloudServiceProviderAccountRepository
+	Customer                        CustomerRepository
+	BillingProvider                 BillingProviderRepository
+	BillingAccount                  BillingAccountRepository
+	BillingAccountChargeBatch       BillingAccountChargeBatchRepository
+	CloudServiceProvider            CloudServiceProviderRepository
+	CloudServiceProviderAccount     CloudServiceProviderAccountRepository
+	CloudServiceProviderChargeBatch CloudServiceProviderChargeBatchRepository
+	CloudServiceProviderFocusRecord CloudServiceProviderFocusRecordRepository
+	ChargeBatchReconciliation       ChargeBatchReconciliationRepository
 }
 
 func New(config *config.Config, database *db.DB) *Repos {
 	return &Repos{
-		Customer:                    newCustomerRepo(config),
-		BillingProvider:             newBillingProviderRepo(database),
-		BillingAccount:              newBillingAccountRepo(database),
-		BillingAccountCostBatch:     newBillingAccountCostBatchRepo(database),
-		CloudServiceProvider:        newCloudServiceProviderRepo(database),
-		CloudServiceProviderAccount: newCloudServiceProviderAccountRepo(database),
+		Customer:                        newCustomerRepo(config),
+		BillingProvider:                 newBillingProviderRepo(database),
+		BillingAccount:                  newBillingAccountRepo(database),
+		BillingAccountChargeBatch:       newBillingAccountChargeBatchRepo(database),
+		CloudServiceProvider:            newCloudServiceProviderRepo(database),
+		CloudServiceProviderAccount:     newCloudServiceProviderAccountRepo(database),
+		CloudServiceProviderChargeBatch: newCloudServiceProviderChargeBatchRepo(database),
+		CloudServiceProviderFocusRecord: newCloudServiceProviderFocusRecordRepo(database),
+		ChargeBatchReconciliation:       newChargeBatchReconciliationRepo(database),
 	}
 }

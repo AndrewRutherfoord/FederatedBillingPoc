@@ -25,7 +25,7 @@ type Repos struct {
 	BillingAccounts     BillingAccountRepository
 	OnboardingSessions  OnboardingSessionRepository
 	Focus               FocusRepository
-	CostBatch           CostBatchRepository
+	ChargeBatch         ChargeBatchRepository
 	KeyValue            KeyValueRepository
 }
 
@@ -45,7 +45,7 @@ func New(cfg *config.CspConfig, database *db.DB) *Repos {
 		BillingAccounts:    newBillingAccountRepo(database),
 		OnboardingSessions: newOnboardingSessionRepo(database),
 		Focus:              newFocusRepo(database),
-		CostBatch:          newCostBatchRepo(database),
+		ChargeBatch:        newChargeBatchRepo(database),
 		KeyValue:           newKeyValueRepo(database),
 	}
 }

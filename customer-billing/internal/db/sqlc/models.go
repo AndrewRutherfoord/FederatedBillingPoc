@@ -18,7 +18,7 @@ type BillingAccount struct {
 	OnboardingComplete    sql.NullTime
 }
 
-type BillingAccountCostBatch struct {
+type BillingAccountChargeBatch struct {
 	ID                     string
 	BillingAccountID       string
 	BillingPeriodID        string
@@ -26,7 +26,7 @@ type BillingAccountCostBatch struct {
 	TotalItems             int64
 	TotalCost              float64
 	BilledCurrency         string
-	MerkelRoot             string
+	MerkleRoot             string
 	BatchSignature         string
 	CreatedAt              time.Time
 	ReceivedAt             time.Time
@@ -38,7 +38,7 @@ type BillingProvider struct {
 	ApiEndpointUrl string
 }
 
-type BillingProviderSupportedCloudProvider struct {
+type CloudServiceProvider struct {
 	ID                     string
 	BillingProviderID      string
 	Name                   string
@@ -47,7 +47,88 @@ type BillingProviderSupportedCloudProvider struct {
 }
 
 type CloudServiceProviderAccount struct {
-	ID               string
-	BillingAccountID string
-	CloudProviderID  string
+	ID                     string
+	BillingAccountID       string
+	CloudServiceProviderID string
+}
+
+type CloudServiceProviderChargeBatch struct {
+	ID                     string
+	BillingAccountID       string
+	CloudServiceProviderID string
+	TotalItems             int64
+	TotalCost              float64
+	BilledCurrency         string
+	MerkleRoot             string
+	BatchSignature         string
+	CreatedAt              time.Time
+	ReceivedAt             time.Time
+}
+
+type CloudServiceProviderFocusRecord struct {
+	ID                                 string
+	ChargeBatchID                      string
+	BilledCost                         float64
+	BillingAccountID                   string
+	BillingAccountType                 string
+	BillingCurrency                    string
+	BillingPeriodEnd                   time.Time
+	BillingPeriodStart                 time.Time
+	ChargeCategory                     string
+	ChargeFrequency                    string
+	ChargePeriodEnd                    time.Time
+	ChargePeriodStart                  time.Time
+	ContractedCost                     float64
+	EffectiveCost                      float64
+	HostProviderName                   string
+	InvoiceIssuerName                  string
+	ListCost                           float64
+	ServiceCategory                    string
+	ServiceName                        string
+	ServiceProviderName                string
+	ServiceSubcategory                 string
+	AllocatedMethodDetails             sql.NullString
+	AllocatedMethodID                  sql.NullString
+	AllocatedResourceID                sql.NullString
+	AllocatedResourceName              sql.NullString
+	AllocatedTags                      sql.NullString
+	AvailabilityZone                   sql.NullString
+	RegionID                           sql.NullString
+	RegionName                         sql.NullString
+	BillingAccountName                 sql.NullString
+	CapacityReservationID              sql.NullString
+	CapacityReservationStatus          sql.NullString
+	ChargeClass                        sql.NullString
+	ChargeDescription                  sql.NullString
+	CommitmentDiscountCategory         sql.NullString
+	CommitmentDiscountID               sql.NullString
+	CommitmentDiscountName             sql.NullString
+	CommitmentDiscountQuantity         sql.NullFloat64
+	CommitmentDiscountStatus           sql.NullString
+	CommitmentDiscountType             sql.NullString
+	CommitmentDiscountUnit             sql.NullString
+	ConsumedQuantity                   sql.NullFloat64
+	ConsumedUnit                       sql.NullString
+	ContractApplied                    sql.NullString
+	ContractedUnitPrice                sql.NullFloat64
+	InvoiceID                          sql.NullString
+	ListUnitPrice                      sql.NullFloat64
+	PricingCategory                    sql.NullString
+	PricingCurrency                    sql.NullString
+	PricingCurrencyContractedUnitPrice sql.NullFloat64
+	PricingCurrencyEffectiveCost       sql.NullFloat64
+	PricingCurrencyListUnitPrice       sql.NullFloat64
+	PricingQuantity                    sql.NullFloat64
+	PricingUnit                        sql.NullString
+	ResourceID                         sql.NullString
+	ResourceName                       sql.NullString
+	ResourceType                       sql.NullString
+	SkuID                              sql.NullString
+	SkuMeter                           sql.NullString
+	SkuPriceDetails                    sql.NullString
+	SkuPriceID                         sql.NullString
+	SubAccountID                       sql.NullString
+	SubAccountName                     sql.NullString
+	SubAccountType                     sql.NullString
+	Tags                               sql.NullString
 }

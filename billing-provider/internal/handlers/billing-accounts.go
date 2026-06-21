@@ -100,33 +100,33 @@ func (s *Server) GetBillingAccountRecords(c *gin.Context) {
 		return
 	}
 
-	batches, err := s.repos.CostBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), req.BillingAccountID, req.From, req.To)
+	batches, err := s.repos.ChargeBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), req.BillingAccountID, req.From, req.To)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch billing records"})
 		return
 	}
 
-	records := make([]models.AggregatedChargeRecord, 0, len(batches))
+	chargeBatches := make([]models.ChargeBatch, 0, len(batches))
 	for _, batch := range batches {
-		records = append(records, models.AggregatedChargeRecord{
-			BillingRecord: models.BillingRecord{
-				BillingProviderID:  s.repos.Provider.ID,
-				ResourceProviderID: batch.CloudServiceProviderID,
-				BillingAccountID:   batch.BillingAccountID,
+		chargeBatches = append(chargeBatches, models.ChargeBatch{
+			BillingContext: models.BillingContext{
+				BillingProviderID:      s.repos.Provider.ID,
+				CloudServiceProviderID: batch.CloudServiceProviderID,
+				BillingAccountID:       batch.BillingAccountID,
 			},
 			BatchID:         batch.ID,
 			TotalBilledCost: batch.TotalCost,
 			BilledCurrency:  "EUR",
 			LineItemCount:   batch.TotalItems,
-			BatchHash:       batch.MerkelRoot,
-			BatchSignature:  batch.Signature,
+			MerkleRoot:      batch.MerkleRoot,
+			BatchSignature:  batch.BatchSignature,
 			CreatedAt:       batch.CreatedAt,
 		})
 	}
 
 	response := billingprovidermodels.GetBillingAccountRecordsResponse{
-		Records: records,
-		Count:   len(records),
+		Batches: chargeBatches,
+		Count:   len(chargeBatches),
 		From:    req.From,
 		To:      req.To,
 	}

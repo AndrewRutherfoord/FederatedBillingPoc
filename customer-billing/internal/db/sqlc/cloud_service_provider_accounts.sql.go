@@ -11,94 +11,53 @@ import (
 )
 
 const createCloudServiceProviderAccount = `-- name: CreateCloudServiceProviderAccount :one
-INSERT INTO cloud_service_provider_accounts (id, billing_account_id, cloud_provider_id)
+INSERT INTO cloud_service_provider_accounts (id, billing_account_id, cloud_service_provider_id)
 VALUES (?, ?, ?)
-RETURNING id, billing_account_id, cloud_provider_id
+RETURNING id, billing_account_id, cloud_service_provider_id
 `
 
 type CreateCloudServiceProviderAccountParams struct {
-	ID               string
-	BillingAccountID string
-	CloudProviderID  string
+	ID                     string
+	BillingAccountID       string
+	CloudServiceProviderID string
 }
 
 func (q *Queries) CreateCloudServiceProviderAccount(ctx context.Context, arg CreateCloudServiceProviderAccountParams) (CloudServiceProviderAccount, error) {
-	row := q.db.QueryRowContext(ctx, createCloudServiceProviderAccount, arg.ID, arg.BillingAccountID, arg.CloudProviderID)
+	row := q.db.QueryRowContext(ctx, createCloudServiceProviderAccount, arg.ID, arg.BillingAccountID, arg.CloudServiceProviderID)
 	var i CloudServiceProviderAccount
-	err := row.Scan(&i.ID, &i.BillingAccountID, &i.CloudProviderID)
+	err := row.Scan(&i.ID, &i.BillingAccountID, &i.CloudServiceProviderID)
 	return i, err
 }
 
 const getCloudServiceProviderAccount = `-- name: GetCloudServiceProviderAccount :one
-SELECT id, billing_account_id, cloud_provider_id FROM cloud_service_provider_accounts
+SELECT id, billing_account_id, cloud_service_provider_id FROM cloud_service_provider_accounts
 WHERE id = ?
 `
 
 func (q *Queries) GetCloudServiceProviderAccount(ctx context.Context, id string) (CloudServiceProviderAccount, error) {
 	row := q.db.QueryRowContext(ctx, getCloudServiceProviderAccount, id)
 	var i CloudServiceProviderAccount
-	err := row.Scan(&i.ID, &i.BillingAccountID, &i.CloudProviderID)
+	err := row.Scan(&i.ID, &i.BillingAccountID, &i.CloudServiceProviderID)
 	return i, err
 }
 
-const listCloudServiceProviderAccountsByBillingAccount = `-- name: ListCloudServiceProviderAccountsByBillingAccount :many
-SELECT cspa.id, cspa.billing_account_id, cspa.cloud_provider_id, bpsc.name AS cloud_provider_name
-FROM cloud_service_provider_accounts cspa
-JOIN billing_provider_supported_cloud_provider bpsc ON bpsc.id = cspa.cloud_provider_id
-WHERE cspa.billing_account_id = ?
-`
-
-type ListCloudServiceProviderAccountsByBillingAccountRow struct {
-	ID                string
-	BillingAccountID  string
-	CloudProviderID   string
-	CloudProviderName string
-}
-
-func (q *Queries) ListCloudServiceProviderAccountsByBillingAccount(ctx context.Context, billingAccountID string) ([]ListCloudServiceProviderAccountsByBillingAccountRow, error) {
-	rows, err := q.db.QueryContext(ctx, listCloudServiceProviderAccountsByBillingAccount, billingAccountID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListCloudServiceProviderAccountsByBillingAccountRow
-	for rows.Next() {
-		var i ListCloudServiceProviderAccountsByBillingAccountRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.BillingAccountID,
-			&i.CloudProviderID,
-			&i.CloudProviderName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listCloudServiceProviderAccountsByBillingAccountWithTotalCost = `-- name: ListCloudServiceProviderAccountsByBillingAccountWithTotalCost :many
-SELECT cspa.id, cspa.billing_account_id, cspa.cloud_provider_id, bpsc.name AS cloud_provider_name, SUM(bacb.total_cost) AS total_cost, bacb.billed_currency AS billing_currency
+SELECT cspa.id, cspa.billing_account_id, cspa.cloud_service_provider_id, csp.name AS cloud_service_provider_name, csp.customer_api_endpoint_url AS customer_api_endpoint_url, SUM(bacb.total_cost) AS total_cost, bacb.billed_currency AS billing_currency
 FROM cloud_service_provider_accounts cspa
-JOIN billing_provider_supported_cloud_provider bpsc ON bpsc.id = cspa.cloud_provider_id
-LEFT JOIN billing_account_cost_batch bacb ON bacb.cloud_service_provider_id = cspa.cloud_provider_id AND bacb.billing_account_id = cspa.billing_account_id
+JOIN cloud_service_providers csp ON csp.id = cspa.cloud_service_provider_id
+LEFT JOIN billing_account_charge_batch bacb ON bacb.cloud_service_provider_id = cspa.cloud_service_provider_id AND bacb.billing_account_id = cspa.billing_account_id
 WHERE cspa.billing_account_id = ?
-GROUP BY cspa.id, cspa.billing_account_id, cspa.cloud_provider_id, bpsc.name, bacb.billed_currency
+GROUP BY cspa.id, cspa.billing_account_id, cspa.cloud_service_provider_id, csp.name, csp.customer_api_endpoint_url, bacb.billed_currency
 `
 
 type ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow struct {
-	ID                string
-	BillingAccountID  string
-	CloudProviderID   string
-	CloudProviderName string
-	TotalCost         sql.NullFloat64
-	BillingCurrency   sql.NullString
+	ID                       string
+	BillingAccountID         string
+	CloudServiceProviderID   string
+	CloudServiceProviderName string
+	CustomerApiEndpointUrl   string
+	TotalCost                sql.NullFloat64
+	BillingCurrency          sql.NullString
 }
 
 func (q *Queries) ListCloudServiceProviderAccountsByBillingAccountWithTotalCost(ctx context.Context, billingAccountID string) ([]ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow, error) {
@@ -113,8 +72,9 @@ func (q *Queries) ListCloudServiceProviderAccountsByBillingAccountWithTotalCost(
 		if err := rows.Scan(
 			&i.ID,
 			&i.BillingAccountID,
-			&i.CloudProviderID,
-			&i.CloudProviderName,
+			&i.CloudServiceProviderID,
+			&i.CloudServiceProviderName,
+			&i.CustomerApiEndpointUrl,
 			&i.TotalCost,
 			&i.BillingCurrency,
 		); err != nil {

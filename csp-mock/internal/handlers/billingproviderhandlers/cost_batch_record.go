@@ -39,26 +39,26 @@ func (bs *BillingProviderServer) GetCostBatchRecords(c *gin.Context) {
 		return
 	}
 
-	batches, err := bs.repos.CostBatch.ListByBillingProvider(c.Request.Context(), bp.ID, since, until)
+	batches, err := bs.repos.ChargeBatch.ListByBillingProvider(c.Request.Context(), bp.ID, since, until)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Convert it to the message format defined in the shared package
-	batchesMessages := make([]sharedmodels.AggregatedChargeRecord, len(batches))
+	batchesMessages := make([]sharedmodels.ChargeBatch, len(batches))
 	for _, batch := range batches {
-		batchesMessages = append(batchesMessages, sharedmodels.AggregatedChargeRecord{
-			BillingRecord: sharedmodels.BillingRecord{
-				BillingProviderID:  batch.BillingProviderID,
-				ResourceProviderID: batch.ResourceProviderID,
-				BillingAccountID:   batch.BillingAccountID,
+		batchesMessages = append(batchesMessages, sharedmodels.ChargeBatch{
+			BillingContext: sharedmodels.BillingContext{
+				BillingProviderID:      batch.BillingProviderID,
+				CloudServiceProviderID: batch.CloudServiceProviderID,
+				BillingAccountID:       batch.BillingAccountID,
 			},
 			BatchID:         batch.ID,
 			TotalBilledCost: batch.TotalCost,
 			BilledCurrency:  batch.BilledCurrency,
 			LineItemCount:   batch.TotalItems,
-			BatchHash:       batch.MerkelRoot,
+			MerkleRoot:      batch.MerkleRoot,
 			BatchSignature:  batch.BatchSignature,
 		})
 	}

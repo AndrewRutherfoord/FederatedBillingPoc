@@ -83,15 +83,15 @@ func (t *ApiBillingProviderAdapter) Close() error {
 	return nil
 }
 
-// SendAggregatedChargeRecord implements port.BPSender. It POSTs the record to the
+// SendChargeBatch implements port.BPSender. It POSTs the charge batch to the
 // appropriate billing provider's API endpoint.
-func (t *ApiBillingProviderAdapter) SendAggregatedChargeRecord(ctx context.Context, record sharedmodels.AggregatedChargeRecord) error {
-	log.Printf("Sending aggregated charge record for batch %s to billing provider %s", record.BatchID, record.BillingRecord.BillingProviderID)
-	client, ok := t.clientRegistry.GetClient(record.BillingRecord.BillingProviderID)
+func (t *ApiBillingProviderAdapter) SendChargeBatch(ctx context.Context, batch sharedmodels.ChargeBatch) error {
+	log.Printf("Sending charge batch %s to billing provider %s", batch.BatchID, batch.BillingContext.BillingProviderID)
+	client, ok := t.clientRegistry.GetClient(batch.BillingContext.BillingProviderID)
 	if !ok {
-		log.Printf("No client found for billing provider %s", record.BillingRecord.BillingProviderID)
-		return fmt.Errorf("no client registered for billing provider %s", record.BillingRecord.BillingProviderID)
+		log.Printf("No client found for billing provider %s", batch.BillingContext.BillingProviderID)
+		return fmt.Errorf("no client registered for billing provider %s", batch.BillingContext.BillingProviderID)
 	}
-	log.Printf("Found client for billing provider %s, sending record to %s", record.BillingRecord.BillingProviderID)
-	return client.SendJSON("/cost-records", record, nil)
+	log.Printf("Found client for billing provider %s, sending batch", batch.BillingContext.BillingProviderID)
+	return client.SendJSON("/cost-records", batch, nil)
 }

@@ -1,5 +1,67 @@
 basePath: /
 definitions:
+  cloudserviceprovider.GetBillingAccountRecordsRequest:
+    properties:
+      billing_account_id:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+    type: object
+  cloudserviceprovider.GetBillingAccountRecordsResponse:
+    properties:
+      batches:
+        items:
+          $ref: '#/definitions/models.ChargeBatchDetail'
+        type: array
+      count:
+        type: integer
+      from:
+        type: string
+      to:
+        type: string
+    type: object
+  cloudserviceprovider.Metadata:
+    properties:
+      api_endpoint_url:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      supported_billing_providers:
+        items:
+          $ref: '#/definitions/cloudserviceprovider.SupportedCloudProviderMetadata'
+        type: array
+    type: object
+  cloudserviceprovider.RegisterLinkedCloudProviderRequest:
+    properties:
+      billing_account_id:
+        type: string
+      billing_provider_id:
+        type: string
+      return_url:
+        type: string
+    required:
+    - billing_account_id
+    - billing_provider_id
+    - return_url
+    type: object
+  cloudserviceprovider.RegisterLinkedCloudProviderResponse:
+    properties:
+      id:
+        type: string
+      redirect_url:
+        type: string
+    type: object
+  cloudserviceprovider.SupportedCloudProviderMetadata:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   github_com_andrewrutherfoord_fed-bill-poc_csp-mock_internal_config.PricingConfig:
     properties:
       model:
@@ -132,6 +194,202 @@ definitions:
         type: number
     required:
     - storage_gb
+    type: object
+  models.CapacityReservationStatus:
+    enum:
+    - used
+    - unused
+    type: string
+    x-enum-varnames:
+    - CapacityReservationStatusUsed
+    - CapacityReservationStatusUnused
+  models.ChargeBatchDetail:
+    properties:
+      batch_id:
+        type: string
+      batch_signature:
+        type: string
+      billed_currency:
+        type: string
+      billing_account_id:
+        type: string
+      billing_provider_id:
+        type: string
+      cloud_service_provider_id:
+        type: string
+      created_at:
+        type: string
+      line_item_count:
+        type: integer
+      line_items:
+        items:
+          $ref: '#/definitions/models.FocusLineItem'
+        type: array
+      merkle_root:
+        type: string
+      total_billed_cost:
+        type: number
+    type: object
+  models.CommitmentDiscountCategory:
+    enum:
+    - spend
+    - usage
+    type: string
+    x-enum-varnames:
+    - CommitmentDiscountCategorySpend
+    - CommitmentDiscountCategoryUsage
+  models.CommitmentDiscountStatus:
+    enum:
+    - used
+    - unused
+    type: string
+    x-enum-varnames:
+    - CommitmentDiscountStatusUsed
+    - CommitmentDiscountStatusUnused
+  models.FocusLineItem:
+    properties:
+      allocated_method_details:
+        description: Optional Fields - Allocation
+        type: string
+      allocated_method_id:
+        type: string
+      allocated_resource_id:
+        type: string
+      allocated_resource_name:
+        type: string
+      allocated_tags:
+        type: string
+      availability_zone:
+        description: Optional Fields - Location
+        type: string
+      billed_cost:
+        description: Required Fields
+        type: number
+      billing_account_id:
+        type: string
+      billing_account_name:
+        description: Optional Fields - Billing Account
+        type: string
+      billing_account_type:
+        type: string
+      billing_currency:
+        type: string
+      billing_period_end:
+        type: string
+      billing_period_start:
+        type: string
+      capacity_reservation_id:
+        description: Optional Fields - Capacity Reservation
+        type: string
+      capacity_reservation_status:
+        $ref: '#/definitions/models.CapacityReservationStatus'
+      charge_category:
+        type: string
+      charge_class:
+        description: Optional Fields - Charge Details
+        type: string
+      charge_description:
+        type: string
+      charge_frequency:
+        type: string
+      charge_period_end:
+        type: string
+      charge_period_start:
+        type: string
+      commitment_discount_category:
+        allOf:
+        - $ref: '#/definitions/models.CommitmentDiscountCategory'
+        description: Optional Fields - Commitment Discount
+      commitment_discount_id:
+        type: string
+      commitment_discount_name:
+        type: string
+      commitment_discount_quantity:
+        type: number
+      commitment_discount_status:
+        $ref: '#/definitions/models.CommitmentDiscountStatus'
+      commitment_discount_type:
+        type: string
+      commitment_discount_unit:
+        type: string
+      consumed_quantity:
+        description: Optional Fields - Consumption
+        type: number
+      consumed_unit:
+        type: string
+      contract_applied:
+        description: Optional Fields - Contract
+        type: string
+      contracted_cost:
+        type: number
+      contracted_unit_price:
+        type: number
+      effective_cost:
+        type: number
+      host_provider_name:
+        type: string
+      invoice_id:
+        description: Optional Fields - Invoice
+        type: string
+      invoice_issuer_name:
+        type: string
+      list_cost:
+        type: number
+      list_unit_price:
+        description: Optional Fields - Pricing
+        type: number
+      pricing_category:
+        type: string
+      pricing_currency:
+        type: string
+      pricing_currency_contracted_unit_price:
+        type: number
+      pricing_currency_effective_cost:
+        type: number
+      pricing_currency_list_unit_price:
+        type: number
+      pricing_quantity:
+        type: number
+      pricing_unit:
+        type: string
+      region_id:
+        type: string
+      region_name:
+        type: string
+      resource_id:
+        description: Optional Fields - Resource
+        type: string
+      resource_name:
+        type: string
+      resource_type:
+        type: string
+      service_category:
+        $ref: '#/definitions/models.ServiceCategory'
+      service_name:
+        type: string
+      service_provider_name:
+        type: string
+      service_subcategory:
+        $ref: '#/definitions/models.ServiceSubcategory'
+      sku_id:
+        description: Optional Fields - SKU
+        type: string
+      sku_meter:
+        type: string
+      sku_price_details:
+        type: string
+      sku_price_id:
+        type: string
+      sub_account_id:
+        description: Optional Fields - Sub Account
+        type: string
+      sub_account_name:
+        type: string
+      sub_account_type:
+        type: string
+      tags:
+        description: Optional Fields - Tags
+        type: string
     type: object
   models.ServiceCategory:
     enum:
@@ -352,6 +610,21 @@ info:
   title: CSP Mock Customer API
   version: "1.0"
 paths:
+  /.well-known/cloud-service-provider:
+    get:
+      description: Returns metadata about the cloud service provider, such as provider
+        ID and name. This is used by the billing provider or the customer metering
+        service to identify and display information about the CSP.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cloudserviceprovider.Metadata'
+      summary: Cloud Service Provider metadata
+      tags:
+      - well-known
   /billing-accounts:
     get:
       produces:
@@ -458,6 +731,76 @@ paths:
       summary: Get a billing account by account ID
       tags:
       - billing-accounts
+  /billing/accounts:
+    post:
+      consumes:
+      - application/json
+      description: Called by the customer-billing service. Creates a pending onboarding
+        session and returns a redirect URL for the customer to complete setup.
+      parameters:
+      - description: Registration request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cloudserviceprovider.RegisterLinkedCloudProviderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/cloudserviceprovider.RegisterLinkedCloudProviderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Initiate a CSP billing account onboarding session
+      tags:
+      - billing-accounts
+  /billing/accounts/records:
+    post:
+      consumes:
+      - application/json
+      description: Called directly by the customer-billing service to independently
+        verify what this CSP reported, without going through the billing provider.
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cloudserviceprovider.GetBillingAccountRecordsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cloudserviceprovider.GetBillingAccountRecordsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get charge batches (including raw FOCUS line items) for a billing account
+      tags:
+      - billing
   /customer:
     get:
       produces:
@@ -525,6 +868,49 @@ paths:
       summary: Health check
       tags:
       - health
+  /onboarding/{session_id}:
+    get:
+      parameters:
+      - description: Onboarding session ID
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Render the CSP account onboarding form
+      tags:
+      - onboarding
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Onboarding session ID
+        in: path
+        name: session_id
+        required: true
+        type: string
+      responses:
+        "303":
+          description: See Other
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Submit the CSP account onboarding form
+      tags:
+      - onboarding
   /resource-types:
     get:
       produces:
