@@ -27,7 +27,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["handlers.billingAccountResponse"][][];
+                        "application/json": components["schemas"]["handlers.billingAccountResponse"][];
                     };
                 };
                 /** @description Internal Server Error */
@@ -257,7 +257,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["handlers.CloudProviderLink"][][];
+                        "application/json": components["schemas"]["handlers.CloudProviderLink"][];
                     };
                 };
                 /** @description Not Found */

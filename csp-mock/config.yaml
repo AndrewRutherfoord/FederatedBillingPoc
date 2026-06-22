@@ -31,6 +31,23 @@ resource_types:
     tags:
       family: "general-purpose"
 
+  - id: "compute.vm.medium"
+    display_name: "Virtual Machine — Medium"
+    description: "General-purpose VM. 4 vCPU, 8 GB RAM."
+    service_name: "Compute"
+    service_category: "Compute"
+    service_subcategory: "Virtual Machines"
+    sku_id: "MC-VM-M"
+    billing_unit: "Hours"
+    pricing:
+      model: "per_hour"
+      unit_price: 0.082
+    config_schema:
+      vcpus: 4
+      ram_gb: 8
+    tags:
+      family: "general-purpose"
+
   - id: "storage.object.standard"
     display_name: "Object Storage — Standard"
     description: "S3-compatible object storage. Billed per GB stored per hour."
@@ -41,7 +58,7 @@ resource_types:
     billing_unit: "GB-Hours"
     pricing:
       model: "per_gb_hour"
-      unit_price: 0.0000275       # ≈ EUR 0.020 / GB-month
+      unit_price: 0.0275       # ≈ EUR 0.020 / GB-month
     config_schema:
       storage_class: "standard"
     tags:

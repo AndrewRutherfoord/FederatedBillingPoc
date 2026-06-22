@@ -2,10 +2,9 @@
     <main>
         <div class="flex justify-between items-center">
             <h2>{{ billingAccount?.alias }} - Charge Batches</h2>
-            <RouterLink :to="{ name: 'BillingAccountOverview', params: { id: props.id } }"
-                class="p-button p-button-text">
+            <Button as="router-link" :to="{ name: 'Home', query: { account: props.id } }" text size="small">
                 Back to Overview
-            </RouterLink>
+            </Button>
         </div>
         <p class="text-sm text-gray-500">
             Each batch is reported independently by the billing provider and by the cloud service provider.

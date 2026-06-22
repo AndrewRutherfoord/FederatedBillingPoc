@@ -166,9 +166,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/handlers.billingAccountResponse'
-              type: array
+              $ref: '#/definitions/handlers.billingAccountResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -254,9 +252,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/handlers.CloudProviderLink'
-              type: array
+              $ref: '#/definitions/handlers.CloudProviderLink'
             type: array
         "404":
           description: Not Found

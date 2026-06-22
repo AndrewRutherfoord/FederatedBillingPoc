@@ -1,21 +1,41 @@
 <template>
     <main v-if="billingAccount">
-        <div class="flex justify-between items-center">
-            <h2>{{ billingAccount?.alias }} - Billing Account Overview</h2>
-            <div class="flex gap-2">
-                <RouterLink :to="{ name: 'ChargeBatches', params: { id: props.id } }" class="p-button p-button-text">
-                    View Charge Batches
-                </RouterLink>
-                <RouterLink :to="{ name: 'ResourceCharges', params: { id: props.id } }" class="p-button p-button-text">
-                    View Resource Charges
-                </RouterLink>
+
+        <div class="mt-4">
+            <div class="flex justify-between items-center">
+                <h3>Cost Breakdown</h3>
+                <div class="flex gap-2">
+                    <Button asChild v-slot="slotProps" size="small">
+                        <RouterLink :to="{ name: 'ChargeBatches', params: { id: props.id } }" :class="slotProps.class">
+                        View Charge Batches
+                        </RouterLink>
+                    </Button>
+                    <Button asChild v-slot="slotProps" size="small">
+                        <RouterLink :to="{ name: 'ResourceCharges', params: { id: props.id } }" :class="slotProps.class">View Resource Charges</RouterLink>
+                    </Button>
+                </div>
             </div>
+            <div v-if="resourceCharges && resourceCharges.length > 0" class="flex flex-col md:flex-row gap-4 mt-2">
+                <div class="card flex-1 flex flex-col items-center">
+                    <h4>By Cloud Provider</h4>
+                    <Chart type="pie" :data="cspChartData" :options="chartOptions" class="w-full md:w-[24rem]" />
+                </div>
+                <div class="card flex-1 flex flex-col items-center">
+                    <h4>By Service Category</h4>
+                    <Chart type="pie" :data="categoryChartData" :options="chartOptions" class="w-full md:w-[24rem]" />
+                </div>
+            </div>
+            <p v-else class="text-sm text-gray-500 mt-2">No cost data available yet.</p>
         </div>
-        <hr>
+
         <div>
             <div class="flex justify-between items-center my-2">
                 <h3>Linked Cloud Providers</h3>
-                <Button label="Link Cloud Provider" icon="pi pi-plus" size="small" @click="formDialogVisible = true" />
+                <Button asChild v-slot="slotProps" size="small">
+                    <RouterLink :to="{ name: 'CloudProviderLinks', params: { id: props.id } }" :class="slotProps.class">
+                        Manage Cloud Provider Links
+                    </RouterLink>
+                </Button>
             </div>
             <DataTable :value="cloudProviderLinks" class="mt-2">
                 <template #empty>No linked cloud providers found.</template>
@@ -33,48 +53,18 @@
                 </Column>
             </DataTable>
         </div>
-
-        <div class="mt-4">
-            <h3>Cost Breakdown</h3>
-            <div v-if="resourceCharges && resourceCharges.length > 0" class="flex flex-col md:flex-row gap-4 mt-2">
-                <div class="card flex-1 flex flex-col items-center">
-                    <h4>By Cloud Provider</h4>
-                    <Chart type="pie" :data="cspChartData" :options="chartOptions" class="w-full md:w-[24rem]" />
-                </div>
-                <div class="card flex-1 flex flex-col items-center">
-                    <h4>By Service Category</h4>
-                    <Chart type="pie" :data="categoryChartData" :options="chartOptions" class="w-full md:w-[24rem]" />
-                </div>
-            </div>
-            <p v-else class="text-sm text-gray-500 mt-2">No cost data available yet.</p>
-        </div>
-
-        <Dialog v-model:visible="formDialogVisible" modal header="Link Cloud Provider" :style="{ width: '25rem' }">
-            <Form @submit="onSubmit">
-                <SelectField name="cloud_service_provider_id" label="Cloud Service Provider"
-                    :options="cloudProviderOptions" class="mb-2"></SelectField>
-                <p v-if="linkError" class="text-red-500 text-sm mt-1">{{ linkError }}</p>
-                <Button label="Link Provider" type="submit" class="mt-2" :loading="linking" />
-            </Form>
-        </Dialog>
     </main>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { DataTable, Column, Dialog } from 'primevue';
+import { computed } from 'vue';
+import { DataTable, Column } from 'primevue';
 import Chart from 'primevue/chart';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
-import { Form } from 'vee-validate';
-import SelectField from '@/components/form/SelectField.vue';
 import type { components } from '@/api/api-schema';
 
 type ResourceCharge = components['schemas']['handlers.ResourceChargeEntry'];
-
-const formDialogVisible = ref(false);
-const linking = ref(false);
-const linkError = ref<string | null>(null);
 
 const props = defineProps<{
     id: string
@@ -162,45 +152,6 @@ const chartOptions = computed(() => {
         }
     };
 });
-
-const cloudProviderOptions = computed<{ name: string; id: string }[]>(() => {
-    if (!billingAccount.value) return [];
-    // @ts-ignore
-    return billingAccount.value.supported_cloud_providers?.map((csp: any) => ({
-        id: csp.id,
-        name: csp.name,
-    })) ?? [];
-});
-
-const onSubmit = async (values: { cloud_service_provider_id: string }) => {
-    if (!billingAccount.value) return;
-    linkError.value = null;
-    linking.value = true;
-
-    const returnURL = `${window.location.origin}/cloud-service-providers/onboarding-complete-callback`;
-
-    try {
-        const { data, error } = await client.POST("/billing/accounts/{id}/cloud-provider-accounts/register", {
-            params: { path: { id: props.id } },
-            body: {
-                account_id: props.id,
-                cloud_provider_id: values.cloud_service_provider_id,
-                return_url: returnURL,
-            },
-        });
-
-        if (error || !data) {
-            linkError.value = 'Failed to initiate cloud provider onboarding.';
-            return;
-        }
-
-        window.location.href = (data as any).redirect_url;
-    } catch {
-        linkError.value = 'An unexpected error occurred.';
-    } finally {
-        linking.value = false;
-    }
-};
 </script>
 
 <style scoped></style>

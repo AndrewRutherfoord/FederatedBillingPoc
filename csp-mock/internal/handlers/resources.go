@@ -42,6 +42,31 @@ func (s *Server) ListResources(c *gin.Context) {
 	c.JSON(200, resources)
 }
 
+// GetResource godoc
+//
+// @Summary	Get a specific resource by ID for the authenticated customer
+// @Tags		resources
+// @Produce	json
+// @Security	BearerAuth
+// @Param		id	path	string	true	"Resource ID"
+// @Success	200	{object}	db.Resource
+// @Failure	401	{object}	map[string]string
+// @Failure	404	{object}	map[string]string
+// @Failure	500	{object}	map[string]string
+// @Router		/resources/{id} [get]
+func (s *Server) GetResource(c *gin.Context) {
+	customer := middleware.CustomerFromContext(c)
+	resourceID := c.Param("id")
+
+	resource, err := s.repos.Resources.GetByID(c.Request.Context(), resourceID)
+	if err != nil || resource.CustomerID != customer.ID {
+		c.JSON(404, gin.H{"error": "Resource not found"})
+		return
+	}
+
+	c.JSON(200, resource)
+}
+
 // CreateResource godoc
 //
 // @Summary	Provision a new resource for the authenticated customer

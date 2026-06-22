@@ -1,67 +1,66 @@
 <script setup lang="ts">
 import { useAsyncState } from '@vueuse/core';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primevue';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import client from '@/api/client';
-import { DataTable, Column, Dialog } from 'primevue';
-import { ref } from 'vue';
-import TextField from '@/components/form/TextField.vue';
-import { Form } from 'vee-validate';
-import type { components as ApiComponents } from '@/api/api-schema';
+import AccountOverview from '@/components/AccountOverview.vue';
 
-type RegisterRequest = ApiComponents["schemas"]["handlers.RegisterAcccountRequest"];
+const route = useRoute();
+const router = useRouter();
 
-const formDialogVisible = ref(false);
-
-const { state, error, execute: refreshAccounts } = useAsyncState(async () => {
+const { state: accounts } = useAsyncState(async () => {
     const { data } = await client.GET("/billing/accounts");
-    return data;
-}, null);
+    return data ?? [];
+}, []);
 
-const onSubmit = async (values: Record<string, unknown>) => {
-    const { data, error } = await client.POST("/billing/accounts/register", {
-        body: {
-            ...values,
-            return_url: `${window.location.origin}/billing-providers/onboarding-complete-callback`,
-        } as RegisterRequest
-    });
+const firstAccountId = computed(() => accounts.value?.[0]?.id);
 
-    if (error) {
-        console.error("Error creating billing account:", error);
-        return;
+const pageTitle = computed(() => {
+    const list = accounts.value ?? [];
+    return list.length === 1 ? `${list[0]?.alias} - Overview` : 'Billing Accounts Overview';
+});
+
+const selectedAccountId = ref<string>('');
+
+watch(accounts, (list) => {
+    if (!list || list.length === 0) return;
+    const queryId = route.query.account as string | undefined;
+    selectedAccountId.value = list.find(a => a.id === queryId)?.id ?? firstAccountId.value ?? '';
+}, { immediate: true });
+
+watch(selectedAccountId, (id) => {
+    if (id && route.query.account !== id) {
+        router.replace({ query: { ...route.query, account: id } });
     }
-
-    formDialogVisible.value = false;
-
-    if (data?.redirect_url) {
-        window.location.href = data.redirect_url;
-    } else {
-        refreshAccounts();
-    }
-};
+});
 </script>
 
 <template>
     <div class="flex justify-between items-center my-2">
-        <h2>Billing Accounts</h2>
-        <Button label="Create Billing Account" icon="pi pi-plus" @click="formDialogVisible = true" size="small" />
+        <h2>{{ pageTitle }}</h2>
+        <Button as="router-link" :to="{ name: 'ManageAccounts' }" text size="small">
+            Manage Billing Accounts
+        </Button>
     </div>
-    <DataTable :value="state" class="mt-2">
-        <template #empty>No billing accounts found.</template>
-        <Column field="alias" header="Account Alias"></Column>
-        <Column field="billing_provider_name" header="Billing Provider"></Column>
-        <Column>
-            <template #body="{ data }">
-                <RouterLink :to="{ name: 'BillingAccountOverview', params: { id: data.id } }" class="p-button p-button-text">View</RouterLink>
-            </template>
-        </Column>
-    </DataTable>
 
-    <Dialog v-model:visible="formDialogVisible" modal header="Create Billing Account" :style="{ width: '25rem' }">
-        <Form @submit="onSubmit">
-            <TextField name="account_alias" label="Account Alias"
-                helpText="The name you will use to identify the billing account." />
-            <TextField name="billing_provider_base_url" label="Billing Provider URL"
-                helpText="The URL of the billing provider to create the account with." />
-            <Button label="Create" type="submit" class="mt-2" />
-        </Form>
-    </Dialog>
+    <div v-if="!accounts || accounts.length === 0" class="text-center py-8">
+        <p class="text-gray-500 mb-4">No billing accounts found.</p>
+        <Button as="router-link" :to="{ name: 'ManageAccounts' }">Create a Billing Account</Button>
+    </div>
+
+    <AccountOverview v-else-if="accounts.length === 1 && firstAccountId" :id="firstAccountId" />
+
+    <Tabs v-else v-model:value="selectedAccountId">
+        <TabList>
+            <Tab v-for="account in accounts" :key="account.id" :value="account.id!">{{ account.alias }}</Tab>
+        </TabList>
+        <TabPanels>
+            <TabPanel v-for="account in accounts" :key="account.id" :value="account.id!">
+                <AccountOverview :id="account.id!" />
+            </TabPanel>
+        </TabPanels>
+    </Tabs>
 </template>
+
+<style scoped></style>

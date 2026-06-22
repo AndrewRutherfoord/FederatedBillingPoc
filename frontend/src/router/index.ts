@@ -15,10 +15,9 @@ const router = createRouter({
       component: () => import('../views/billing-providers/OnboardingRedirectView.vue'),
     },
     {
-      path: '/billing-providers/:id/account-overview',
-      name: 'BillingAccountOverview',
-      component: () => import('../views/billing-providers/AccountOverviewView.vue'),
-      props: true,
+      path: '/billing-providers/manage',
+      name: 'ManageAccounts',
+      component: () => import('../views/billing-providers/ManageAccountsView.vue'),
     },
     {
       path: '/billing-providers/:id/charge-batches',
@@ -30,6 +29,12 @@ const router = createRouter({
       path: '/billing-providers/:id/resource-charges',
       name: 'ResourceCharges',
       component: () => import('../views/billing-providers/ResourceChargesView.vue'),
+      props: true,
+    },
+    {
+      path: '/billing-providers/:id/cloud-provider-links',
+      name: 'CloudProviderLinks',
+      component: () => import('../views/billing-providers/CloudProviderLinksView.vue'),
       props: true,
     },
     {

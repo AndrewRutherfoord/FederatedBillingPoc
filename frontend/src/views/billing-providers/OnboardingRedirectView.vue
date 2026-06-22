@@ -38,7 +38,7 @@ const { state, isLoading, isReady } = useAsyncState(async () => {
                 <p class="text-sm text-gray-400 mb-6">Account ID: {{ accountId }}</p>
                 <button
                     class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
-                    @click="router.push('/')"
+                    @click="router.push({ name: 'Home', query: { account: accountId } })"
                 >
                     Go to dashboard
                 </button>

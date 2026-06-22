@@ -82,7 +82,7 @@ type billingAccountResponse struct {
 //	@Summary		Get all billing accounts
 //	@Tags			billing
 //	@Produce		json
-//	@Success		200	{array}		[]billingAccountResponse
+//	@Success		200	{array}		billingAccountResponse
 //	@Failure		500	{object}	map[string]string
 //	@Router			/billing/accounts [get]
 func (s *Server) ListBillingAccounts(c *gin.Context) {
@@ -165,7 +165,7 @@ type CloudProviderLink struct {
 //	@Tags			billing
 //	@Produce		json
 //	@Param			id	path		string	true	"Account ID"
-//	@Success		200	{array}	[]CloudProviderLink
+//	@Success		200	{array}	CloudProviderLink
 //	@Failure		404	{object}	map[string]string
 //	@Failure		500	{object}	map[string]string
 //	@Router			/billing/accounts/{id}/cloud-provider-accounts [get]

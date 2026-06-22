@@ -32,10 +32,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/handlers.billingAccountResponse"
-                                }
+                                "$ref": "#/definitions/handlers.billingAccountResponse"
                             }
                         }
                     },
@@ -214,10 +211,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/handlers.CloudProviderLink"
-                                }
+                                "$ref": "#/definitions/handlers.CloudProviderLink"
                             }
                         }
                     },

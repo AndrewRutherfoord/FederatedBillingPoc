@@ -30,6 +30,11 @@ const items = ref([
         route: 'Home'
     },
     {
+        label: 'Billing Accounts',
+        icon: 'pi pi-credit-card',
+        route: 'ManageAccounts'
+    },
+    {
         label: 'About',
         icon: 'pi pi-info-circle',
         route: 'About'
