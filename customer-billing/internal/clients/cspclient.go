@@ -2,7 +2,7 @@ package clients
 
 import (
 	"fmt"
-	"time"
+	"net/url"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
@@ -12,7 +12,7 @@ import (
 type CloudServiceProviderClient interface {
 	GetMetadata() (cspsharedmodels.Metadata, error)
 	RegisterCloudProviderAccount(billingProviderID string, billingAccountID string, returnURL string) (cspsharedmodels.RegisterLinkedCloudProviderResponse, error)
-	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatchDetail, error)
+	GetChargeBatch(batchID string, billingAccountID string) (sharedmodels.ChargeBatchDetail, error)
 }
 
 type cloudServiceProviderClient struct {
@@ -42,31 +42,21 @@ func (c *cloudServiceProviderClient) RegisterCloudProviderAccount(billingProvide
 	}
 
 	var response cspsharedmodels.RegisterLinkedCloudProviderResponse
-	err := c.SendJSON("/billing/accounts", payload, &response)
+	err := c.SendJSON("/api/v1/billing/onboarding", payload, &response)
 	if err != nil {
 		return cspsharedmodels.RegisterLinkedCloudProviderResponse{}, fmt.Errorf("failed to register linked cloud provider: %w", err)
 	}
 	return response, nil
 }
 
-// GetBillingAccountRecords fetches this CSP's own report of a billing account's charge
-// batches, including the raw FOCUS line items, independently of the billing provider.
-func (c *cloudServiceProviderClient) GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatchDetail, error) {
-	payload := cspsharedmodels.GetBillingAccountRecordsRequest{
-		BillingAccountID: billingAccountID,
-		From:             from,
-		To:               to,
-	}
+// GetChargeBatch fetches CSP report of a charge batch. Includes raw FOCUS line items. Must already know the Batch ID after getting it from the BP
+func (c *cloudServiceProviderClient) GetChargeBatch(batchID string, billingAccountID string) (sharedmodels.ChargeBatchDetail, error) {
+	var response sharedmodels.ChargeBatchDetail
 
-	var response cspsharedmodels.GetBillingAccountRecordsResponse
-	err := c.SendJSON("/billing/accounts/records", payload, &response)
+	err := c.FetchJSONWithAuth("/api/v1/billing/charge-batches/"+url.PathEscape(batchID), billingAccountID, &response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch billing account records: %w", err)
+		return sharedmodels.ChargeBatchDetail{}, fmt.Errorf("failed to fetch charge batch %s: %w", batchID, err)
 	}
 
-	if len(response.Batches) != response.Count {
-		return nil, fmt.Errorf("response count mismatch: expected %d, got %d", response.Count, len(response.Batches))
-	}
-
-	return response.Batches, nil
+	return response, nil
 }

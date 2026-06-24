@@ -3,71 +3,61 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/csp-mock/internal/repository"
 	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
-	cspsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/cloud-service-provider"
 	"github.com/gin-gonic/gin"
 )
 
-// GetBillingAccountRecords godoc
+// GetChargeBatch godoc
 //
-//	@Summary	Get charge batches (including raw FOCUS line items) for a billing account
-//	@Description	Called directly by the customer-billing service to independently verify what this CSP reported, without going through the billing provider.
+//	@Summary	Get the details of a specific charge batch
+//	@Description	Called directly by the customer-billing service to independently verify a charge batch it already knows about from the billing provider.
 //	@Tags		billing
-//	@Accept		json
 //	@Produce	json
-//	@Param		request	body		cspsharedmodels.GetBillingAccountRecordsRequest	true	"Request body"
-//	@Success	200		{object}	cspsharedmodels.GetBillingAccountRecordsResponse
-//	@Failure	400		{object}	map[string]string
-//	@Failure	500		{object}	map[string]string
-//	@Router		/billing/accounts/records [post]
-func (s *Server) GetBillingAccountRecords(c *gin.Context) {
-	var req cspsharedmodels.GetBillingAccountRecordsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+//	@Param		batch_id	path		string	true	"Charge batch ID"
+//	@Success	200			{object}	sharedmodels.ChargeBatchDetail
+//	@Failure	404			{object}	map[string]string
+//	@Router		/billing/charge-batches/{batch_id} [get]
+func (s *Server) GetChargeBatch(c *gin.Context) {
+	batchID := c.Param("batch_id")
 
-	batches, err := s.repos.ChargeBatch.ListByBillingAccount(c.Request.Context(), req.BillingAccountID, req.From, req.To)
+	batch, err := s.repos.ChargeBatch.GetByID(c.Request.Context(), batchID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch charge batches"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "charge batch not found"})
 		return
 	}
 
-	details := make([]sharedmodels.ChargeBatchDetail, 0, len(batches))
-	for _, batch := range batches {
-		lineItems, err := s.repos.Focus.List(c.Request.Context(), repository.FocusFilter{
-			BillingAccountID: req.BillingAccountID,
-			BatchID:          batch.ID,
-		})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch line items"})
-			return
-		}
-
-		details = append(details, sharedmodels.ChargeBatchDetail{
-			ChargeBatch: sharedmodels.ChargeBatch{
-				BillingContext: sharedmodels.BillingContext{
-					BillingProviderID:      batch.BillingProviderID,
-					CloudServiceProviderID: batch.CloudServiceProviderID,
-					BillingAccountID:       batch.BillingAccountID,
-				},
-				BatchID:         batch.ID,
-				TotalBilledCost: batch.TotalCost,
-				BilledCurrency:  batch.BilledCurrency,
-				LineItemCount:   batch.TotalItems,
-				MerkleRoot:      batch.MerkleRoot,
-				BatchSignature:  batch.BatchSignature,
-				CreatedAt:       batch.CreatedAt,
-			},
-			LineItems: lineItems,
-		})
+	account := middleware.BillingAccountFromContext(c)
+	if batch.BillingAccountID != account.ID {
+		c.JSON(http.StatusNotFound, gin.H{"error": "charge batch not found"})
+		return
 	}
 
-	c.JSON(http.StatusOK, cspsharedmodels.GetBillingAccountRecordsResponse{
-		Batches: details,
-		Count:   len(details),
-		From:    req.From,
-		To:      req.To,
+	lineItems, err := s.repos.Focus.List(c.Request.Context(), repository.FocusFilter{
+		BillingAccountID: batch.BillingAccountID,
+		BatchID:          batch.ID,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch line items"})
+		return
+	}
+
+	c.JSON(http.StatusOK, sharedmodels.ChargeBatchDetail{
+		ChargeBatch: sharedmodels.ChargeBatch{
+			BillingContext: sharedmodels.BillingContext{
+				BillingProviderID:      batch.BillingProviderID,
+				CloudServiceProviderID: batch.CloudServiceProviderID,
+				BillingAccountID:       batch.BillingAccountID,
+			},
+			BatchID:         batch.ID,
+			TotalBilledCost: batch.TotalCost,
+			BilledCurrency:  batch.BilledCurrency,
+			LineItemCount:   batch.TotalItems,
+			MerkleRoot:      batch.MerkleRoot,
+			BatchSignature:  batch.BatchSignature,
+			CreatedAt:       batch.CreatedAt,
+		},
+		LineItems: lineItems,
 	})
 }

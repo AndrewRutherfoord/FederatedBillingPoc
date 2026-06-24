@@ -32,6 +32,8 @@ type CloudServiceProvider struct {
 type Config struct {
 	ProviderID            string                 `yaml:"provider_id" json:"provider_id"`
 	ProviderName          string                 `yaml:"provider_name" json:"provider_name"`
+	PaymentModel          string                 `yaml:"payment_model" json:"payment_model"`
+	BillingCurrency       string                 `yaml:"billing_currency" json:"billing_currency"`
 	CloudServiceProviders []CloudServiceProvider `yaml:"cloud_service_providers" json:"cloud_service_providers"`
 	MTLSKeyPath           string                 `yaml:"mtls_key_path" json:"mtls_key_path"`
 	MTLSCertPath          string                 `yaml:"mtls_cert_path" json:"mtls_cert_path"`

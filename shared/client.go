@@ -12,6 +12,7 @@ import (
 type HttpClient interface {
 	SendJSON(path string, data interface{}, out interface{}) error
 	FetchJSON(path string, out interface{}) error
+	FetchJSONWithAuth(path string, bearerToken string, out interface{}) error
 }
 
 type httpClientImpl struct {
@@ -71,9 +72,26 @@ func (c *httpClientImpl) SendJSON(path string, data interface{}, out interface{}
 }
 
 func (c *httpClientImpl) FetchJSON(path string, out interface{}) error {
+	return c.fetchJSON(path, "", out)
+}
+
+func (c *httpClientImpl) FetchJSONWithAuth(path string, bearerToken string, out interface{}) error {
+	return c.fetchJSON(path, bearerToken, out)
+}
+
+func (c *httpClientImpl) fetchJSON(path string, bearerToken string, out interface{}) error {
 	url := fmt.Sprintf("%s%s", c.BaseURL, path)
 	log.Printf("Fetching JSON from %s", url)
-	resp, err := c.Client.Get(url)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	if bearerToken != "" {
+		req.Header.Set("Authorization", "Bearer "+bearerToken)
+	}
+
+	resp, err := c.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}

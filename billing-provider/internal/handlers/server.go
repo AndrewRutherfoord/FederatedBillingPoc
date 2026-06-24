@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/config"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/repository"
 	bpsharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
 	"github.com/gin-contrib/cors"
@@ -60,14 +61,32 @@ func (s *Server) WellKnown(c *gin.Context) {
 	c.JSON(http.StatusOK, metadata)
 }
 
+func (s *Server) Jwks(c *gin.Context) {
+	// jwks := s.config.Jwks
+	jwks := map[string]interface{}{}
+	c.JSON(http.StatusOK, jwks)
+}
+
 func (s *Server) RegisterRoutes(r *gin.Engine) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	r.GET("/health", s.Health)
 	r.GET("/.well-known/billing-provider", s.WellKnown)
+	r.GET("/.well-known/jwks.json", s.Jwks)
+	r.POST("/auth/token", s.CreateToken)
 	r.POST("/billing/accounts", s.RegisterBillingAccount)
+
+	authedGroup := r.Group("/billing", middleware.BillingAccountAuth(s.repos.BillingAccounts))
+	{
+		authedGroup.POST("/accounts/onboarding-tokens", s.CreateOnboardingToken)
+		authedGroup.GET("/accounts/charge-batches", s.GetChargeBatchRecords)
+		authedGroup.GET("/credit-balance", s.GetCreditBalance)
+		authedGroup.GET("/invoices", s.GetInvoices)
+	}
+
+	// SSR routes for onboarding forms (browser-facing, not part of the customer API).
 	r.GET("/billing/accounts/:id/onboard", s.OnboardForm)
 	r.POST("/billing/accounts/:id/onboard", s.OnboardSubmit)
-	r.POST("/billing/accounts/records", s.GetBillingAccountRecords)
 }
 
 // Start creates the gin engine, registers routes, and blocks serving on addr.

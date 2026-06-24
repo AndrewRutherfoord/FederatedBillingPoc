@@ -5,6 +5,8 @@ provider_id: "billing-provider-1"
 provider_name: "Billing Provider 1"
 mtls_key_path: "../keys/bp-1.key"
 mtls_cert_path: "../keys/bp-1.crt"
+payment_model: "postpaid"
+billing_currency: "EUR"
 
 cloud_service_providers:
   - id: "mock-csp-1"

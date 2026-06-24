@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
@@ -49,14 +50,13 @@ func (c *billingProviderClient) RegisterBillingAccount(returnURL string) (billin
 }
 
 func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatch, error) {
-	payload := billingprovidermodels.GetBillingAccountRecordsRequest{
-		BillingAccountID: billingAccountID,
-		From:             from,
-		To:               to,
-	}
+	path := fmt.Sprintf("/billing/accounts/charge-batches?from=%s&to=%s",
+		url.QueryEscape(from.Format(time.RFC3339)),
+		url.QueryEscape(to.Format(time.RFC3339)),
+	)
 
 	var response billingprovidermodels.GetBillingAccountRecordsResponse
-	err := c.SendJSON("/billing/accounts/records", payload, &response)
+	err := c.FetchJSONWithAuth(path, billingAccountID, &response)
 	log.Printf("Fetched %d charge batches for billing account %s from %s to %s", len(response.Batches), billingAccountID, from.Format(time.RFC3339), to.Format(time.RFC3339))
 	if err != nil {
 		return []sharedmodels.ChargeBatch{}, fmt.Errorf("failed to fetch billing account records: %w", err)

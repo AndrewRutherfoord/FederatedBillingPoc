@@ -11,8 +11,9 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
 )
 
-// Fetches CSP's report of a charge batches (including raw FOCUS line items)
-// Allows comparison to those provided by the billing provider
+// Fetches the billing provider's report of charge batches for a billing account, then
+// independently fetches each batch (including raw FOCUS line items) directly from the CSP
+// that produced it, allowing comparison between the two.
 type FetchCloudServiceProviderMeteringRecordsJob struct {
 	id     string
 	repos  *repository.Repos
@@ -33,15 +34,17 @@ func (j *FetchCloudServiceProviderMeteringRecordsJob) ID() string {
 	return j.id
 }
 
-func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchCloudServiceProviderRecords(ctx context.Context, billingAccountID string, link repository.CloudServiceProviderAccountLinkWithTotalCost) error {
-	if link.CustomerAPIEndpointURL == "" {
-		log.Printf("Skipping CSP %s for billing account %s: no customer API endpoint on file", link.CloudProviderID, billingAccountID)
-		return nil
+func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchBillingAccountRecords(ctx context.Context, account *repository.BillingAccountWithProviderName) error {
+	links, err := j.repos.CloudServiceProviderAccount.ListByBillingAccount(ctx, account.ID)
+	if err != nil {
+		return err
+	}
+	linksByCSP := make(map[string]repository.CloudServiceProviderAccountLinkWithTotalCost, len(links))
+	for _, link := range links {
+		linksByCSP[link.CloudProviderID] = link
 	}
 
-	cspClient := clients.NewCloudServiceProviderClient(link.CustomerAPIEndpointURL)
-
-	latestBatch, err := j.repos.CloudServiceProviderChargeBatch.GetLatestBatchForBillingAccount(ctx, billingAccountID)
+	latestBatch, err := j.repos.CloudServiceProviderChargeBatch.GetLatestBatchForBillingAccount(ctx, account.ID)
 	if err != nil {
 		return err
 	}
@@ -51,7 +54,8 @@ func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchCloudServiceProviderR
 		fromTime = latestBatch.CreatedAt
 	}
 
-	batches, err := cspClient.GetBillingAccountRecords(billingAccountID, fromTime, j.clock.Now())
+	bpClient := clients.NewBillingProviderClient(account.BillingProviderBaseURL)
+	batches, err := bpClient.GetBillingAccountRecords(account.ID, fromTime, j.clock.Now())
 	if err != nil {
 		return err
 	}
@@ -62,49 +66,46 @@ func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchCloudServiceProviderR
 			continue
 		}
 
-		_, err := j.repos.CloudServiceProviderChargeBatch.Create(ctx, repository.CreateCloudServiceProviderChargeBatchParams{
-			ID:                     batch.BatchID,
-			BillingAccountID:       billingAccountID,
-			CloudServiceProviderID: batch.CloudServiceProviderID,
-			TotalItems:             int32(batch.LineItemCount),
-			TotalCost:              batch.TotalBilledCost,
-			BilledCurrency:         batch.BilledCurrency,
-			MerkleRoot:             batch.MerkleRoot,
-			BatchSignature:         batch.BatchSignature,
-			CreatedAt:              batch.CreatedAt,
-			ReceivedAt:             j.clock.Now(),
-		})
-		if err != nil {
-			log.Printf("Error saving CSP charge batch %s for billing account %s: %v", batch.BatchID, billingAccountID, err)
+		link, ok := linksByCSP[batch.CloudServiceProviderID]
+		if !ok || link.CustomerAPIEndpointURL == "" {
+			log.Printf("Skipping CSP verification for batch %s: no customer API endpoint on file for CSP %s", batch.BatchID, batch.CloudServiceProviderID)
 			continue
 		}
 
-		if len(batch.LineItems) > 0 {
-			if err := j.repos.CloudServiceProviderFocusRecord.CreateBatch(ctx, batch.BatchID, billingAccountID, batch.LineItems); err != nil {
-				log.Printf("Error saving line items for CSP charge batch %s: %v", batch.BatchID, err)
+		cspClient := clients.NewCloudServiceProviderClient(link.CustomerAPIEndpointURL)
+		detail, err := cspClient.GetChargeBatch(batch.BatchID, account.ID)
+		if err != nil {
+			log.Printf("Error fetching charge batch %s from CSP %s: %v", batch.BatchID, batch.CloudServiceProviderID, err)
+			continue
+		}
+
+		_, err = j.repos.CloudServiceProviderChargeBatch.Create(ctx, repository.CreateCloudServiceProviderChargeBatchParams{
+			ID:                     detail.BatchID,
+			BillingAccountID:       account.ID,
+			CloudServiceProviderID: detail.CloudServiceProviderID,
+			TotalItems:             int32(detail.LineItemCount),
+			TotalCost:              detail.TotalBilledCost,
+			BilledCurrency:         detail.BilledCurrency,
+			MerkleRoot:             detail.MerkleRoot,
+			BatchSignature:         detail.BatchSignature,
+			CreatedAt:              detail.CreatedAt,
+			ReceivedAt:             j.clock.Now(),
+		})
+		if err != nil {
+			log.Printf("Error saving CSP charge batch %s for billing account %s: %v", detail.BatchID, account.ID, err)
+			continue
+		}
+
+		if len(detail.LineItems) > 0 {
+			if err := j.repos.CloudServiceProviderFocusRecord.CreateBatch(ctx, detail.BatchID, account.ID, detail.LineItems); err != nil {
+				log.Printf("Error saving line items for CSP charge batch %s: %v", detail.BatchID, err)
 			}
 		}
 
 		storedBatches++
 	}
 
-	log.Printf("Fetched %d charge batches from CSP %s for billing account %s, stored %d new batches", len(batches), link.CloudProviderID, billingAccountID, storedBatches)
-
-	return nil
-}
-
-func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchBillingAccountRecords(ctx context.Context, account *repository.BillingAccountWithProviderName) error {
-	links, err := j.repos.CloudServiceProviderAccount.ListByBillingAccount(ctx, account.ID)
-	if err != nil {
-		return err
-	}
-
-	for _, link := range links {
-		if err := j.fetchCloudServiceProviderRecords(ctx, account.ID, link); err != nil {
-			log.Printf("Error fetching CSP records for billing account %s, CSP %s: %v", account.ID, link.CloudProviderID, err)
-			continue
-		}
-	}
+	log.Printf("Fetched %d charge batches from billing provider for billing account %s, verified and stored %d directly with their CSPs", len(batches), account.ID, storedBatches)
 
 	return nil
 }

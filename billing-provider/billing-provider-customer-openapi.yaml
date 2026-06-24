@@ -1,0 +1,411 @@
+openapi: 3.0.3
+info:
+  title: Billing Provider Customer API
+  description: API for the Customer to interact with the Billing Provider, including receiving aggregated charge records, invoice records, and credit limit updates.
+  version: 1.0.0
+security:
+  - billingAccountAuth: []
+paths:
+  /health:
+    get:
+      description: Returns the health status of the Billing Provider API.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  provider_id:
+                    type: string
+                    example: "billing-provider-123"
+  /.well-known/billing-provider:
+    get:
+      description: Returns metadata about the billing provider, including which cloud providers they support.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingProviderMetadata"
+  /.well-known/jwks.json:
+    get:
+      description: Returns JWT keys for the billingprovider. Used by CSP to verify the signature of the onboarding tokens issues by POST /billing/accounts/onboarding-tokens without needing to call back to the billing provider.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKS"
+  /auth/token:
+    post:
+      security: []
+      description: >-
+        Use billing account client credentials for a JWT. The client_id and client_secret are issued when the billing account is registered. The process of setting up an account is left to the individual BP, but it must issue an account id and a secret to the customer. They can either be random or user defined.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Invalid client credentials.
+  /billing/accounts/onboarding-tokens:
+    post:
+      description: >-
+        Issues a short-lived signed JWT proving ownership billing account for a specific cloud provider. 
+        Used during CSP onboarding to prove that the customer owns the billing account. This is signed by the BP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingTokenRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingTokenResponse"
+        "400":
+          description: Unknown or unsupported cloud_provider_id.
+        "401":
+          description: Missing or invalid bearer token.
+  /billing/accounts:
+    post:
+      description: Endpoint for customer request billing account registration. Returns a url where the customer can go for onboarding.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingAccountRegistrationRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingAccountRegistrationResponse"
+  /billing/accounts/charge-batches:
+    get:
+      description: Endpoint for the customer to retrieve the ChargeBatches
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+          description: Start time (inclusive) for the range of charge batches to retrieve. Must be
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+          description: End time (exclusive) for the range of charge batches to retrieve. Must be in ISO 8601 format.
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetBillingAccountChargeBatchesResponse"
+  /billing/credit-balance:
+    get:
+      description: Endpoint for customer to retrieve the current credit balance for a billing account. Can be used for both prepaid and postpaid billing accounts. 
+      responses: 
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCreditBalanceResponse"
+  /billing/invoices:
+    get:
+      description: Endpoint for customer to retrieve invoices for a billing account.
+      parameters:
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+
+components:
+  securitySchemes:
+    billingAccountAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Bearer JWT obtained from POST /auth/token. Token for single billing account which is used to authenticate requests.
+  schemas:
+    JWKS:
+      type: object
+      description: A JSON Web Key Set
+      properties:
+        keys:
+          type: array
+          items:
+            type: object # TODO: define JWK schema
+          # items:
+          #   $ref: "#/components/schemas/JWK"
+    SupportedCloudProviderMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          description: UUID4 identifier for the supported cloud provider.
+        name:
+          type: string
+          description: Name of the supported cloud provider (e.g. Azure, AWS, GCP).
+        metadata_endpoint:
+          type: string
+          description: The .well-known endpoint where the customer system can retrieve metadata about how to interact with the cloud provider for billing purposes.
+    BillingProviderMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          description: UUID4 identifier for the billing provider.
+        name:
+          type: string
+          description: Name of the billing provider.
+        base_api_endpoint:
+          type: string
+          description: The base API endpoint which the customer can use to interact with the billing provider.
+        api_version:
+          type: string
+          description: The version of the API which the billing provider supports.
+          default: "1.0.0"
+        jwks_uri:
+          type: string
+          description: >-
+            URL of this billing provider's JSON Web Key Set (JWKS), used by cloud providers to verify the signature of onboarding tokens issued by POST /billing/accounts/onboarding-tokens without needing to call back to the billing provider.
+        supported_cloud_providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupportedCloudProviderMetadata"
+    BillingAccountRegistrationRequest:
+      type: object
+      properties:
+        return_url:
+          type: string
+          description: URL where the customer should be redirected to after completing the billing account registration process. The billing provider will append an the account ID, signature of the account ID, and status of the onboarding process to this URL as query parameters. (Eg. https://customer-application.com/billing-registration-complete?account_id=abc123&signature=xyz789&status=success)
+    BillingAccountRegistrationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: UUID4 identifier for the billing account being registered.
+        redirect_url:
+          type: string
+          description: URL where the customer must be redirected to in order to complete the onboarding process for the billing account. Includes all necessary parameters, so just redirect the customer to this URL.
+
+    GetBillingAccountChargeBatchesRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+          description: Start time (inclusive) for the range of charge batches to retrieve. Must be in ISO 8601 format.
+        end_time:
+          type: string
+          format: date-time
+          description: End time (exclusive) for the range of charge batches to retrieve. Must be in ISO 8601 format.
+
+    ChargeBatch:
+      type: object
+      properties:
+        billing_provider_id:
+          type: string
+          description: Identifier for the billing provider which produced this charge batch.
+        cloud_provider_id:
+          type: string
+          description: Identifier for the cloud provider which produced this charge batch.
+        billing_account_id:
+          type: string
+          description: UUID4 identifier for the billing account which this charge batch is associated with.
+
+        batch_id:
+          type: string
+          description: UUID4 identifier for the charge batch.
+        total_billed_cost:
+          type: number
+          format: float
+          description: Total cost for the charge batch.
+        billing_currency:
+          type: string
+          description: Currency in which the cost is billed, in ISO 4217 format (e.g. USD, EUR).
+        line_item_count:
+          type: integer
+          description: Number of line items which were aggregated to produce this charge batch.
+        merkel_root:
+          type: string
+          description: MerkelRoot of all the line items in the batch.
+        created_at:
+          type: string
+          format: date-time
+          description: UTC timestamp at which the charge batch was created in the CSP's billing system.
+        received_at:
+          type: string
+          format: date-time
+          description: UTC timestamp at which the charge batch was received by the billing provider.
+
+    GetBillingAccountChargeBatchesResponse:
+      type: object
+      properties:
+        batches:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChargeBatch"
+        count:
+          type: integer
+          description: Total number of charge batches returned in the response.
+        from:
+          type: string
+          format: date-time
+          description: Start time (inclusive) for the range of charge batches returned in the response.
+        to:
+          type: string
+          format: date-time
+          description: End time (exclusive) for the range of charge batches returned in the response.
+
+    GetCreditBalanceResponse:
+      type: object
+      description: Response for retrieving the current credit balance for a billing account. Can either indicate the current prepaid balance or the credit limit for the billing account depending on payment model of the billing account.
+      properties:
+        billing_account_id:
+          type: string
+          description: UUID4 identifier for the billing account for which to retrieve the current credit balance.
+        credit_available:
+          type: number
+          format: float
+          description: Total available credit for the billing account at the time of request for the current billing period.
+        credit_used:
+          type: number
+          format: float
+          description: Total credit used for the billing account at the time of request for the current billing period. Should be less than or equal to credit_available.
+        credit_currency:
+          type: string
+          description: Currency in which the credit is denominated, in ISO 4217 format (e.g. USD, EUR).
+        payment_model:
+          type: string
+          description: Payment model for the billing account, either "prepaid" or "postpaid". If prepaid, credit_available indicates the remaining balance for the billing account. If postpaid, credit_available indicates the credit limit for the billing account.
+        billing_period_start:
+          type: string
+          format: date-time
+          description: Start time (inclusive) for the current billing period.
+        billing_period_end:
+          type: string
+          format: date-time
+          description: End time (exclusive) for the current billing period.
+
+    Invoice:
+      type: object
+      properties:
+        billing_provider_id:
+          type: string
+          description: Identifier for the billing provider which produced this invoice.
+        billing_account_id:
+          type: string
+          description: UUID4 identifier for the billing account which this invoice is associated with.
+        # TODO: Add actual invoice data....
+
+    TokenRequest:
+      type: object
+      required:
+        - client_id
+        - client_secret
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - client_credentials
+          default: client_credentials
+          description: OAuth2 grant type. Only client_credentials is currently supported.
+        client_id:
+          type: string
+          description: Client ID issued for the billing account when it was registered.
+        client_secret:
+          type: string
+          format: password
+          description: Client secret issued for the billing account when it was registered.
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: >-
+            Bearer JWT scoped to a single billing account. Send as
+            `Authorization: Bearer <access_token>` on all other endpoints. The billing
+            account is identified by a claim inside the token and does not need to be
+            supplied separately.
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          default: Bearer
+        expires_in:
+          type: integer
+          description: Lifetime of the access token, in seconds, from the time of issuance.
+
+    OnboardingTokenRequest:
+      type: object
+      required:
+        - cloud_provider_id
+      properties:
+        cloud_provider_id:
+          type: string
+          description: >-
+            Identifier (matching SupportedCloudProviderMetadata.id) of the single cloud
+            provider this onboarding token will be scoped to. The issued token cannot be
+            used with any other cloud provider.
+    OnboardingTokenResponse:
+      type: object
+      properties:
+        onboarding_token:
+          type: string
+          description: >-
+            Short-lived JWT, signed by the billing provider, proving that the caller owns
+            the billing account identified in its claims. Includes (at minimum) `iss` (this
+            billing provider), `aud` (the requested cloud_provider_id), `sub` /
+            `billing_account_id` (the billing account being proven), `iat`, and a short
+            `exp`. Present this token to the named cloud provider during its own onboarding
+            flow; the cloud provider verifies the signature using the billing provider's
+            JWKS (see BillingProviderMetadata.jwks_uri) and rejects the token if its `aud`
+            does not match itself or if it has expired.
+        expires_in:
+          type: integer
+          description: Lifetime of the onboarding token, in seconds, from the time of issuance.

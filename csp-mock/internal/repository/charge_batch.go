@@ -12,7 +12,6 @@ type ChargeBatchRepository interface {
 	Create(ctx context.Context, billingAccountID string, billingProviderID string, cloudServiceProviderID string, merkleRoot string, totalItems int, totalCost float64, createdAt time.Time) (*db.ChargeBatch, error)
 	GetByID(ctx context.Context, batchID string) (*db.ChargeBatch, error)
 	ListByBillingProvider(ctx context.Context, billingProviderID string, startTime, endTime time.Time) ([]db.ChargeBatch, error)
-	ListByBillingAccount(ctx context.Context, billingAccountID string, startTime, endTime time.Time) ([]db.ChargeBatch, error)
 }
 
 type chargeBatchRepo struct {
@@ -52,20 +51,6 @@ func (r *chargeBatchRepo) ListByBillingProvider(ctx context.Context, billingProv
 	// Add date range if provided
 	if !startTime.IsZero() && !endTime.IsZero() {
 		query = query.Where("charge_batches.created_at BETWEEN ? AND ?", startTime, endTime)
-	}
-
-	return batches, query.Find(&batches).Error
-}
-
-func (r *chargeBatchRepo) ListByBillingAccount(ctx context.Context, billingAccountID string, startTime, endTime time.Time) ([]db.ChargeBatch, error) {
-	var batches []db.ChargeBatch
-
-	query := r.db.WithContext(ctx).Where("billing_account_id = ?", billingAccountID)
-	if !startTime.IsZero() {
-		query = query.Where("created_at >= ?", startTime)
-	}
-	if !endTime.IsZero() {
-		query = query.Where("created_at <= ?", endTime)
 	}
 
 	return batches, query.Find(&batches).Error

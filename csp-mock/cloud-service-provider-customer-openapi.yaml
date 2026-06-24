@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Cloud Service Provider (CSP) Adapter API
+  description: API for the CSP to expose metadata, signing keys, and billing account onboarding to a Billing Provider and its customers.
+  version: 1.0.0
+servers:
+  - url: https://example.com/api/v1
+    description: Base Example URL for the CSP Adapter API. The host should be replaced with actual domain.
+security:
+  - cspAuth: []
+paths:
+  /health:
+    get:
+      description: Returns the health status of the CSP adapter API.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  provider_id:
+                    type: string
+                    example: "csp-provider-123"
+
+  /.well-known/cloud-service-provider:
+    get:
+      description: Returns metadata about the CSP, including its API endpoints and signing keys.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CSPMetadata"
+
+  /.well-known/jwks.json:
+    get:
+      description: Returns this CSP's JWKS. Used to verify tokens issued by this CSP, separate from the billing provider's JWKS.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKS"
+
+  /billing/onboarding:
+    post:
+      security: []
+      description: >-
+        Starts onboarding for a billing account onto this CSP. Validates the onboarding token, then returns a url where the customer can log in to or create a CSP account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "400":
+          description: Malformed request.
+        "401":
+          description: Onboarding token is invalid, expired, or not intended for this CSP.
+  /billing/charge-batches/{batch_id}:
+    get:
+      description: Returns the details of a specific charge batch, including list of resource charges, and individual record hashes for fast verification of the batch.
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The UUID4 batch_id which identifies the charge batch
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batch_id:
+                    type: string
+                    description: The UUID4 batch_id which identifies the charge batch
+                  billing_account_id:
+                    type: string
+                    description: The billing account id which the charge batch is for
+                  cloud_service_provider_id:
+                    type: string
+                    description: The cloud service provider id which produced the charge batch
+                  billing_provider_id:
+                    type: string
+                    description: The billing provider id which the charge batch was sent to
+                  resource_charges:
+                    type: array
+                    items:
+                      type: object # TODO: Define schema for individual resource charge records
+                  total_billed_cost:
+                    type: number
+                    format: decimal
+                    description: Total cost billed for the charge batch.
+                  billed_currency:
+                    type: string
+                    description: Code for currency in which the cost is billed.
+                  charge_count:
+                    type: integer
+                    description: Number of individual resource charges in the batch.
+                  merkel_root:
+                    type: string
+                    description: Merkle root of the batch, used for verification and audit purposes. Individual resource charges are hashed, sorted alphabetically and by hash, then merkle tree is built up to the root hash. 
+                  signature: 
+                    type: string
+                    description: Signature of the batch data signed by the CSP. Only contains the batch metadata (batch_id, billing_account_id, cloud_service_provider_id, billing_provider_id, total_billed_cost, billed_currency, charge_count, merkel_root) and does not include the individual resource charges to save space. Since it contains the merkle root, the signature can be used to verify the authenticity of the batch and all its contents without needing to include every charge in the signed data.
+                  
+                  
+
+
+components:
+  securitySchemes:
+    cspAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer JWT issued by this CSP. Issuance mechanism is left to the individual CSP.
+
+  schemas:
+    JWKS:
+      type: object
+      description: A JSON Web Key Set, per RFC 7517.
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: "#/components/schemas/JWK"
+
+    JWK:
+      type: object
+      description: A single JSON Web Key, per RFC 7517. Type-specific fields (per RFC 7518) vary by kty and are left open via additionalProperties.
+      additionalProperties: true
+      required:
+        - kty
+      properties:
+        kty:
+          type: string
+          description: Key type, e.g. "RSA" or "EC". Determines which type-specific fields are present.
+          example: "RSA"
+        use:
+          type: string
+          description: Intended use of the key.
+          enum:
+            - sig
+          default: sig
+        alg:
+          type: string
+          description: Algorithm intended for use with this key, e.g. "RS256" or "ES256".
+          example: "RS256"
+        kid:
+          type: string
+          description: Key ID, matching the kid header on tokens signed with this key.
+
+    CSPMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+          description: UUID4 identifier for this CSP.
+        name:
+          type: string
+          description: Name of the CSP.
+        base_api_endpoint:
+          type: string
+          description: The base API endpoint which a billing provider or customer can use to interact with this CSP.
+        api_version:
+          type: string
+          description: The version of this API which the CSP supports.
+          default: "1.0.0"
+        jwks_uri:
+          type: string
+          description: URL of this CSP's JWKS, i.e. GET /.well-known/jwks.json on this API.
+
+    OnboardingRequest:
+      type: object
+      required:
+        - onboarding_token
+        - return_url
+      properties:
+        onboarding_token:
+          type: string
+          description: Signed JWT from the billing provider, proving ownership of the billing account.
+        return_url:
+          type: string
+          description: URL where the customer is redirected after completing onboarding. The CSP will append csp_account_id, status, and a signature as query parameters. (Eg. https://customer-application.com/csp-onboarding-complete?csp_account_id=abc123&signature=xyz789&status=success)
+
+    OnboardingResponse:
+      type: object
+      properties:
+        redirect_url:
+          type: string
+          description: URL where the customer must be redirected to log in to or create a CSP account and complete onboarding.

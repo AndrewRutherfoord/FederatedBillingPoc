@@ -14,6 +14,7 @@ type Repos struct {
 	Provider              ProviderInfo
 	CloudServiceProviders CloudServiceProviderRepository
 	BillingAccounts       BillingAccountRepository
+	BillingPeriod         BillingPeriodRepository
 	ChargeBatch           ChargeBatchRepository
 }
 
@@ -25,6 +26,7 @@ func New(cfg *config.Config, database *db.DB) *Repos {
 		},
 		CloudServiceProviders: newCloudServiceProviderRepo(cfg.CloudServiceProviders),
 		BillingAccounts:       newBillingAccountRepo(database),
+		BillingPeriod:         newBillingPeriodRepo(database),
 		ChargeBatch:           newChargeBatchRepo(database),
 	}
 }

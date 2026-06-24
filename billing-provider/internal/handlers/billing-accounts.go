@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	billingprovidermodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
 	"github.com/gin-gonic/gin"
@@ -93,14 +94,16 @@ func (s *Server) OnboardSubmit(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, u.String())
 }
 
-func (s *Server) GetBillingAccountRecords(c *gin.Context) {
-	var req billingprovidermodels.GetBillingAccountRecordsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+func (s *Server) GetChargeBatchRecords(c *gin.Context) {
+	var query models.TimeRangeQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	batches, err := s.repos.ChargeBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), req.BillingAccountID, req.From, req.To)
+	account := middleware.BillingAccountFromContext(c)
+
+	batches, err := s.repos.ChargeBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), account.ID, query.From, query.To)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch billing records"})
 		return
@@ -127,8 +130,8 @@ func (s *Server) GetBillingAccountRecords(c *gin.Context) {
 	response := billingprovidermodels.GetBillingAccountRecordsResponse{
 		Batches: chargeBatches,
 		Count:   len(chargeBatches),
-		From:    req.From,
-		To:      req.To,
+		From:    query.From,
+		To:      query.To,
 	}
 
 	c.JSON(http.StatusOK, response)

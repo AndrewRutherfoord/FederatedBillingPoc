@@ -80,24 +80,28 @@ func (s *Server) WellKnown(c *gin.Context) {
 	c.JSON(http.StatusOK, metadata)
 }
 
+func (s *Server) Jwks(c *gin.Context) {
+	// jwks := s.config.Jwks
+	jwks := map[string]interface{}{}
+	c.JSON(http.StatusOK, jwks)
+}
+
 func (s *Server) RegisterRoutes(r *gin.Engine) {
+	api := r.Group("/api/v1")
+	billingGroup := api.Group("/billing")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	r.GET("/health", s.Health)
 	r.GET("/.well-known/cloud-service-provider", s.WellKnown)
+	r.GET("/.well-known/jwks.json", s.Jwks)
 
-	r.GET("/resource-types", s.ListResourceTypes)
-	r.GET("/resource-types/:id", s.GetResourceType)
+	// These routes all act as the actual CSP and are not for access by the CMS.
+	// TODO: Move this to a seperate service eventually since this is the billing adapter and not the customer API.
 
-	r.POST("/customer/register", s.RegisterCustomer)
+	api.GET("/resource-types", s.ListResourceTypes)
+	api.GET("/resource-types/:id", s.GetResourceType)
 
-	// Called by the customer-billing service to initiate onboarding (no customer auth).
-	r.POST("/billing/accounts", s.InitiateBillingAccountOnboarding)
-	r.GET("/onboarding/:session_id", s.OnboardingForm)
-	r.POST("/onboarding/:session_id", s.OnboardingSubmit)
-
-	// Called by the customer-billing service to independently fetch this CSP's view of a
-	// billing account's charge batches, bypassing the billing provider.
-	r.POST("/billing/accounts/records", s.GetBillingAccountRecords)
+	api.POST("/customer/register", s.RegisterCustomer)
 
 	// Routes below require a valid customer in the Authorization header.
 	authed := r.Group("/", middleware.Auth(s.repos.Customers))
@@ -112,6 +116,21 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 		authed.GET("/billing-accounts/:account_id", s.GetBillingAccount)
 		authed.POST("/billing-accounts", s.CreateBillingAccount)
 	}
+
+	// Called by the customer-billing service to initiate onboarding (no customer auth).
+	billingGroup.POST("/onboarding", s.InitiateBillingAccountOnboarding)
+
+	billingAuth := billingGroup.Group("/", middleware.BillingAccountAuth(s.repos.BillingAccounts))
+	{
+		// Called by the customer-billing service to independently fetch this CSP's view of
+		// a charge batch it already knows about from the billing provider, bypassing the
+		// billing provider. Includes the line items for the batch.
+		billingAuth.GET("/charge-batches/:batch_id", s.GetChargeBatch)
+	}
+
+	// SSR routes for the onboarding forms
+	r.GET("/onboarding/:session_id", s.OnboardingForm)
+	r.POST("/onboarding/:session_id", s.OnboardingSubmit)
 }
 
 // Start creates the gin engine, registers routes, and blocks serving on addr.
