@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/db"
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
 )
 
 type BillingPeriod struct {

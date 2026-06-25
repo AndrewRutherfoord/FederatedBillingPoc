@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -145,11 +146,115 @@ func (s *Server) OnboardingSubmit(c *gin.Context) {
 		return
 	}
 
-	u, _ := url.Parse(session.ReturnURL)
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/onboarding/%s/complete", session.ID))
+}
+
+// OnboardingComplete godoc
+//
+//	@Summary	Show the linked account info after onboarding
+//	@Tags		onboarding
+//	@Produce	html
+//	@Param		session_id	path	string	true	"Onboarding session ID"
+//	@Success	200
+//	@Failure	404	{object}	map[string]string
+//	@Router		/onboarding/{session_id}/complete [get]
+func (s *Server) OnboardingComplete(c *gin.Context) {
+	sessionID := c.Param("session_id")
+	session, err := s.repos.OnboardingSessions.GetByID(c.Request.Context(), sessionID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "onboarding session not found"})
+		return
+	}
+
+	info, err := s.onboardingAccountInfo(c.Request.Context(), session)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "linked billing account not found"})
+		return
+	}
+
+	returnURL, err := returnURLWithAccountID(session)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid return url"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "csp_onboard_complete.html", gin.H{
+		"ProviderName": s.config.ProviderName,
+		"Info":         info,
+		"ReturnURL":    returnURL,
+		"DownloadURL":  fmt.Sprintf("/onboarding/%s/complete/download", session.ID),
+	})
+}
+
+// OnboardingCompleteDownload godoc
+//
+//	@Summary	Download the linked account info as JSON
+//	@Tags		onboarding
+//	@Produce	json
+//	@Param		session_id	path	string	true	"Onboarding session ID"
+//	@Success	200	{object}	OnboardingAccountInfo
+//	@Failure	404	{object}	map[string]string
+//	@Router		/onboarding/{session_id}/complete/download [get]
+func (s *Server) OnboardingCompleteDownload(c *gin.Context) {
+	sessionID := c.Param("session_id")
+	session, err := s.repos.OnboardingSessions.GetByID(c.Request.Context(), sessionID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "onboarding session not found"})
+		return
+	}
+
+	info, err := s.onboardingAccountInfo(c.Request.Context(), session)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "linked billing account not found"})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s_%s.json"`, info.ProviderID, info.BillingAccountID))
+	c.JSON(http.StatusOK, info)
+}
+
+// OnboardingAccountInfo is the account information shown/downloaded once onboarding completes.
+type OnboardingAccountInfo struct {
+	CustomerID        string `json:"customer_id"`
+	CustomerName      string `json:"customer_name"`
+	CustomerEmail     string `json:"customer_email"`
+	BillingAccountID  string `json:"billing_account_id"`
+	BillingProviderID string `json:"billing_provider_id"`
+	ProviderID        string `json:"provider_id"`
+	ProviderName      string `json:"provider_name"`
+	Host              string `json:"host"`
+}
+
+func (s *Server) onboardingAccountInfo(ctx context.Context, session *db.OnboardingSession) (*OnboardingAccountInfo, error) {
+	account, err := s.repos.BillingAccounts.GetByAccountID(ctx, session.BillingAccountID)
+	if err != nil {
+		return nil, err
+	}
+	customer, err := s.repos.Customers.GetByID(ctx, account.CustomerID)
+	if err != nil {
+		return nil, err
+	}
+	return &OnboardingAccountInfo{
+		CustomerID:        customer.ID,
+		CustomerName:      customer.Name,
+		CustomerEmail:     customer.Email,
+		BillingAccountID:  account.AccountID,
+		BillingProviderID: account.BillingProviderID,
+		ProviderID:        s.config.ProviderID,
+		ProviderName:      s.config.ProviderName,
+		Host:              s.config.CustomerAPIEndpointURL,
+	}, nil
+}
+
+func returnURLWithAccountID(session *db.OnboardingSession) (string, error) {
+	u, err := url.Parse(session.ReturnURL)
+	if err != nil {
+		return "", err
+	}
 	q := u.Query()
 	q.Set("account_id", session.BillingAccountID)
 	u.RawQuery = q.Encode()
-	c.Redirect(http.StatusSeeOther, u.String())
+	return u.String(), nil
 }
 
 func requestScheme(r *http.Request) string {

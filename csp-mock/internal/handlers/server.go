@@ -131,6 +131,8 @@ func (s *Server) RegisterRoutes(r *gin.Engine) {
 	// SSR routes for the onboarding forms
 	r.GET("/onboarding/:session_id", s.OnboardingForm)
 	r.POST("/onboarding/:session_id", s.OnboardingSubmit)
+	r.GET("/onboarding/:session_id/complete", s.OnboardingComplete)
+	r.GET("/onboarding/:session_id/complete/download", s.OnboardingCompleteDownload)
 }
 
 // Start creates the gin engine, registers routes, and blocks serving on addr.

@@ -17,3 +17,11 @@ cloud_service_providers:
     mtls:
       common_name: "csp-adapter"
       cert_path: "../keys/csp-1.crt"
+  - id: "mock-csp-2"
+    name: "MockCloud US-East"
+    api_endpoint_url: "https://localhost:8445"
+    customer_endpoint_url: "http://localhost:8090"
+    settlement_frequency: "weekly"
+    mtls:
+      common_name: "csp-2-adapter"
+      cert_path: "../keys/csp-2.crt"

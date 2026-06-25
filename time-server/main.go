@@ -127,6 +127,71 @@ func (ts *TimeServer) HandleSSE(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Render Basic Web Interface to advance clock
+const indexHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mock Time Server</title>
+<style>
+  body { font-family: sans-serif; text-align: center; margin-top: 4rem; }
+  #clock { font-size: 3rem; margin-bottom: 2rem; }
+  button {
+    font-size: 1.1rem;
+    padding: 0.6rem 1.2rem;
+    margin: 0.3rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="clock">--:--:--</div>
+  <div>
+    <button onclick="advance('5m')">+5 min</button>
+    <button onclick="advance('15m')">+15 min</button>
+    <button onclick="advance('30m')">+30 min</button>
+    <button onclick="advance('60m')">+60 min</button>
+    <button onclick="advance('90m')">+90 min</button>
+  </div>
+
+<script>
+  const clock = document.getElementById('clock');
+
+  function render(isoString) {
+    const d = new Date(isoString);
+    clock.textContent = d.toLocaleString();
+  }
+
+  function advance(duration) {
+    fetch('/admin/advance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duration })
+    })
+      .then(res => res.json())
+      .then(data => render(data.new_time))
+      .catch(err => console.error('Failed to advance time', err));
+  }
+
+  function connect() {
+    const es = new EventSource('/time/stream');
+    es.onmessage = (e) => render(e.data);
+    es.onerror = () => {
+      es.close();
+      setTimeout(connect, 2000);
+    };
+  }
+  connect();
+</script>
+</body>
+</html>
+`
+
+func (ts *TimeServer) HandleIndex(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(indexHTML))
+}
+
 func (ts *TimeServer) HandleAdvance(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Duration string `json:"duration"`
@@ -147,6 +212,7 @@ func main() {
 	stateFile := "./time-state.json"
 	ts := NewTimeServer(stateFile)
 
+	http.HandleFunc("/", ts.HandleIndex)
 	http.HandleFunc("/time/stream", ts.HandleSSE)
 	http.HandleFunc("/admin/advance", ts.HandleAdvance)
 

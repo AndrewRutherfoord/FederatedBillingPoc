@@ -48,6 +48,48 @@ services:
     depends_on:
       - time-server
 
+  # Second mock CSP instance, used to demonstrate the system handling multiple CSPs.
+  cloud-service-provider-2-customer-api:
+    build:
+      context: .
+      dockerfile: csp-mock/Dockerfile.dev
+      target: customer-api
+    container_name: csp-mock-2-customer-api
+    network_mode: host
+    command: ["air", "-c", ".air-customer-api-2.toml"]
+    volumes:
+      - ./csp-mock:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - ./dbs:/dbs
+      - csp-mock-2-tmp:/app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - DB_PATH=/dbs/csp-mock-2.sqlite
+      - MOCK_CLOCK_HOST=http://localhost:9999
+    depends_on:
+      - time-server
+
+  cloud-service-provider-2-billing-provider-interface:
+    build:
+      context: .
+      dockerfile: csp-mock/Dockerfile.dev
+      target: billing-provider-interface
+    network_mode: host
+    command: ["air", "-c", ".air-billing-provider-interface-2.toml"]
+    volumes:
+      - ./csp-mock:/app
+      - ./keys:/keys
+      - ./shared:/shared
+      - ./dbs:/dbs
+      - csp-mock-2-billing-tmp:/app/tmp
+    environment:
+      - CGO_ENABLED=1
+      - MOCK_CLOCK_HOST=http://localhost:9999
+      - DB_PATH=/dbs/csp-mock-2.sqlite
+    depends_on:
+      - time-server
+
   billing-provider-csp-api:
     build:
       context: .
@@ -107,6 +149,8 @@ services:
 volumes:
   csp-mock-tmp:
   csp-mock-billing-tmp:
+  csp-mock-2-tmp:
+  csp-mock-2-billing-tmp:
   billing-provider-csp-tmp:
   billing-provider-customer-tmp:
   customer-billing-tmp:

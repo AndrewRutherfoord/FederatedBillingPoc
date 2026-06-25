@@ -1,0 +1,101 @@
+# Mock CSP #2 — Resource Registry & Pricing Catalogue
+# FOCUS 1.3 ServiceCategory / ServiceSubcategory taxonomy throughout.
+# Prices are illustrative (USD). Run alongside config.yaml (mock-csp-1) to
+# demonstrate the system handling multiple CSPs.
+
+provider_id: "mock-csp-2"
+provider_name: "MockCloud US-East"
+customer_api_endpoint_url: "http://localhost:8090"
+currency: "USD"
+region_id: "us-east-1"
+region_name: "US East (N. Virginia)"
+availability_zone: "us-east-1a"
+mtls_key_path: "../keys/csp-2.key"
+mtls_cert_path: "../keys/csp-2.crt"
+
+resource_types:
+
+  - id: "compute.vm.small"
+    display_name: "Virtual Machine — Small"
+    description: "General-purpose VM. 2 vCPU, 4 GB RAM."
+    service_name: "Compute"
+    service_category: "Compute"
+    service_subcategory: "Virtual Machines"
+    sku_id: "MC2-VM-S"
+    billing_unit: "Hours"
+    pricing:
+      model: "per_hour"
+      unit_price: 0.046
+    config_schema:
+      vcpus: 2
+      ram_gb: 4
+    tags:
+      family: "general-purpose"
+
+  - id: "compute.vm.medium"
+    display_name: "Virtual Machine — Medium"
+    description: "General-purpose VM. 4 vCPU, 8 GB RAM."
+    service_name: "Compute"
+    service_category: "Compute"
+    service_subcategory: "Virtual Machines"
+    sku_id: "MC2-VM-M"
+    billing_unit: "Hours"
+    pricing:
+      model: "per_hour"
+      unit_price: 0.089
+    config_schema:
+      vcpus: 4
+      ram_gb: 8
+    tags:
+      family: "general-purpose"
+
+  - id: "storage.object.standard"
+    display_name: "Object Storage — Standard"
+    description: "S3-compatible object storage. Billed per GB stored per hour."
+    service_name: "Object Storage"
+    service_category: "Storage"
+    service_subcategory: "Object Storage"
+    sku_id: "MC2-OBJ-STD"
+    billing_unit: "GB-Hours"
+    pricing:
+      model: "per_gb_hour"
+      unit_price: 0.030
+    config_schema:
+      storage_class: "standard"
+    tags:
+      family: "object-storage"
+
+  - id: "database.relational.small"
+    display_name: "Managed Relational DB — Small"
+    description: "Fully managed PostgreSQL-compatible DB. 2 vCPU, 8 GB RAM, 100 GB SSD."
+    service_name: "Managed Database"
+    service_category: "Databases"
+    service_subcategory: "Relational Databases"
+    sku_id: "MC2-RDB-S"
+    billing_unit: "Hours"
+    pricing:
+      model: "per_hour"
+      unit_price: 0.099
+    config_schema:
+      engine: "postgresql"
+      vcpus: 2
+      ram_gb: 8
+      storage_gb: 100
+    tags:
+      family: "relational-db"
+
+billing_providers:
+  - id: "billing-provider-1"
+    name: "Billing Provider 1"
+    api_endpoint: "https://localhost:8444/api/v1/billing"
+    mtls:
+      common_name: "billing-provider-1"
+      cert_path: "../keys/bp-1.crt"
+
+# ──────────────────────────────────────────────────────────────────
+# METERING TICK CONFIG
+# CSP-internal config; not part of the FOCUS schema.
+# ──────────────────────────────────────────────────────────────────
+metering:
+  tick_interval_seconds: 60       # wall-clock seconds between metering ticks
+  simulated_hours_per_tick: 1     # set > 1 to fast-forward the simulation
