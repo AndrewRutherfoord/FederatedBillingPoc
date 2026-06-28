@@ -24,6 +24,7 @@ func Open(path string) (*DB, error) {
 		&BillingPeriod{},
 		&Invoice{},
 		&InvoiceBatch{},
+		&InvoiceProviderLineItem{},
 		&Payment{},
 		&CloudServiceProviderSettlement{},
 	); err != nil {

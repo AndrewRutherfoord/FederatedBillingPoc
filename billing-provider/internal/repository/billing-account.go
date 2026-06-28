@@ -11,7 +11,7 @@ type BillingAccountRepository interface {
 	List(ctx context.Context) ([]db.BillingAccount, error)
 	Get(ctx context.Context, id string) (*db.BillingAccount, error)
 	Create(ctx context.Context) (*db.BillingAccount, error)
-	Update(ctx context.Context, id string, name string, email string) (*db.BillingAccount, error)
+	Update(ctx context.Context, id string, name string, email string, billingCycle db.BillingCycle) (*db.BillingAccount, error)
 }
 
 type billingAccountRepo struct {
@@ -48,13 +48,14 @@ func (r *billingAccountRepo) Create(ctx context.Context) (*db.BillingAccount, er
 	return &account, nil
 }
 
-func (r *billingAccountRepo) Update(ctx context.Context, id string, name string, email string) (*db.BillingAccount, error) {
+func (r *billingAccountRepo) Update(ctx context.Context, id string, name string, email string, billingCycle db.BillingCycle) (*db.BillingAccount, error) {
 	var account db.BillingAccount
 	if err := r.db.Where("account_id = ?", id).First(&account).Error; err != nil {
 		return nil, err
 	}
 	account.Name = name
 	account.Email = email
+	account.BillingCycle = billingCycle
 	if err := r.db.Save(&account).Error; err != nil {
 		return nil, err
 	}

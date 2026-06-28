@@ -3,7 +3,6 @@ package port
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/repository"
@@ -39,12 +38,9 @@ func (p *CSPPortImpl) OnChargeBatch(ctx context.Context, batch sharedmodels.Char
 		return fmt.Errorf("cloud_service_provider_id is required")
 	}
 
-	billingPeriodID := generateBillingPeriodID(batch.CreatedAt)
-
 	chargeBatch := &db.ChargeBatch{
 		ID:                     batch.BatchID,
 		BillingAccountID:       batch.BillingAccountID,
-		BillingPeriodID:        billingPeriodID,
 		CloudServiceProviderID: batch.CloudServiceProviderID,
 		TotalItems:             batch.LineItemCount,
 		TotalCost:              batch.TotalBilledCost,
@@ -55,8 +51,4 @@ func (p *CSPPortImpl) OnChargeBatch(ctx context.Context, batch sharedmodels.Char
 	}
 
 	return p.repositories.ChargeBatch.Create(ctx, chargeBatch)
-}
-
-func generateBillingPeriodID(t time.Time) string {
-	return t.Format("2006-01")
 }

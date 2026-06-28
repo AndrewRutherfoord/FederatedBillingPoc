@@ -16,6 +16,7 @@ type Repos struct {
 	BillingAccounts       BillingAccountRepository
 	BillingPeriod         BillingPeriodRepository
 	ChargeBatch           ChargeBatchRepository
+	Invoice               InvoiceRepository
 }
 
 func New(cfg *config.Config, database *db.DB) *Repos {
@@ -28,5 +29,6 @@ func New(cfg *config.Config, database *db.DB) *Repos {
 		BillingAccounts:       newBillingAccountRepo(database),
 		BillingPeriod:         newBillingPeriodRepo(database),
 		ChargeBatch:           newChargeBatchRepo(database),
+		Invoice:               newInvoiceRepo(database),
 	}
 }

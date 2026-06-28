@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/middleware"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	billingprovidermodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
@@ -47,11 +48,12 @@ func (s *Server) OnboardForm(c *gin.Context) {
 	returnURL := c.Query("return_url")
 
 	c.HTML(http.StatusOK, "onboard.html", gin.H{
-		"AccountID": id,
-		"ReturnURL": returnURL,
-		"Name":      "",
-		"Email":     "",
-		"Error":     "",
+		"AccountID":    id,
+		"ReturnURL":    returnURL,
+		"Name":         "",
+		"Email":        "",
+		"BillingCycle": string(db.BillingCycleMonthly),
+		"Error":        "",
 	})
 }
 
@@ -60,25 +62,28 @@ func (s *Server) OnboardSubmit(c *gin.Context) {
 	name := c.PostForm("name")
 	email := c.PostForm("email")
 	returnURL := c.PostForm("return_url")
+	billingCycle := db.BillingCycle(c.PostForm("billing_cycle"))
 
-	if name == "" || email == "" {
+	if name == "" || email == "" || !billingCycle.Valid() {
 		c.HTML(http.StatusUnprocessableEntity, "onboard.html", gin.H{
-			"AccountID": id,
-			"ReturnURL": returnURL,
-			"Name":      name,
-			"Email":     email,
-			"Error":     "Name and email are required.",
+			"AccountID":    id,
+			"ReturnURL":    returnURL,
+			"Name":         name,
+			"Email":        email,
+			"BillingCycle": string(billingCycle),
+			"Error":        "Name, email, and billing period are required.",
 		})
 		return
 	}
 
-	if _, err := s.repos.BillingAccounts.Update(c.Request.Context(), id, name, email); err != nil {
+	if _, err := s.repos.BillingAccounts.Update(c.Request.Context(), id, name, email, billingCycle); err != nil {
 		c.HTML(http.StatusInternalServerError, "onboard.html", gin.H{
-			"AccountID": id,
-			"ReturnURL": returnURL,
-			"Name":      name,
-			"Email":     email,
-			"Error":     "Something went wrong. Please try again.",
+			"AccountID":    id,
+			"ReturnURL":    returnURL,
+			"Name":         name,
+			"Email":        email,
+			"BillingCycle": string(billingCycle),
+			"Error":        "Something went wrong. Please try again.",
 		})
 		return
 	}

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/middleware"
 	bpmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
 	"github.com/gin-gonic/gin"
@@ -14,6 +16,12 @@ func (s *Server) GetCreditBalance(c *gin.Context) {
 		return
 	}
 
+	var periodStart, periodEnd string
+	if billingPeriod != nil {
+		periodStart = billingPeriod.Start.Format(time.RFC3339)
+		periodEnd = billingPeriod.End.Format(time.RFC3339)
+	}
+
 	c.JSON(200,
 		bpmodels.CreditBalanceResponse{
 			BillingAccountID:   account.ID,
@@ -21,8 +29,8 @@ func (s *Server) GetCreditBalance(c *gin.Context) {
 			CreditUsed:         0,
 			PaymentModel:       s.config.PaymentModel,
 			CreditCurrency:     s.config.BillingCurrency,
-			BillingPeriodStart: billingPeriod.Start.Format("2026-01-01T00:00:00Z"),
-			BillingPeriodEnd:   billingPeriod.End.Format("2026-01-01T00:00:00Z"),
+			BillingPeriodStart: periodStart,
+			BillingPeriodEnd:   periodEnd,
 		},
 	)
 

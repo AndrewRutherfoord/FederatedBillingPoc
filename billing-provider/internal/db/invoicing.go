@@ -22,3 +22,13 @@ type InvoiceBatch struct {
 	CloudServiceProviderID string  `gorm:"not null;index"`
 	ChargeBatchID          string  `gorm:"not null;index"` // Link back to the charge batch that generated this line item
 }
+
+// InvoiceProviderLineItem is one provider's portion of an invoice, with a merkle root over its batches for verification.
+type InvoiceProviderLineItem struct {
+	ID                     string  `gorm:"column:id;primaryKey"`
+	InvoiceID              string  `gorm:"not null;index"`
+	CloudServiceProviderID string  `gorm:"not null;index"`
+	Amount                 float64 `gorm:"not null"`
+	MerkleRoot             string  `gorm:"not null"`
+	BatchCount             int     `gorm:"not null"`
+}
