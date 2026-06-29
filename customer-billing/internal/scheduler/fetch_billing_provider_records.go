@@ -79,7 +79,7 @@ func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.
 	return nil
 }
 
-func (j *FetchBillingProviderRecordsJob) Execute(ctx context.Context, startTime time.Time) error {
+func (j *FetchBillingProviderRecordsJob) Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error {
 	log.Printf("FetchBillingProviderRecordsJob: Executing job %s", j.id)
 
 	billingAccounts, err := j.repos.BillingAccount.ListBillingAccounts(ctx)

@@ -110,7 +110,7 @@ func (j *FetchCloudServiceProviderMeteringRecordsJob) fetchBillingAccountRecords
 	return nil
 }
 
-func (j *FetchCloudServiceProviderMeteringRecordsJob) Execute(ctx context.Context, startTime time.Time) error {
+func (j *FetchCloudServiceProviderMeteringRecordsJob) Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error {
 	log.Printf("FetchCloudServiceProviderMeteringRecordsJob: Executing job %s", j.id)
 
 	billingAccounts, err := j.repos.BillingAccount.ListBillingAccounts(ctx)

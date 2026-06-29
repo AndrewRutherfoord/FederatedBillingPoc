@@ -9,6 +9,9 @@
                 <RouterLink :to="{ name: 'ResourceCharges', params: { id: props.id } }" class="p-button p-button-text">
                     View Resource Charges
                 </RouterLink>
+                <RouterLink :to="{ name: 'Invoices', params: { id: props.id } }" class="p-button p-button-text">
+                    View Invoices
+                </RouterLink>
             </div>
         </div>
         <hr>

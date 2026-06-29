@@ -31,7 +31,7 @@ func (j *IssueInvoicesJob) ID() string {
 	return j.id
 }
 
-func (j *IssueInvoicesJob) Execute(ctx context.Context, startTime time.Time) error {
+func (j *IssueInvoicesJob) Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error {
 	accounts, err := j.repos.BillingAccounts.List(ctx)
 	if err != nil {
 		return err

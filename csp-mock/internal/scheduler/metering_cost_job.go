@@ -31,37 +31,37 @@ func (j *RecordMeteringAndCostJob) ID() string {
 	return j.id
 }
 
-func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *sharedmodels.FocusLineItem {
-	// TODO: Currently assumes this is run on the hour every hour. Needs to actually calculate the hours since last run.
-	qty := decimal.NewFromInt(1)
+func (j *RecordMeteringAndCostJob) createPerHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource, elapsedHours decimal.Decimal) *sharedmodels.FocusLineItem {
+	qty := elapsedHours
 	hour := "hour"
 	resourceID := resource.ID
 	resourceTypeStr := resource.ResourceType
+	cost := resourceType.Pricing.UnitPrice.Mul(elapsedHours)
 
 	return baseBuilder.Copy().
 		WithServiceAndCosts(
 			sharedmodels.ServiceCategoryCompute,
 			sharedmodels.ServiceSubcategoryVirtualMachines,
 			resourceType.ID,
-			resourceType.Pricing.UnitPrice,
-			resourceType.Pricing.UnitPrice,
-			resourceType.Pricing.UnitPrice,
-			resourceType.Pricing.UnitPrice,
+			cost,
+			cost,
+			cost,
+			cost,
 		).
 		WithConsumption(&qty, &hour).
 		WithResource(&resourceID, nil, &resourceTypeStr).
 		Build()
 }
 
-func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource) *sharedmodels.FocusLineItem {
-	// TODO: Currently assumes this is run on the hour every hour. Needs to actually calculate the hours since last run.
+func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *sharedmodels.FocusLineItemBuilder, resourceType *config.ResourceType, resource *db.Resource, elapsedHours decimal.Decimal) *sharedmodels.FocusLineItem {
 	if resource.StorageGB == nil {
 		log.Printf("Resource %s has no storage GB value for per-GB-hour billing", resource.ID)
 		return nil
 	}
 
 	gbHour := "GB-hour"
-	billedCost := resource.StorageGB.Mul(resourceType.Pricing.UnitPrice)
+	gbHours := resource.StorageGB.Mul(elapsedHours)
+	billedCost := gbHours.Mul(resourceType.Pricing.UnitPrice)
 	resourceID := resource.ID
 	resourceTypeStr := resource.ResourceType
 
@@ -75,12 +75,12 @@ func (j *RecordMeteringAndCostJob) createPerGbHourCostRecord(baseBuilder *shared
 			billedCost,
 			billedCost,
 		).
-		WithConsumption(resource.StorageGB, &gbHour).
+		WithConsumption(&gbHours, &gbHour).
 		WithResource(&resourceID, nil, &resourceTypeStr).
 		Build()
 }
 
-func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *sharedmodels.FocusLineItemBuilder, resource *db.Resource) *sharedmodels.FocusLineItem {
+func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context, baseBuilder *sharedmodels.FocusLineItemBuilder, resource *db.Resource, elapsedHours decimal.Decimal) *sharedmodels.FocusLineItem {
 	resourceType, err := j.repos.ResourceTypes.GetById(ctx, resource.ResourceType)
 	if err != nil {
 		log.Printf("Error fetching resource type '%s' for resource '%s': %v", resource.ResourceType, resource.ID, err)
@@ -89,22 +89,28 @@ func (j *RecordMeteringAndCostJob) createResourceCostRecord(ctx context.Context,
 
 	switch resourceType.Pricing.Model {
 	case "per_hour":
-		return j.createPerHourCostRecord(baseBuilder, resourceType, resource)
+		return j.createPerHourCostRecord(baseBuilder, resourceType, resource, elapsedHours)
 	case "per_gb_hour":
-		return j.createPerGbHourCostRecord(baseBuilder, resourceType, resource)
+		return j.createPerGbHourCostRecord(baseBuilder, resourceType, resource, elapsedHours)
 	default:
 		log.Printf("Unknown pricing model '%s' for resource type '%s'", resourceType.Pricing.Model, resourceType.ID)
 		return nil
 	}
 }
 
-func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx context.Context, startTime time.Time, billingAccount db.BillingAccount, resources []*db.Resource) error {
+func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx context.Context, startTime time.Time, lastExecution time.Time, billingAccount db.BillingAccount, resources []*db.Resource) error {
 
 	// TODO: Do this properly based on BP billing period, not just current month
 	billingPeriodStart := time.Date(startTime.Year(), startTime.Month(), 1, 0, 0, 0, 0, time.UTC)
 	billingPeriodEnd := billingPeriodStart.AddDate(0, 1, 0)
-	chargePeriodStart := startTime.Add(-1 * time.Hour)
+
+	// Calculate using actual elapsed time since last execution. Default hour if no prev exec.
+	chargePeriodStart := lastExecution
+	if chargePeriodStart.IsZero() {
+		chargePeriodStart = startTime.Add(-1 * time.Hour)
+	}
 	chargePeriodEnd := startTime
+	elapsedHours := decimal.NewFromFloat(chargePeriodEnd.Sub(chargePeriodStart).Hours())
 
 	baseBuilder := sharedmodels.NewFocusLineItemBuilder().
 		WithProviderAndPeriod(
@@ -131,7 +137,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	var hashes []string
 
 	for _, resource := range resources {
-		lineItem := j.createResourceCostRecord(ctx, baseBuilder, resource)
+		lineItem := j.createResourceCostRecord(ctx, baseBuilder, resource, elapsedHours)
 		if lineItem == nil {
 			log.Printf("Failed to create cost record for resource %s", resource.ID)
 			continue
@@ -186,7 +192,7 @@ func (j *RecordMeteringAndCostJob) processBillingAccountResourcesBatch(ctx conte
 	})
 }
 
-func (j *RecordMeteringAndCostJob) Execute(ctx context.Context, startTime time.Time) error {
+func (j *RecordMeteringAndCostJob) Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error {
 	log.Printf("RecordMeteringAndCostJob executed: %s", j.id)
 
 	billingAccounts, err := j.repos.BillingAccounts.List(ctx)
@@ -208,7 +214,7 @@ func (j *RecordMeteringAndCostJob) Execute(ctx context.Context, startTime time.T
 				break
 			}
 
-			if err := j.processBillingAccountResourcesBatch(ctx, startTime, ba, resources); err != nil {
+			if err := j.processBillingAccountResourcesBatch(ctx, startTime, lastExecution, ba, resources); err != nil {
 				log.Printf("Error processing resources for billing account %s: %v", ba.AccountID, err)
 				return err
 			}

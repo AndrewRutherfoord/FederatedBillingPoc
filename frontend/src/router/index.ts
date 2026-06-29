@@ -32,6 +32,12 @@ const router = createRouter({
       props: true,
     },
     {
+      path: '/billing-providers/:id/invoices',
+      name: 'Invoices',
+      component: () => import('../views/billing-providers/InvoicesView.vue'),
+      props: true,
+    },
+    {
       path: '/billing-providers/:id/cloud-provider-links',
       name: 'CloudProviderLinks',
       component: () => import('../views/billing-providers/CloudProviderLinksView.vue'),

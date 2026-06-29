@@ -13,7 +13,7 @@ import (
 // Job represents a scheduled job.
 type Job interface {
 	ID() string
-	Execute(ctx context.Context, startTime time.Time) error
+	Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error
 }
 
 // Schedule describes when a job should run.
@@ -151,7 +151,7 @@ func (s *Scheduler) CheckAndExecute(ctx context.Context, now time.Time) error {
 			log.Printf("[scheduler] starting job: %s", jobID)
 			start := time.Now()
 
-			if err := entry.job.Execute(ctx, now); err != nil {
+			if err := entry.job.Execute(ctx, now, entry.lastExecution); err != nil {
 				return fmt.Errorf("job %q failed: %w", jobID, err)
 			}
 

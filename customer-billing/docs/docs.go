@@ -363,6 +363,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/billing/accounts/{id}/invoices": {
+            "get": {
+                "description": "Fetches the billing account's invoices live from its billing provider.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "billing"
+                ],
+                "summary": "List invoices for a billing account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Billing account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.InvoiceEntry"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/billing/accounts/{id}/resource-charges": {
             "get": {
                 "description": "Aggregates billed cost per resource entirely from the FOCUS line items fetched directly from the CSP (not from anything reported by the billing provider), so each row also shows which cloud service provider it came from.",
@@ -474,6 +524,55 @@ const docTemplate = `{
                 },
                 "total_cost": {
                     "type": "number"
+                }
+            }
+        },
+        "handlers.InvoiceEntry": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "billing_period_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "due_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issued_at": {
+                    "type": "string"
+                },
+                "provider_line_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.InvoiceProviderLineItemEntry"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.InvoiceProviderLineItemEntry": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "batch_count": {
+                    "type": "integer"
+                },
+                "cloud_service_provider_id": {
+                    "type": "string"
+                },
+                "merkle_root": {
+                    "type": "string"
                 }
             }
         },

@@ -15,6 +15,7 @@ type BillingProviderClient interface {
 	GetMetadata() (billingprovidermodels.Metadata, error)
 	RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error)
 	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatch, error)
+	GetInvoices(billingAccountID string) ([]billingprovidermodels.Invoice, error)
 }
 
 type billingProviderClient struct {
@@ -67,4 +68,13 @@ func (c *billingProviderClient) GetBillingAccountRecords(billingAccountID string
 	}
 
 	return response.Batches, nil
+}
+
+func (c *billingProviderClient) GetInvoices(billingAccountID string) ([]billingprovidermodels.Invoice, error) {
+	var response billingprovidermodels.GetInvoicesResponse
+	err := c.FetchJSONWithAuth("/billing/invoices", billingAccountID, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch invoices: %w", err)
+	}
+	return response.Invoices, nil
 }

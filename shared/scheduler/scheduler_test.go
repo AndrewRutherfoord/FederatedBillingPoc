@@ -21,7 +21,7 @@ func (j *SimpleJob) ID() string {
 	return j.id
 }
 
-func (j *SimpleJob) Execute(ctx context.Context, startTime time.Time) error {
+func (j *SimpleJob) Execute(ctx context.Context, startTime time.Time, lastExecution time.Time) error {
 	return j.fn(ctx)
 }
 

@@ -441,6 +441,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/billing/accounts/{id}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List invoices for a billing account
+         * @description Fetches the billing account's invoices live from its billing provider.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Billing account ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["handlers.InvoiceEntry"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/billing/accounts/{id}/resource-charges": {
         parameters: {
             query?: never;
@@ -552,6 +616,22 @@ export interface components {
             cloud_provider_name?: string;
             id?: string;
             total_cost?: number;
+        };
+        "handlers.InvoiceEntry": {
+            amount?: number;
+            billing_period_id?: string;
+            currency?: string;
+            due_at?: string;
+            id?: string;
+            issued_at?: string;
+            provider_line_items?: components["schemas"]["handlers.InvoiceProviderLineItemEntry"][];
+            status?: string;
+        };
+        "handlers.InvoiceProviderLineItemEntry": {
+            amount?: number;
+            batch_count?: number;
+            cloud_service_provider_id?: string;
+            merkle_root?: string;
         };
         "handlers.RegisterAcccountRequest": {
             account_alias: string;

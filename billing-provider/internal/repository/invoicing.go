@@ -13,9 +13,15 @@ import (
 
 const invoiceDueInDays = 14
 
+type InvoiceWithLineItems struct {
+	Invoice   db.Invoice
+	LineItems []db.InvoiceProviderLineItem
+}
+
 type InvoiceRepository interface {
 	// CreateForPeriod issues an invoice covering the given batches and links each batch to it.
 	CreateForPeriod(ctx context.Context, billingAccountID, billingPeriodID, currency string, batches []db.ChargeBatch, issuedAt time.Time) (*db.Invoice, error)
+	ListByBillingAccount(ctx context.Context, billingAccountID string) ([]InvoiceWithLineItems, error)
 }
 
 type invoiceRepo struct {
@@ -90,4 +96,38 @@ func (r *invoiceRepo) CreateForPeriod(ctx context.Context, billingAccountID, bil
 		return nil, err
 	}
 	return invoice, nil
+}
+
+func (r *invoiceRepo) ListByBillingAccount(ctx context.Context, billingAccountID string) ([]InvoiceWithLineItems, error) {
+	var invoices []db.Invoice
+	if err := r.db.WithContext(ctx).
+		Where("billing_account_id = ?", billingAccountID).
+		Order("issued_at DESC").
+		Find(&invoices).Error; err != nil {
+		return nil, err
+	}
+	if len(invoices) == 0 {
+		return nil, nil
+	}
+
+	invoiceIDs := make([]string, len(invoices))
+	for i, inv := range invoices {
+		invoiceIDs[i] = inv.ID
+	}
+
+	var lineItems []db.InvoiceProviderLineItem
+	if err := r.db.WithContext(ctx).Where("invoice_id IN ?", invoiceIDs).Find(&lineItems).Error; err != nil {
+		return nil, err
+	}
+
+	lineItemsByInvoice := map[string][]db.InvoiceProviderLineItem{}
+	for _, li := range lineItems {
+		lineItemsByInvoice[li.InvoiceID] = append(lineItemsByInvoice[li.InvoiceID], li)
+	}
+
+	result := make([]InvoiceWithLineItems, len(invoices))
+	for i, inv := range invoices {
+		result[i] = InvoiceWithLineItems{Invoice: inv, LineItems: lineItemsByInvoice[inv.ID]}
+	}
+	return result, nil
 }

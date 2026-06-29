@@ -32,6 +32,38 @@ definitions:
       total_cost:
         type: number
     type: object
+  handlers.InvoiceEntry:
+    properties:
+      amount:
+        type: number
+      billing_period_id:
+        type: string
+      currency:
+        type: string
+      due_at:
+        type: string
+      id:
+        type: string
+      issued_at:
+        type: string
+      provider_line_items:
+        items:
+          $ref: '#/definitions/handlers.InvoiceProviderLineItemEntry'
+        type: array
+      status:
+        type: string
+    type: object
+  handlers.InvoiceProviderLineItemEntry:
+    properties:
+      amount:
+        type: number
+      batch_count:
+        type: integer
+      cloud_service_provider_id:
+        type: string
+      merkle_root:
+        type: string
+    type: object
   handlers.RegisterAcccountRequest:
     properties:
       account_alias:
@@ -353,6 +385,39 @@ paths:
               type: string
             type: object
       summary: Register a cloud provider account with a billing account
+      tags:
+      - billing
+  /billing/accounts/{id}/invoices:
+    get:
+      description: Fetches the billing account's invoices live from its billing provider.
+      parameters:
+      - description: Billing account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.InvoiceEntry'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List invoices for a billing account
       tags:
       - billing
   /billing/accounts/{id}/resource-charges:
