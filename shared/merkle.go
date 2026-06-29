@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"sort"
 
 	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
 )
@@ -76,6 +77,15 @@ func (mt *MerkleTree) Root() string {
 		return ""
 	}
 	return mt.root.hash
+}
+
+// MerkleRootFromHashes sorts the given hashes for deterministic ordering (regardless of the
+// order they were collected in) and returns the root of the merkle tree built from them.
+func MerkleRootFromHashes(hashes []string) string {
+	sorted := make([]string, len(hashes))
+	copy(sorted, hashes)
+	sort.Strings(sorted)
+	return NewMerkleTree(sorted).Root()
 }
 
 // combinedHash returns the hash of two concatenated hashes.

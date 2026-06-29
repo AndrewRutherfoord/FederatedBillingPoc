@@ -12,6 +12,7 @@ type InvoiceProviderLineItemEntry struct {
 	Amount                 float64 `json:"amount"`
 	MerkleRoot             string  `json:"merkle_root"`
 	BatchCount             int64   `json:"batch_count"`
+	MerkleValid            bool    `json:"merkle_valid"`
 }
 
 type InvoiceEntry struct {
@@ -53,6 +54,7 @@ func (s *Server) ListInvoices(c *gin.Context) {
 				Amount:                 li.Amount,
 				MerkleRoot:             li.MerkleRoot,
 				BatchCount:             li.BatchCount,
+				MerkleValid:            li.MerkleValid,
 			}
 		}
 		result[i] = InvoiceEntry{

@@ -8,6 +8,7 @@ import (
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/clients"
 	"github.com/andrewrutherfoord/fed-bill-poc/customer-billing/internal/repository"
 	"github.com/andrewrutherfoord/fed-bill-poc/shared"
+	sharedmodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models"
 	billingprovidermodels "github.com/andrewrutherfoord/fed-bill-poc/shared/models/billing_provider"
 )
 
@@ -27,17 +28,21 @@ func (j *FetchInvoicesJob) ID() string {
 	return j.id
 }
 
-func (j *FetchInvoicesJob) syncInvoiceBatches(ctx context.Context, bpClient clients.BillingProviderClient, account *repository.BillingAccountWithProviderName, invoice billingprovidermodels.Invoice) error {
+func (j *FetchInvoicesJob) syncInvoiceBatches(ctx context.Context, bpClient clients.BillingProviderClient, account *repository.BillingAccountWithProviderName, invoice billingprovidermodels.Invoice) (map[string][]sharedmodels.ChargeBatch, error) {
+	batchesByProvider := map[string][]sharedmodels.ChargeBatch{}
+
 	for offset := 0; ; offset += invoiceBatchPageSize {
 		batches, err := bpClient.GetBillingPeriodBatches(account.ID, invoice.BillingPeriodID, invoiceBatchPageSize, offset)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(batches) == 0 {
-			return nil
+			return batchesByProvider, nil
 		}
 
 		for _, batch := range batches {
+			batchesByProvider[batch.CloudServiceProviderID] = append(batchesByProvider[batch.CloudServiceProviderID], batch)
+
 			_, err := j.repos.BillingAccountChargeBatch.UpsertInvoiced(ctx, repository.CreateBillingAccountChargeBatchParams{
 				ID:                     batch.BatchID,
 				BillingAccountID:       account.ID,
@@ -58,6 +63,15 @@ func (j *FetchInvoicesJob) syncInvoiceBatches(ctx context.Context, bpClient clie
 	}
 }
 
+// verifyProviderLineItemMerkleRoot rebuilds the merkle tree proving totals are backed by batches
+func verifyProviderLineItemMerkleRoot(batches []sharedmodels.ChargeBatch, claimedRoot string) bool {
+	roots := make([]string, len(batches))
+	for i, b := range batches {
+		roots[i] = b.MerkleRoot
+	}
+	return shared.MerkleRootFromHashes(roots) == claimedRoot
+}
+
 func (j *FetchInvoicesJob) syncAccountInvoices(ctx context.Context, account *repository.BillingAccountWithProviderName) error {
 	bpClient := clients.NewBillingProviderClient(account.BillingProviderBaseURL)
 
@@ -72,6 +86,12 @@ func (j *FetchInvoicesJob) syncAccountInvoices(ctx context.Context, account *rep
 			return err
 		}
 		if exists {
+			continue
+		}
+
+		batchesByProvider, err := j.syncInvoiceBatches(ctx, bpClient, account, inv)
+		if err != nil {
+			log.Printf("FetchInvoicesJob: error syncing batches for invoice %s, will retry next run: %v", inv.ID, err)
 			continue
 		}
 
@@ -90,6 +110,11 @@ func (j *FetchInvoicesJob) syncAccountInvoices(ctx context.Context, account *rep
 		}
 
 		for _, li := range inv.ProviderLineItems {
+			valid := verifyProviderLineItemMerkleRoot(batchesByProvider[li.CloudServiceProviderID], li.MerkleRoot)
+			if !valid {
+				log.Printf("FetchInvoicesJob: MERKLE ROOT MISMATCH for invoice %s, provider %s: line item claims root %s over %d batch(es)", inv.ID, li.CloudServiceProviderID, li.MerkleRoot, li.BatchCount)
+			}
+
 			if err := j.repos.Invoice.CreateProviderLineItem(ctx, repository.CreateInvoiceProviderLineItemParams{
 				ID:                     inv.ID + ":" + li.CloudServiceProviderID,
 				InvoiceID:              inv.ID,
@@ -97,13 +122,10 @@ func (j *FetchInvoicesJob) syncAccountInvoices(ctx context.Context, account *rep
 				Amount:                 li.Amount,
 				MerkleRoot:             li.MerkleRoot,
 				BatchCount:             int64(li.BatchCount),
+				MerkleValid:            valid,
 			}); err != nil {
 				log.Printf("FetchInvoicesJob: error storing line item for invoice %s: %v", inv.ID, err)
 			}
-		}
-
-		if err := j.syncInvoiceBatches(ctx, bpClient, account, inv); err != nil {
-			log.Printf("FetchInvoicesJob: error syncing batches for invoice %s: %v", inv.ID, err)
 		}
 
 		log.Printf("FetchInvoicesJob: synced invoice %s for billing account %s", inv.ID, account.ID)

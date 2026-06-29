@@ -63,6 +63,8 @@ definitions:
         type: string
       merkle_root:
         type: string
+      merkle_valid:
+        type: boolean
     type: object
   handlers.RegisterAcccountRequest:
     properties:

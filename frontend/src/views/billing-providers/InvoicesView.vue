@@ -7,8 +7,8 @@
             </Button>
         </div>
         <p class="text-sm text-gray-500">
-            Expand a row to see each cloud provider's share of the invoice and the merkle root proving
-            its charge batches weren't tampered with.
+            Expand a row to see each cloud provider's share of the invoice, its merkle root, and whether
+            that root was verified against the reported charge batches.
         </p>
         <DataTable :value="invoices" v-model:expandedRows="expandedRows" dataKey="id" class="mt-2">
             <template #empty>No invoices found.</template>
@@ -55,6 +55,12 @@
                     <Column header="Merkle Root">
                         <template #body="{ data: lineItem }">
                             <span class="font-mono text-xs">{{ lineItem.merkle_root }}</span>
+                        </template>
+                    </Column>
+                    <Column header="Verified">
+                        <template #body="{ data: lineItem }">
+                            <Tag :value="lineItem.merkle_valid ? 'Valid' : 'Invalid'"
+                                :severity="lineItem.merkle_valid ? 'success' : 'danger'" />
                         </template>
                     </Column>
                 </DataTable>

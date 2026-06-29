@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"sort"
 	"time"
 
 	"github.com/andrewrutherfoord/fed-bill-poc/billing-provider/internal/db"
@@ -75,14 +74,13 @@ func (r *invoiceRepo) CreateForPeriod(ctx context.Context, billingAccountID, bil
 				roots[i] = b.MerkleRoot
 				providerAmount += b.TotalCost
 			}
-			sort.Strings(roots)
 
 			lineItem := &db.InvoiceProviderLineItem{
 				ID:                     uuid.New().String(),
 				InvoiceID:              invoice.ID,
 				CloudServiceProviderID: providerID,
 				Amount:                 providerAmount,
-				MerkleRoot:             shared.NewMerkleTree(roots).Root(),
+				MerkleRoot:             shared.MerkleRootFromHashes(roots),
 				BatchCount:             len(providerBatches),
 			}
 			if err := tx.Create(lineItem).Error; err != nil {

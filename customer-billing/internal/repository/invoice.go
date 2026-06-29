@@ -14,6 +14,7 @@ type InvoiceProviderLineItem struct {
 	Amount                 float64
 	MerkleRoot             string
 	BatchCount             int64
+	MerkleValid            bool
 }
 
 type Invoice struct {
@@ -46,6 +47,7 @@ type CreateInvoiceProviderLineItemParams struct {
 	Amount                 float64
 	MerkleRoot             string
 	BatchCount             int64
+	MerkleValid            bool
 }
 
 type InvoiceRepository interface {
@@ -97,6 +99,7 @@ func (r *invoiceRepo) CreateProviderLineItem(ctx context.Context, params CreateI
 		Amount:                 params.Amount,
 		MerkleRoot:             params.MerkleRoot,
 		BatchCount:             params.BatchCount,
+		MerkleValid:            params.MerkleValid,
 	})
 	return err
 }
@@ -126,6 +129,7 @@ func (r *invoiceRepo) ListByBillingAccount(ctx context.Context, billingAccountID
 			Amount:                 li.Amount,
 			MerkleRoot:             li.MerkleRoot,
 			BatchCount:             li.BatchCount,
+			MerkleValid:            li.MerkleValid,
 		})
 	}
 

@@ -564,6 +564,9 @@ const docTemplate = `{
                 },
                 "merkle_root": {
                     "type": "string"
+                },
+                "merkle_valid": {
+                    "type": "boolean"
                 }
             }
         },

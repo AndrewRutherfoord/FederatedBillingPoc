@@ -151,4 +151,5 @@ type InvoiceProviderLineItem struct {
 	Amount                 float64
 	MerkleRoot             string
 	BatchCount             int64
+	MerkleValid            bool
 }

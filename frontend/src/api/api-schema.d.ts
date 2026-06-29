@@ -632,6 +632,7 @@ export interface components {
             batch_count?: number;
             cloud_service_provider_id?: string;
             merkle_root?: string;
+            merkle_valid?: boolean;
         };
         "handlers.RegisterAcccountRequest": {
             account_alias: string;

@@ -53,8 +53,8 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 }
 
 const createInvoiceProviderLineItem = `-- name: CreateInvoiceProviderLineItem :one
-INSERT INTO invoice_provider_line_item (id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count)
-VALUES (?, ?, ?, ?, ?, ?) RETURNING id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count
+INSERT INTO invoice_provider_line_item (id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count, merkle_valid)
+VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count, merkle_valid
 `
 
 type CreateInvoiceProviderLineItemParams struct {
@@ -64,6 +64,7 @@ type CreateInvoiceProviderLineItemParams struct {
 	Amount                 float64
 	MerkleRoot             string
 	BatchCount             int64
+	MerkleValid            bool
 }
 
 func (q *Queries) CreateInvoiceProviderLineItem(ctx context.Context, arg CreateInvoiceProviderLineItemParams) (InvoiceProviderLineItem, error) {
@@ -74,6 +75,7 @@ func (q *Queries) CreateInvoiceProviderLineItem(ctx context.Context, arg CreateI
 		arg.Amount,
 		arg.MerkleRoot,
 		arg.BatchCount,
+		arg.MerkleValid,
 	)
 	var i InvoiceProviderLineItem
 	err := row.Scan(
@@ -83,6 +85,7 @@ func (q *Queries) CreateInvoiceProviderLineItem(ctx context.Context, arg CreateI
 		&i.Amount,
 		&i.MerkleRoot,
 		&i.BatchCount,
+		&i.MerkleValid,
 	)
 	return i, err
 }
@@ -108,7 +111,7 @@ func (q *Queries) GetInvoice(ctx context.Context, id string) (Invoice, error) {
 }
 
 const listInvoiceProviderLineItemsByInvoiceIDs = `-- name: ListInvoiceProviderLineItemsByInvoiceIDs :many
-SELECT id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count FROM invoice_provider_line_item WHERE invoice_id IN (/*SLICE:invoice_ids*/?)
+SELECT id, invoice_id, cloud_service_provider_id, amount, merkle_root, batch_count, merkle_valid FROM invoice_provider_line_item WHERE invoice_id IN (/*SLICE:invoice_ids*/?)
 `
 
 func (q *Queries) ListInvoiceProviderLineItemsByInvoiceIDs(ctx context.Context, invoiceIds []string) ([]InvoiceProviderLineItem, error) {
@@ -137,6 +140,7 @@ func (q *Queries) ListInvoiceProviderLineItemsByInvoiceIDs(ctx context.Context, 
 			&i.Amount,
 			&i.MerkleRoot,
 			&i.BatchCount,
+			&i.MerkleValid,
 		); err != nil {
 			return nil, err
 		}
