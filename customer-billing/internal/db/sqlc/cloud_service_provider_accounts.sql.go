@@ -13,6 +13,8 @@ import (
 const createCloudServiceProviderAccount = `-- name: CreateCloudServiceProviderAccount :one
 INSERT INTO cloud_service_provider_accounts (id, billing_account_id, cloud_service_provider_id)
 VALUES (?, ?, ?)
+ON CONFLICT (billing_account_id, cloud_service_provider_id)
+DO UPDATE SET billing_account_id = excluded.billing_account_id
 RETURNING id, billing_account_id, cloud_service_provider_id
 `
 
@@ -22,6 +24,9 @@ type CreateCloudServiceProviderAccountParams struct {
 	CloudServiceProviderID string
 }
 
+// Idempotent: if this billing account is already linked to the cloud provider
+// (e.g. the customer refreshed the onboarding-complete redirect page), return
+// the existing link instead of creating a duplicate.
 func (q *Queries) CreateCloudServiceProviderAccount(ctx context.Context, arg CreateCloudServiceProviderAccountParams) (CloudServiceProviderAccount, error) {
 	row := q.db.QueryRowContext(ctx, createCloudServiceProviderAccount, arg.ID, arg.BillingAccountID, arg.CloudServiceProviderID)
 	var i CloudServiceProviderAccount
@@ -45,7 +50,7 @@ const listCloudServiceProviderAccountsByBillingAccountWithTotalCost = `-- name: 
 SELECT cspa.id, cspa.billing_account_id, cspa.cloud_service_provider_id, csp.name AS cloud_service_provider_name, csp.customer_api_endpoint_url AS customer_api_endpoint_url, SUM(bacb.total_cost) AS total_cost, bacb.billed_currency AS billing_currency
 FROM cloud_service_provider_accounts cspa
 JOIN cloud_service_providers csp ON csp.id = cspa.cloud_service_provider_id
-LEFT JOIN billing_account_charge_batch bacb ON bacb.cloud_service_provider_id = cspa.cloud_service_provider_id AND bacb.billing_account_id = cspa.billing_account_id
+LEFT JOIN billing_account_charge_batch bacb ON bacb.cloud_service_provider_id = cspa.cloud_service_provider_id AND bacb.billing_account_id = cspa.billing_account_id AND bacb.billing_period_id = ''
 WHERE cspa.billing_account_id = ?
 GROUP BY cspa.id, cspa.billing_account_id, cspa.cloud_service_provider_id, csp.name, csp.customer_api_endpoint_url, bacb.billed_currency
 `
@@ -60,6 +65,7 @@ type ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow struct {
 	BillingCurrency          sql.NullString
 }
 
+// Only sums batches not yet assigned to a billing period, i.e. the current unpaid period's cost.
 func (q *Queries) ListCloudServiceProviderAccountsByBillingAccountWithTotalCost(ctx context.Context, billingAccountID string) ([]ListCloudServiceProviderAccountsByBillingAccountWithTotalCostRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCloudServiceProviderAccountsByBillingAccountWithTotalCost, billingAccountID)
 	if err != nil {

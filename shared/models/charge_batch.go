@@ -20,6 +20,7 @@ type ChargeBatch struct {
 	MerkleRoot      string    `json:"merkle_root"`
 	BatchSignature  string    `json:"batch_signature"`
 	CreatedAt       time.Time `json:"created_at"`
+	BillingPeriodID *string   `json:"billing_period_id"` // Nil until a billing period job assigns this batch to a period
 }
 
 // ChargeBatchDetail is a ChargeBatch plus the underlying FocusLineItems it aggregates.

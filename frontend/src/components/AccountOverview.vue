@@ -13,6 +13,9 @@
                     <Button asChild v-slot="slotProps" size="small">
                         <RouterLink :to="{ name: 'ResourceCharges', params: { id: props.id } }" :class="slotProps.class">View Resource Charges</RouterLink>
                     </Button>
+                    <Button asChild v-slot="slotProps" size="small">
+                        <RouterLink :to="{ name: 'Invoices', params: { id: props.id } }" :class="slotProps.class">View Invoices</RouterLink>
+                    </Button>
                 </div>
             </div>
             <div v-if="resourceCharges && resourceCharges.length > 0" class="flex flex-col md:flex-row gap-4 mt-2">
@@ -41,10 +44,10 @@
                 <template #empty>No linked cloud providers found.</template>
                 <Column field="cloud_provider_name" header="Cloud Provider"></Column>
                 <Column field="cloud_provider_id" header="Provider ID"></Column>
-                <Column header="Total Cost">
+                <Column header="Unpaid Cost">
                     <template #body="slotProps">
                         <span v-if="slotProps.data.total_cost !== undefined">
-                            {{ slotProps.data.total_cost }} {{ slotProps.data.billing_currency }}
+                            {{ truncate3dp(slotProps.data.total_cost) }} {{ slotProps.data.billing_currency }}
                         </span>
                         <span v-else>
                             N/A
@@ -92,6 +95,8 @@ const { state: resourceCharges } = useAsyncState(async () => {
 }, []);
 
 const CHART_COLOR_NAMES = ['cyan', 'orange', 'gray', 'green', 'purple', 'red', 'blue', 'teal', 'yellow', 'pink', 'indigo', 'lime'];
+
+const truncate3dp = (value: number) => (Math.trunc(value * 1000) / 1000).toFixed(3);
 
 const formatLabel = (value: string) => value.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 

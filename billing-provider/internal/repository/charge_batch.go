@@ -11,6 +11,8 @@ type ChargeBatchRepository interface {
 	Create(ctx context.Context, batch *db.ChargeBatch) error
 	Get(ctx context.Context, id string) (*db.ChargeBatch, error)
 	GetByBillingAccountAndTimeRange(ctx context.Context, billingAccountID string, from, to time.Time) ([]db.ChargeBatch, error)
+	// GetByBillingAccountAndPeriod paginates a billing period's batches, oldest first.
+	GetByBillingAccountAndPeriod(ctx context.Context, billingAccountID, billingPeriodID string, limit, offset int) ([]db.ChargeBatch, error)
 	// GetUnassociatedByBillingAccount returns batches not yet attributed to a billing period, oldest first.
 	GetUnassociatedByBillingAccount(ctx context.Context, billingAccountID string) ([]db.ChargeBatch, error)
 	AssociateWithPeriod(ctx context.Context, batchIDs []string, billingPeriodID string) error
@@ -39,6 +41,17 @@ func (r *chargeBatchRepo) Get(ctx context.Context, id string) (*db.ChargeBatch, 
 func (r *chargeBatchRepo) GetByBillingAccountAndTimeRange(ctx context.Context, billingAccountID string, from, to time.Time) ([]db.ChargeBatch, error) {
 	var batches []db.ChargeBatch
 	err := r.db.WithContext(ctx).Where("billing_account_id = ? AND created_at >= ? AND created_at <= ?", billingAccountID, from, to).Find(&batches).Error
+	return batches, err
+}
+
+func (r *chargeBatchRepo) GetByBillingAccountAndPeriod(ctx context.Context, billingAccountID, billingPeriodID string, limit, offset int) ([]db.ChargeBatch, error) {
+	var batches []db.ChargeBatch
+	err := r.db.WithContext(ctx).
+		Where("billing_account_id = ? AND billing_period_id = ?", billingAccountID, billingPeriodID).
+		Order("created_at ASC").
+		Limit(limit).
+		Offset(offset).
+		Find(&batches).Error
 	return batches, err
 }
 

@@ -15,6 +15,7 @@ type Repos struct {
 	CloudServiceProviderChargeBatch CloudServiceProviderChargeBatchRepository
 	CloudServiceProviderFocusRecord CloudServiceProviderFocusRecordRepository
 	ChargeBatchReconciliation       ChargeBatchReconciliationRepository
+	Invoice                         InvoiceRepository
 }
 
 func New(config *config.Config, database *db.DB) *Repos {
@@ -28,5 +29,6 @@ func New(config *config.Config, database *db.DB) *Repos {
 		CloudServiceProviderChargeBatch: newCloudServiceProviderChargeBatchRepo(database),
 		CloudServiceProviderFocusRecord: newCloudServiceProviderFocusRecordRepo(database),
 		ChargeBatchReconciliation:       newChargeBatchReconciliationRepo(database),
+		Invoice:                         newInvoiceRepo(database),
 	}
 }

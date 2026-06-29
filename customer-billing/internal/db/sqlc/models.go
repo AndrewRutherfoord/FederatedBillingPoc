@@ -132,3 +132,23 @@ type CloudServiceProviderFocusRecord struct {
 	SubAccountType                     sql.NullString
 	Tags                               sql.NullString
 }
+
+type Invoice struct {
+	ID               string
+	BillingAccountID string
+	BillingPeriodID  string
+	Amount           float64
+	Currency         string
+	Status           string
+	IssuedAt         time.Time
+	DueAt            time.Time
+}
+
+type InvoiceProviderLineItem struct {
+	ID                     string
+	InvoiceID              string
+	CloudServiceProviderID string
+	Amount                 float64
+	MerkleRoot             string
+	BatchCount             int64
+}

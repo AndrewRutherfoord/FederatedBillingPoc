@@ -54,10 +54,14 @@ func (j *FetchBillingProviderRecordsJob) fetchBillingAccountRecords(ctx context.
 		if latestBatch != nil && batch.BatchID == latestBatch.ID {
 			continue
 		}
+		billingPeriodID := ""
+		if batch.BillingPeriodID != nil {
+			billingPeriodID = *batch.BillingPeriodID
+		}
 		_, err := j.repos.BillingAccountChargeBatch.Create(ctx, repository.CreateBillingAccountChargeBatchParams{
 			ID:                     batch.BatchID,
 			BillingAccountID:       account.ID,
-			BillingPeriodID:        "", // TODO
+			BillingPeriodID:        billingPeriodID,
 			CloudServiceProviderID: batch.CloudServiceProviderID,
 			TotalItems:             int32(batch.LineItemCount),
 			TotalCost:              batch.TotalBilledCost,

@@ -15,6 +15,14 @@ LIMIT 1;
 INSERT INTO billing_account_charge_batch (id, billing_account_id, billing_period_id, cloud_service_provider_id, total_items, total_cost, billed_currency, merkle_root, batch_signature, created_at, received_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *;
 
+-- name: UpsertInvoicedBillingAccountChargeBatch :one
+-- Used when syncing an invoice's batches: inserts the batch if the regular sync job hasn't
+-- seen it yet, or just marks it invoiced if it has.
+INSERT INTO billing_account_charge_batch (id, billing_account_id, billing_period_id, cloud_service_provider_id, total_items, total_cost, billed_currency, merkle_root, batch_signature, created_at, received_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET billing_period_id = excluded.billing_period_id
+RETURNING *;
+
 -- name: ListChargeBatchesReportedByBillingProvider :many
 -- Every charge batch the billing provider reported for this billing account, with the cloud
 -- service provider's own report of the same batch ID alongside it (nullable, since the CSP

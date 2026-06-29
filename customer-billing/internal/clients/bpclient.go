@@ -16,6 +16,7 @@ type BillingProviderClient interface {
 	RegisterBillingAccount(returnURL string) (billingprovidermodels.RegisterBillingAccountResponse, error)
 	GetBillingAccountRecords(billingAccountID string, from time.Time, to time.Time) ([]sharedmodels.ChargeBatch, error)
 	GetInvoices(billingAccountID string) ([]billingprovidermodels.Invoice, error)
+	GetBillingPeriodBatches(billingAccountID string, billingPeriodID string, limit int, offset int) ([]sharedmodels.ChargeBatch, error)
 }
 
 type billingProviderClient struct {
@@ -77,4 +78,17 @@ func (c *billingProviderClient) GetInvoices(billingAccountID string) ([]billingp
 		return nil, fmt.Errorf("failed to fetch invoices: %w", err)
 	}
 	return response.Invoices, nil
+}
+
+func (c *billingProviderClient) GetBillingPeriodBatches(billingAccountID string, billingPeriodID string, limit int, offset int) ([]sharedmodels.ChargeBatch, error) {
+	path := fmt.Sprintf("/billing/accounts/charge-batches?billing_period_id=%s&limit=%d&offset=%d",
+		url.QueryEscape(billingPeriodID), limit, offset,
+	)
+
+	var response billingprovidermodels.GetBillingAccountRecordsResponse
+	err := c.FetchJSONWithAuth(path, billingAccountID, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch billing period batches: %w", err)
+	}
+	return response.Batches, nil
 }

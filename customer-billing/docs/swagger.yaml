@@ -389,7 +389,8 @@ paths:
       - billing
   /billing/accounts/{id}/invoices:
     get:
-      description: Fetches the billing account's invoices live from its billing provider.
+      description: Lists invoices synced locally from the billing account's billing
+        provider.
       parameters:
       - description: Billing account ID
         in: path
@@ -405,12 +406,6 @@ paths:
             items:
               $ref: '#/definitions/handlers.InvoiceEntry'
             type: array
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:

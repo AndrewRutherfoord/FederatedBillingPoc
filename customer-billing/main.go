@@ -82,6 +82,10 @@ func main() {
 			scheduler.NewFetchCloudServiceProviderMeteringRecordsJob("fetch-cloud-service-provider-metering-records", repos, config, clock),
 			"30 0 * * * *", // Every hour at :30 seconds
 		),
+		sharedscheduler.NewJobToRegister(
+			scheduler.NewFetchInvoicesJob("fetch-invoices", repos, clock),
+			"45 0 * * * *", // Every hour at :45 seconds
+		),
 	})
 
 	r := gin.Default()

@@ -365,7 +365,7 @@ const docTemplate = `{
         },
         "/billing/accounts/{id}/invoices": {
             "get": {
-                "description": "Fetches the billing account's invoices live from its billing provider.",
+                "description": "Lists invoices synced locally from the billing account's billing provider.",
                 "produces": [
                     "application/json"
                 ],
@@ -389,15 +389,6 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/handlers.InvoiceEntry"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
                             }
                         }
                     },

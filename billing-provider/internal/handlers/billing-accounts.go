@@ -99,8 +99,17 @@ func (s *Server) OnboardSubmit(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, u.String())
 }
 
+type chargeBatchQuery struct {
+	models.TimeRangeQuery
+	BillingPeriodID string `form:"billing_period_id"`
+	Limit           int    `form:"limit"`
+	Offset          int    `form:"offset"`
+}
+
+const defaultChargeBatchPageSize = 100
+
 func (s *Server) GetChargeBatchRecords(c *gin.Context) {
-	var query models.TimeRangeQuery
+	var query chargeBatchQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -108,7 +117,17 @@ func (s *Server) GetChargeBatchRecords(c *gin.Context) {
 
 	account := middleware.BillingAccountFromContext(c)
 
-	batches, err := s.repos.ChargeBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), account.ID, query.From, query.To)
+	var batches []db.ChargeBatch
+	var err error
+	if query.BillingPeriodID != "" {
+		limit := query.Limit
+		if limit <= 0 {
+			limit = defaultChargeBatchPageSize
+		}
+		batches, err = s.repos.ChargeBatch.GetByBillingAccountAndPeriod(c.Request.Context(), account.ID, query.BillingPeriodID, limit, query.Offset)
+	} else {
+		batches, err = s.repos.ChargeBatch.GetByBillingAccountAndTimeRange(c.Request.Context(), account.ID, query.From, query.To)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch billing records"})
 		return
@@ -129,6 +148,7 @@ func (s *Server) GetChargeBatchRecords(c *gin.Context) {
 			MerkleRoot:      batch.MerkleRoot,
 			BatchSignature:  batch.BatchSignature,
 			CreatedAt:       batch.CreatedAt,
+			BillingPeriodID: batch.BillingPeriodID,
 		})
 	}
 

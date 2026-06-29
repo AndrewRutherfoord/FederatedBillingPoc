@@ -299,3 +299,57 @@ func (q *Queries) ListChargeBatchesReportedByBillingProvider(ctx context.Context
 	}
 	return items, nil
 }
+
+const upsertInvoicedBillingAccountChargeBatch = `-- name: UpsertInvoicedBillingAccountChargeBatch :one
+INSERT INTO billing_account_charge_batch (id, billing_account_id, billing_period_id, cloud_service_provider_id, total_items, total_cost, billed_currency, merkle_root, batch_signature, created_at, received_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET billing_period_id = excluded.billing_period_id
+RETURNING id, billing_account_id, billing_period_id, cloud_service_provider_id, total_items, total_cost, billed_currency, merkle_root, batch_signature, created_at, received_at
+`
+
+type UpsertInvoicedBillingAccountChargeBatchParams struct {
+	ID                     string
+	BillingAccountID       string
+	BillingPeriodID        string
+	CloudServiceProviderID string
+	TotalItems             int64
+	TotalCost              float64
+	BilledCurrency         string
+	MerkleRoot             string
+	BatchSignature         string
+	CreatedAt              time.Time
+	ReceivedAt             time.Time
+}
+
+// Used when syncing an invoice's batches: inserts the batch if the regular sync job hasn't
+// seen it yet, or just marks it invoiced if it has.
+func (q *Queries) UpsertInvoicedBillingAccountChargeBatch(ctx context.Context, arg UpsertInvoicedBillingAccountChargeBatchParams) (BillingAccountChargeBatch, error) {
+	row := q.db.QueryRowContext(ctx, upsertInvoicedBillingAccountChargeBatch,
+		arg.ID,
+		arg.BillingAccountID,
+		arg.BillingPeriodID,
+		arg.CloudServiceProviderID,
+		arg.TotalItems,
+		arg.TotalCost,
+		arg.BilledCurrency,
+		arg.MerkleRoot,
+		arg.BatchSignature,
+		arg.CreatedAt,
+		arg.ReceivedAt,
+	)
+	var i BillingAccountChargeBatch
+	err := row.Scan(
+		&i.ID,
+		&i.BillingAccountID,
+		&i.BillingPeriodID,
+		&i.CloudServiceProviderID,
+		&i.TotalItems,
+		&i.TotalCost,
+		&i.BilledCurrency,
+		&i.MerkleRoot,
+		&i.BatchSignature,
+		&i.CreatedAt,
+		&i.ReceivedAt,
+	)
+	return i, err
+}

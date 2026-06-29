@@ -152,6 +152,7 @@ const indexHTML = `<!DOCTYPE html>
     <button onclick="advance('30m')">+30 min</button>
     <button onclick="advance('60m')">+60 min</button>
     <button onclick="advance('90m')">+90 min</button>
+    <button onclick="advance('24h')">+24 hours</button>
   </div>
 
 <script>
@@ -159,7 +160,8 @@ const indexHTML = `<!DOCTYPE html>
 
   function render(isoString) {
     const d = new Date(isoString);
-    clock.textContent = d.toLocaleString();
+    const weekday = d.toLocaleDateString(undefined, { weekday: 'long' });
+    clock.textContent = weekday + ', ' + d.toLocaleString();
   }
 
   function advance(duration) {
