@@ -18,7 +18,7 @@
             <Column header="Total Cost">
                 <template #body="slotProps">
                     <span v-if="slotProps.data.total_cost !== undefined">
-                        {{ slotProps.data.total_cost }} {{ slotProps.data.billing_currency }}
+                        {{ truncate3dp(slotProps.data.total_cost) }} {{ slotProps.data.billing_currency }}
                     </span>
                     <span v-else>
                         N/A
@@ -43,6 +43,7 @@ import { computed, ref } from 'vue';
 import { DataTable, Column, Dialog } from 'primevue';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
+import { truncate3dp } from '@/utils/number';
 import { Form } from 'vee-validate';
 import SelectField from '@/components/form/SelectField.vue';
 

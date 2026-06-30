@@ -17,17 +17,19 @@
                     <span>{{ data.resource_name ?? data.resource_id ?? 'Unattributed' }}</span>
                 </template>
             </Column>
-            <Column field="resource_type" header="Resource Type"></Column>
-            <Column field="service_name" header="Service"></Column>
-            <Column field="service_category" header="Service Category"></Column>
             <Column header="Cloud Provider">
                 <template #body="{ data }">
-                    {{ data.cloud_service_provider_id }}
+                    <span class="font-bold">
+                    {{ titleCase(data.cloud_service_provider_id ?? '') }}
+                    </span>
                 </template>
             </Column>
+            <!-- <Column field="resource_type" header="Resource Type"></Column> -->
+            <Column field="service_name" header="Service"></Column>
+            <Column field="service_category" header="Service Category"></Column>
             <Column header="Total Billed Cost">
                 <template #body="{ data }">
-                    {{ data.total_billed_cost }} {{ data.billing_currency }}
+                    {{ truncate3dp(data.total_billed_cost) }} {{ data.billing_currency }}
                 </template>
             </Column>
             <Column field="line_item_count" header="Line Items"></Column>
@@ -39,6 +41,8 @@
 import { DataTable, Column } from 'primevue';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
+import { truncate3dp } from '@/utils/number';
+import { titleCase } from '@/utils/string';
 
 const props = defineProps<{
     id: string

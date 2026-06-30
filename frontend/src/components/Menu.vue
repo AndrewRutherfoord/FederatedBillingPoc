@@ -34,11 +34,6 @@ const items = ref([
         icon: 'pi pi-credit-card',
         route: 'ManageAccounts'
     },
-    {
-        label: 'About',
-        icon: 'pi pi-info-circle',
-        route: 'About'
-    },
 ]);
 
 </script>

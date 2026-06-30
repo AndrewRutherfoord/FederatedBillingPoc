@@ -27,7 +27,7 @@
                 <template #body="{ data }">
                     <span v-if="data.billing_provider_report">
                         {{ data.billing_provider_report.total_items }} items,
-                        {{ data.billing_provider_report.total_cost }}
+                        {{ truncate3dp(data.billing_provider_report.total_cost) }}
                         {{ data.billing_provider_report.billed_currency }}
                     </span>
                     <span v-else class="text-gray-400">Not reported</span>
@@ -37,7 +37,7 @@
                 <template #body="{ data }">
                     <span v-if="data.cloud_provider_report">
                         {{ data.cloud_provider_report.total_items }} items,
-                        {{ data.cloud_provider_report.total_cost }}
+                        {{ truncate3dp(data.cloud_provider_report.total_cost) }}
                         {{ data.cloud_provider_report.billed_currency }}
                     </span>
                     <span v-else class="text-gray-400">Not reported</span>
@@ -56,6 +56,7 @@
 import { DataTable, Column, Tag } from 'primevue';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
+import { truncate3dp } from '@/utils/number';
 
 const props = defineProps<{
     id: string

@@ -66,6 +66,8 @@ import Chart from 'primevue/chart';
 import { useAsyncState } from '@vueuse/core';
 import client from '@/api/client';
 import type { components } from '@/api/api-schema';
+import { truncate3dp } from '@/utils/number';
+import { titleCase } from '@/utils/string';
 
 type ResourceCharge = components['schemas']['handlers.ResourceChargeEntry'];
 
@@ -95,10 +97,6 @@ const { state: resourceCharges } = useAsyncState(async () => {
 }, []);
 
 const CHART_COLOR_NAMES = ['cyan', 'orange', 'gray', 'green', 'purple', 'red', 'blue', 'teal', 'yellow', 'pink', 'indigo', 'lime'];
-
-const truncate3dp = (value: number) => (Math.trunc(value * 1000) / 1000).toFixed(3);
-
-const formatLabel = (value: string) => value.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
 const aggregateCost = (charges: ResourceCharge[], keyOf: (charge: ResourceCharge) => string) => {
     const totals = new Map<string, number>();
@@ -141,7 +139,7 @@ const cspChartData = computed(() => {
 
 const categoryChartData = computed(() => {
     const totals = aggregateCost(resourceCharges.value ?? [], (c) => c.service_category ?? 'other');
-    return buildPieData(totals, formatLabel);
+    return buildPieData(totals, titleCase);
 });
 
 const chartOptions = computed(() => {

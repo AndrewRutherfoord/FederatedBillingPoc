@@ -1,12 +1,12 @@
 # Mock CSP #2 — Resource Registry & Pricing Catalogue
 # FOCUS 1.3 ServiceCategory / ServiceSubcategory taxonomy throughout.
-# Prices are illustrative (USD). Run alongside config.yaml (mock-csp-1) to
+# Prices are illustrative (EUR). Run alongside config.yaml (mock-csp-1) to
 # demonstrate the system handling multiple CSPs.
 
-provider_id: "mock-csp-2"
-provider_name: "MockCloud US-East"
+provider_id: "imaginary-cloud"
+provider_name: "Imaginary Cloud"
 customer_api_endpoint_url: "http://localhost:8090"
-currency: "USD"
+currency: "EUR"
 region_id: "us-east-1"
 region_name: "US East (N. Virginia)"
 availability_zone: "us-east-1a"
@@ -21,7 +21,7 @@ resource_types:
     service_name: "Compute"
     service_category: "Compute"
     service_subcategory: "Virtual Machines"
-    sku_id: "MC2-VM-S"
+    sku_id: "IC-VM-S"
     billing_unit: "Hours"
     pricing:
       model: "per_hour"
@@ -38,7 +38,7 @@ resource_types:
     service_name: "Compute"
     service_category: "Compute"
     service_subcategory: "Virtual Machines"
-    sku_id: "MC2-VM-M"
+    sku_id: "IC-VM-M"
     billing_unit: "Hours"
     pricing:
       model: "per_hour"
@@ -55,7 +55,7 @@ resource_types:
     service_name: "Object Storage"
     service_category: "Storage"
     service_subcategory: "Object Storage"
-    sku_id: "MC2-OBJ-STD"
+    sku_id: "IC-OBJ-STD"
     billing_unit: "GB-Hours"
     pricing:
       model: "per_gb_hour"
@@ -71,7 +71,7 @@ resource_types:
     service_name: "Managed Database"
     service_category: "Databases"
     service_subcategory: "Relational Databases"
-    sku_id: "MC2-RDB-S"
+    sku_id: "IC-RDB-S"
     billing_unit: "Hours"
     pricing:
       model: "per_hour"
