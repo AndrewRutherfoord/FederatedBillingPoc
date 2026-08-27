@@ -8,47 +8,9 @@ Usage data is exchanged as [FinOps FOCUS 1.3](https://focus.finops.org/focus-spe
 
 This is the same C4 container diagram used in the thesis, updated with the extra pieces the PoC actually has: the Billing Provider split into its two real APIs, and a "Billing Control Plane" boundary made up of the customer-billing service and the frontend that sits on top of it.
 
-```plantuml
-@startuml
-!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+![C4 container diagram](./docs/system.svg)
 
-title Federated Billing PoC - System Diagram
-
-Person(customer, "Customer", "Uses the frontend to onboard CSP accounts, link them to a billing provider, and view usage and invoices.")
-
-System_Boundary(cspBoundary, "Cloud Service Provider (x2 in this PoC)") {
-    System(cspCustomerApi, "CSP Customer API", "Resource catalogue, provisioning, and billing account onboarding.")
-    System(cspBillingAdapter, "CSP Billing Adapter", "Meters usage, builds FOCUS line items, and batches them with a Merkle root for integrity.")
-
-    Rel(cspCustomerApi, cspBillingAdapter, "Metered resource usage")
-}
-
-System_Boundary(bpBoundary, "Billing Provider") {
-    System(bpCspApi, "Billing Provider - CSP API", "Pulls charge batches from each CSP over mTLS and verifies their Merkle roots.")
-    System(bpCustomerApi, "Billing Provider - Customer API", "Pricing, aggregation, invoicing, and credit, using verified charge batches.")
-
-    Rel(bpCspApi, bpCustomerApi, "Verified charge batches")
-}
-
-System_Boundary(bcpBoundary, "Billing Control Plane") {
-    System(customerBilling, "Customer Billing", "Collects and correlates usage and billing data from CSPs and the billing provider for unified visibility.")
-    System(frontend, "Frontend", "Vue SPA for onboarding, and browsing charge batches, resource charges, and invoices.")
-
-    Rel(frontend, customerBilling, "Reads usage, batches, and invoices")
-}
-
-Rel(customer, cspCustomerApi, "Provisions resources, onboards billing account")
-Rel(customer, frontend, "Views analytics & insights, controls data sharing scope")
-
-Rel(bpCspApi, cspBillingAdapter, "Retrieves charge batches (FOCUS, hash & Merkle root)", "mTLS")
-Rel(customerBilling, cspBillingAdapter, "Retrieves usage & cost data for cross-verification (hash & Merkle root)")
-Rel(customerBilling, bpCustomerApi, "Retrieves invoices and charge batches")
-
-SHOW_LEGEND()
-@enduml
-```
-
-The mock clock (time-server) is left out of the diagram since it is a testing utility rather than a conceptual part of the architecture.
+The mock clock (time-server) is left out of the diagram since it is used for testing.
 
 - **csp-mock** - a mock CSP. Meters simulated resource usage, exposes a customer-facing API and a billing-provider-facing API (mTLS). Two instances run side by side to demonstrate multi-CSP support.
 - **billing-provider** - sits between CSPs and the customer-facing billing service. Pulls charge batches from each CSP over mTLS, verifies them, and exposes its own customer-facing API.
